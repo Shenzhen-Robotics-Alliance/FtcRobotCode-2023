@@ -2,11 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -31,22 +29,22 @@ import org.firstinspires.ftc.teamcode.roboseed_testcar.HardwareRobot;
  * to supercharge your code. This can be much cleaner by abstracting many of these things. This
  * opmode only serves as an initial starting point.
  */
-@TeleOp(name = "种萝卜_正式_手动_20230113_V1")
+@TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 //@Disabled //updated with some functions to all mode, intake
 public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
     HardwareRobot hr = new HardwareRobot();
     //Key Delay settings
     private ElapsedTime keyDelay = new ElapsedTime();
-    double upspeed = 0.6;
-    double downspeed = 0.4;
+    double upspeed = 0.6; // speed when raising the arm
+    double downspeed = 0.4; // speed when lowering the arm
 
 
-    int highpos = 700;
-    int midpos = 450;
-    int lowpos = 280;
-    int groundpos = 60;
+    int highpos = 700; // highest position of the arm
+    int midpos = 450; // midpoint position of the arm
+    int lowpos = 280; // position of the arm when grabing stuff
+    int groundpos = 60; // lowest position of the arm
 
-    boolean isSlowMove = false;
+    boolean slowMotionActivated = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -162,7 +160,7 @@ public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
 
             double forward = -gamepad1.left_stick_y;
             // note here is the FTC field axis, and moreover, take the opposite number to charge the car
-            double translation = gamepad1.left_stick_x;
+            double rotation = gamepad1.left_stick_x;
             double turn = gamepad1.right_stick_x;
 
             if (Math.abs(forward) < 0.05) {
@@ -171,28 +169,28 @@ public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
             if (Math.abs(turn) < 0.05) {
                 turn = 0;
             }
-            if (Math.abs(translation) < 0.05) {
-                translation = 0;
+            if (Math.abs(rotation) < 0.05) {
+                rotation = 0;
             }
             forward = Math.signum(forward) * forward * forward;
-            translation = Math.signum(translation) * translation * translation;
+            rotation = Math.signum(rotation) * rotation * rotation;
             turn = Math.signum(turn) * turn * turn;
 
             forward = Range.clip(forward, -1, 1);
-            translation = Range.clip(translation, -1, 1);
+            rotation = Range.clip(rotation, -1, 1);
             turn = Range.clip(turn, -1, 1);
 
 
-            if (isSlowMove) {
+            if (slowMotionActivated) {
                 forward *= 0.4;
-                translation *= 0.4;
+                rotation *= 0.4;
                 turn *= 0.25;
             }
             double[] speed = {
-                    forward + turn + translation,
-                    forward + turn - translation,
-                    forward - turn - translation,
-                    forward - turn + translation
+                    forward + turn + rotation,
+                    forward + turn - rotation,
+                    forward - turn - rotation,
+                    forward - turn + rotation
             };
 
             hr.leftFront.setPower(speed[0]);
@@ -200,8 +198,8 @@ public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
             hr.rightFront.setPower(speed[2]);
             hr.rightRear.setPower(speed[3]);
 
-            if (gamepad1.dpad_down && keyDelay.seconds() > 0.3) {//debug switch
-                isSlowMove = !isSlowMove;
+            if (gamepad1.dpad_down && keyDelay.seconds() > 0.3) { // when slow motion button is pressed, and havn't been pressed in the last .3 seconds
+                slowMotionActivated = !slowMotionActivated; // activate/deactivate slow motion
                 keyDelay.reset();
             }
             telemetry.update();
