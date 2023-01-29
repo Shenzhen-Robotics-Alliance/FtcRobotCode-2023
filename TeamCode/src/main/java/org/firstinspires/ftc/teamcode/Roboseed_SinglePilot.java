@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.roboseed_testcar.HardwareRobot;
+import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 
 /**
  * This opmode explains how you follow multiple trajectories in succession, asynchronously. This
@@ -31,8 +31,8 @@ import org.firstinspires.ftc.teamcode.roboseed_testcar.HardwareRobot;
  */
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 //@Disabled //updated with some functions to all mode, intake
-public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
-    HardwareRobot hr = new HardwareRobot();
+public class Roboseed_SinglePilot extends LinearOpMode {
+    HardwareDriver hr = new HardwareDriver();
     //Key Delay settings
     private ElapsedTime keyDelay = new ElapsedTime();
     double upspeed = 0.6; // speed when raising the arm
@@ -44,10 +44,11 @@ public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
     int lowpos = 280; // position of the arm when grabing stuff
     int groundpos = 60; // lowest position of the arm
 
-    boolean slowMotionActivated = false;
+    boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // config motors
 
         hr.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
         hr.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
@@ -69,7 +70,7 @@ public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
 
         hr.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        telemetry.update();
+        telemetry.update(); // update the debug console
 
         waitForStart();
 
@@ -81,7 +82,8 @@ public class TeleOpLinear_Roboseed_V2 extends LinearOpMode {
         // Otherwise it will be blocking and pause the program here until the trajectory finishes
 //        currentState = State.TRAJECTORY_1;
 //        drive.followTrajectoryAsync(trajectory1);
-        while (opModeIsActive() && !isStopRequested()) {
+
+        while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
 
 

@@ -27,9 +27,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.roboseed_testcar;
+package org.firstinspires.ftc.teamcode.Robot;
 
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -52,7 +51,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Servo channel:  Servo to open left claw:  "left_hand"
  * Servo channel:  Servo to open right claw: "right_hand"
  */
-public class HardwareRobot
+public class HardwareDriver
 {
     /* Public OpMode members. */
     //motor
@@ -74,7 +73,7 @@ public class HardwareRobot
     HardwareMap hwMap           =  null;
 
     /* Constructor */
-    public HardwareRobot(){
+    public HardwareDriver(){
     }
 
     /* Initialize standard Hardware interfaces */
