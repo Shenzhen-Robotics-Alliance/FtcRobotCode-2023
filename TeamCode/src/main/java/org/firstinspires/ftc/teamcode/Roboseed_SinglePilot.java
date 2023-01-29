@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Robot.RobotController;
 
 /**
  * This opmode explains how you follow multiple trajectories in succession, asynchronously. This
@@ -33,16 +34,13 @@ import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 //@Disabled //updated with some functions to all mode, intake
 public class Roboseed_SinglePilot extends LinearOpMode {
     HardwareDriver hr = new HardwareDriver();
+    RobotController robotController = new RobotController(hr, telemetry);
+
     //Key Delay settings
-    private ElapsedTime keyDelay = new ElapsedTime();
+    private ElapsedTime PreviousModeActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
+    private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the elasped after the last time the arm is elevated
     double upspeed = 0.6; // speed when raising the arm
     double downspeed = 0.4; // speed when lowering the arm
-
-
-    int highpos = 700; // highest position of the arm
-    int midpos = 450; // midpoint position of the arm
-    int lowpos = 280; // position of the arm when grabing stuff
-    int groundpos = 60; // lowest position of the arm
 
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
@@ -107,57 +105,28 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
             //global claw
             if (gamepad1.right_bumper) {
-                hr.claw.setPosition(0.35);//open
+                hr.claw.setPosition(0.35); //open grabber
             }
             if (gamepad1.left_bumper) {
-                hr.claw.setPosition(0.61);//close
+                hr.claw.setPosition(0.61); //close grabber
             }
 
             if (gamepad1.y) {
-                hr.lift_left.setTargetPosition(highpos);
-                hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_left.setPower(upspeed);
-                hr.lift_right.setTargetPosition(highpos);
-                hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_right.setPower(upspeed);
-                telemetry.addData("going to toppos", highpos);
+                robotController.toHighArmPosition();
             }
             if (gamepad1.x) {
-                hr.lift_left.setTargetPosition(midpos);
-                hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_left.setPower(upspeed);
-                hr.lift_right.setTargetPosition(midpos);
-                hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_right.setPower(upspeed);
-                telemetry.addData("going to midpos", midpos);
+                robotController.toMidArmPosition();
             }
             if (gamepad1.b) {
-                hr.lift_left.setTargetPosition(lowpos);
-                hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_left.setPower(upspeed);
-                hr.lift_right.setTargetPosition(lowpos);
-                hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_right.setPower(upspeed);
-                telemetry.addData("going to lowpos", lowpos);
+                robotController.toLowArmPosition();
             }
             if (gamepad1.a) {
-                hr.lift_left.setTargetPosition(groundpos);
-                hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_left.setPower(downspeed);
-                hr.lift_right.setTargetPosition(groundpos);
-                hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_right.setPower(downspeed);
-                telemetry.addData("going to lowpos", lowpos);
+                robotController.toGroundArmPosition();
             }
             telemetry.addData("going to pos", 0);
             if (gamepad1.right_trigger>0) {
-                hr.lift_left.setTargetPosition(0);
-                hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_left.setPower(downspeed);
-                hr.lift_right.setTargetPosition(0);
-                hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                hr.lift_right.setPower(downspeed);
-                telemetry.addData("going to lowpos", lowpos);
+                robotController.toLowArmPosition();
+                robotController.closeClaw();
             }
 
             double forward = -gamepad1.left_stick_y;
@@ -200,9 +169,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             hr.rightFront.setPower(speed[2]);
             hr.rightRear.setPower(speed[3]);
 
-            if (gamepad1.dpad_down && keyDelay.seconds() > 0.3) { // when slow motion button is pressed, and havn't been pressed in the last .3 seconds
-                slowMotionActivated = !slowMotionActivated; // activate/deactivate slow motion
-                keyDelay.reset();
+            if (gamepad1.dpad_down && PreviousModeActivation.seconds() > 0.3) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
+                robotController.switchMode(); // switch control
+                PreviousModeActivation.reset();
             }
             telemetry.update();
         }
