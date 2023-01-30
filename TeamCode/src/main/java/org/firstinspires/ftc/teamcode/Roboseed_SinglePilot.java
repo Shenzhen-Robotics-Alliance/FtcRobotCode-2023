@@ -143,14 +143,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
             } else if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .2) {
+                System.out.println("LA");
                 controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
             }
 
             if (PreviousElevatorActivation.seconds() > 3) {
-                controllingMethods.toLowArmPosition();
-                controllingMethods.toGroundArmPosition();
-
+                controllingMethods.deactivateArm();
             }
 
             telemetry.update();
