@@ -88,5 +88,7 @@ public class ControllingMethods {
         hr.lift_right.setTargetPosition(position);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setPower(position);
+
+        while (hr.lift_left.getCurrentPosition() != position | hr.lift_right.getCurrentPosition() != position) Thread.yield(); // wait until the movement is finished
     }
 }
