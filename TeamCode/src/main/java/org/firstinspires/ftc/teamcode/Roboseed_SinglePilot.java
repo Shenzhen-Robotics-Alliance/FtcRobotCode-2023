@@ -38,7 +38,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
     //Key Delay settings
     private ElapsedTime PreviousModeButtonActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
-    private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the elasped after the last time the arm is elevated
+    private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
+    private ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
     double upspeed = 0.6; // speed when raising the arm
     double downspeed = 0.4; // speed when lowering the arm
 
@@ -106,8 +107,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             //global key action in all mode
 
             //global claw
-            if (gamepad1.right_bumper) {
+            if (gamepad1.right_bumper & PreviousClawActivation.seconds() > 0.2) {
                 robotController.open_closeClaw();
+                PreviousClawActivation.reset();
             }
 
             if (gamepad1.y) {
@@ -130,10 +132,10 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 robotController.toMidArmPosition();
             }
 
-            if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > 0.5) { // the elevator cannot be immediately activated until 0.5 seconds after the last activation
+            if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
                 robotController.raiseArm();
                 PreviousElevatorActivation.reset();
-            } else if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > 0.5) {
+            } else if (gamepad1.right_stick_y < 0.5 & PreviousElevatorActivation.seconds() > .2) {
                 robotController.lowerArm();
                 PreviousElevatorActivation.reset();
             }
