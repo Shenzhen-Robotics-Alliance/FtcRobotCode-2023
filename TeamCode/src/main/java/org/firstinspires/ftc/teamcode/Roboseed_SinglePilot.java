@@ -89,7 +89,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 //        drive.followTrajectoryAsync(trajectory1);
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
-            System.out.println("main loop running");
             telemetry.addData("This is the loop", "------------------------------");
 
 
@@ -139,11 +138,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 controllingMethods.toMidArmPosition();
             }
 
-            System.out.println(gamepad1.right_stick_y);
             if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
+                System.out.println("RA");
                 controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
-            } else if (gamepad1.right_stick_y < 0.5 & PreviousElevatorActivation.seconds() > .2) {
+            } else if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .2) {
                 controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
             }
