@@ -16,10 +16,10 @@ public class RobotController {
 
     private short arm;
 
-    private final int highpos = 700; // highest position of the arm
-    private final int midpos = 450; // midpoint position of the arm
-    private final int lowpos = 280; // position of the arm when grabbing stuff
-    private final int gndpos = 60; // lowest position of the arm
+    private final int highPos = 700; // highest position of the arm
+    private final int midPos = 450; // midpoint position of the arm
+    private final int lowPos = 280; // position of the arm when grabbing stuff
+    private final int gndPos = 60; // lowest position of the arm
 
     public RobotController (HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
@@ -42,34 +42,33 @@ public class RobotController {
 
     public void raiseArm() {
         switch (arm) {
-            case 0: toMidArmPosition(); break;
-            case 1: toMidArmPosition(); break;
+            case 0: case 1:toMidArmPosition(); break;
             case 2: toHighArmPosition(); break;
         }
     }
 
     public void toHighArmPosition() {
-        elevateArm(highpos);
+        elevateArm(highPos);
         arm = 3;
-        telemetry.addData("going to top_pos", highpos);
+        telemetry.addData("going to top_pos", highPos);
     }
 
     public void toMidArmPosition() {
-        elevateArm(highpos);
+        elevateArm(midPos);
         arm = 2;
-        telemetry.addData("going to mid_pos", midpos);
+        telemetry.addData("going to mid_pos", midPos);
     }
 
     public void toLowArmPosition() {
-        elevateArm(highpos);
+        elevateArm(lowPos);
         arm = 1;
-        telemetry.addData("going to low_pos", lowpos);
+        telemetry.addData("going to low_pos", lowPos);
     }
 
     public void toGroundArmPosition() {
-        elevateArm(highpos);
+        elevateArm(gndPos);
         arm = 0;
-        telemetry.addData("going to gnd_pos", gndpos);
+        telemetry.addData("going to gnd_pos", gndPos);
     }
 
     public void open_closeClaw() {

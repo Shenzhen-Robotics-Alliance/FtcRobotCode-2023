@@ -34,7 +34,7 @@ import org.firstinspires.ftc.teamcode.Robot.RobotController;
 //@Disabled //updated with some functions to all mode, intake
 public class Roboseed_SinglePilot extends LinearOpMode {
     HardwareDriver hr = new HardwareDriver();
-    RobotController robotController = new RobotController(hr, telemetry);
+    RobotController robotController;
 
     //Key Delay settings
     private ElapsedTime PreviousModeButtonActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
@@ -67,6 +67,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         hr.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
 
         hr.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        robotController = new RobotController(hr, telemetry);
 
         telemetry.update(); // update the debug console
 
