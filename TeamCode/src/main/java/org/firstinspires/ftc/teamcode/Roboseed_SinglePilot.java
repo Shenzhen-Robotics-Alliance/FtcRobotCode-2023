@@ -9,8 +9,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
-import org.firstinspires.ftc.teamcode.Robot.RobotController;
+import org.firstinspires.ftc.teamcode.Robot.ControllingMethods;
 
 /**
  * This opmode explains how you follow multiple trajectories in succession, asynchronously. This
@@ -33,41 +34,47 @@ import org.firstinspires.ftc.teamcode.Robot.RobotController;
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 //@Disabled //updated with some functions to all mode, intake
 public class Roboseed_SinglePilot extends LinearOpMode {
-    HardwareDriver hr = new HardwareDriver();
-    RobotController robotController;
+    private HardwareDriver hardwareDriver = new HardwareDriver();
+    private ControllingMethods controllingMethods;
+    private ChassisModule chassisModule;
 
     //Key Delay settings
     private ElapsedTime PreviousModeButtonActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
     private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
     private ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
-
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
     @Override
     public void runOpMode() throws InterruptedException {
         // config motors
 
-        hr.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
-        hr.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
-        hr.rightFront = hardwareMap.get(DcMotorEx.class, "rightfront");
-        hr.rightRear = hardwareMap.get(DcMotorEx.class, "rightrear");
+        hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
+        hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
+        hardwareDriver.rightFront = hardwareMap.get(DcMotorEx.class, "rightfront");
+        hardwareDriver.rightRear = hardwareMap.get(DcMotorEx.class, "rightrear");
 
-        hr.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        hr.rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardwareDriver.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardwareDriver.rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        hr.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hr.leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hr.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hr.rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        hr.claw = hardwareMap.get(Servo.class, "tipperhopper");
+        hardwareDriver.claw = hardwareMap.get(Servo.class, "tipperhopper");
 
-        hr.lift_left = hardwareMap.get(DcMotorEx.class, "lifter");
-        hr.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
+        hardwareDriver.lift_left = hardwareMap.get(DcMotorEx.class, "lifter");
+        hardwareDriver.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
 
-        hr.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        robotController = new RobotController(hr, telemetry);
+
+        controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
+        chassisModule = new ChassisModule(gamepad1, hardwareDriver);
+
+        Thread chassisThread = new Thread(chassisModule);
+        chassisThread.start(); // start an independent thread to run chassis module
+
 
         telemetry.update(); // update the debug console
 
@@ -106,35 +113,35 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
             //global claw
             if (gamepad1.right_bumper & PreviousClawActivation.seconds() > 0.2) {
-                robotController.open_closeClaw();
+                controllingMethods.open_closeClaw();
                 PreviousClawActivation.reset();
             }
 
             if (gamepad1.y) {
-                robotController.toHighArmPosition();
+                controllingMethods.toHighArmPosition();
             }
             if (gamepad1.x) {
-                robotController.toMidArmPosition();
+                controllingMethods.toMidArmPosition();
             }
             if (gamepad1.b) {
-                robotController.toLowArmPosition();
+                controllingMethods.toLowArmPosition();
             }
             if (gamepad1.a) {
-                robotController.toGroundArmPosition();
+                controllingMethods.toGroundArmPosition();
             }
             telemetry.addData("going to pos", 0);
             if (gamepad1.right_trigger>0.2) {
-                robotController.toLowArmPosition();
+                controllingMethods.toLowArmPosition();
                 // TODO aim the target automatically using computer vision
-                robotController.closeClaw();
-                robotController.toMidArmPosition();
+                controllingMethods.closeClaw();
+                controllingMethods.toMidArmPosition();
             }
 
             if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
-                robotController.raiseArm();
+                controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
             } else if (gamepad1.right_stick_y < 0.5 & PreviousElevatorActivation.seconds() > .2) {
-                robotController.lowerArm();
+                controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
             }
 
@@ -173,15 +180,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                     forward - turn + rotation
             };
 
-            hr.leftFront.setPower(speed[0]);
-            hr.leftRear.setPower(speed[1]);
-            hr.rightFront.setPower(speed[2]);
-            hr.rightRear.setPower(speed[3]);
+            hardwareDriver.leftFront.setPower(speed[0]);
+            hardwareDriver.leftRear.setPower(speed[1]);
+            hardwareDriver.rightFront.setPower(speed[2]);
+            hardwareDriver.rightRear.setPower(speed[3]);
 
-            if (gamepad1.dpad_down && PreviousModeButtonActivation.seconds() > 0.3) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
-                robotController.switchMode(); // switch control mode
-                PreviousModeButtonActivation.reset();
-            }
             telemetry.update();
         }
     }

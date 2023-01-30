@@ -4,13 +4,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class RobotController {
+public class ControllingMethods {
 
     private HardwareDriver hr;
 
     private Telemetry telemetry;
-
-    private boolean slowMotionModeActivated = false;
 
     private boolean claw;
 
@@ -21,16 +19,12 @@ public class RobotController {
     private final int lowPos = 280; // position of the arm when grabbing stuff
     private final int gndPos = 60; // lowest position of the arm
 
-    public RobotController (HardwareDriver hr, Telemetry telemetry) {
+    public ControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
         this.telemetry = telemetry;
         this.claw = false;
         hr.claw.setPosition(0.6);
         toGroundArmPosition();
-    }
-
-    public void switchMode() {
-        slowMotionModeActivated = ! slowMotionModeActivated; // activate or deactivate slow motion
     }
 
     public void lowerArm() {
