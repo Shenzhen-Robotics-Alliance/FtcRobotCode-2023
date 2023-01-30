@@ -39,7 +39,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private ChassisModule chassisModule;
 
     //Key Delay settings
-    private ElapsedTime PreviousModeButtonActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
     private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
     private ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
@@ -90,6 +89,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 //        drive.followTrajectoryAsync(trajectory1);
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
+            System.out.println("main loop running");
             telemetry.addData("This is the loop", "------------------------------");
 
 
@@ -132,11 +132,14 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             telemetry.addData("going to pos", 0);
             if (gamepad1.right_trigger>0.2) {
                 controllingMethods.toLowArmPosition();
+                chassisThread.wait();
                 // TODO aim the target automatically using computer vision
+                chassisThread.notify();
                 controllingMethods.closeClaw();
                 controllingMethods.toMidArmPosition();
             }
 
+            System.out.println(gamepad1.right_stick_y);
             if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
                 controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
@@ -144,46 +147,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
             }
-
-            double forward = -gamepad1.left_stick_y;
-            // note here is the FTC field axis, and moreover, take the opposite number to charge the car
-            double rotation = gamepad1.left_stick_x;
-            double turn = gamepad1.right_stick_x;
-
-            if (Math.abs(forward) < 0.05) {
-                forward = 0;
-            }
-            if (Math.abs(turn) < 0.05) {
-                turn = 0;
-            }
-            if (Math.abs(rotation) < 0.05) {
-                rotation = 0;
-            }
-            forward = Math.signum(forward) * forward * forward;
-            rotation = Math.signum(rotation) * rotation * rotation;
-            turn = Math.signum(turn) * turn * turn;
-
-            forward = Range.clip(forward, -1, 1);
-            rotation = Range.clip(rotation, -1, 1);
-            turn = Range.clip(turn, -1, 1);
-
-
-            if (slowMotionActivated) {
-                forward *= 0.4;
-                rotation *= 0.4;
-                turn *= 0.25;
-            }
-            double[] speed = {
-                    forward + turn + rotation,
-                    forward + turn - rotation,
-                    forward - turn - rotation,
-                    forward - turn + rotation
-            };
-
-            hardwareDriver.leftFront.setPower(speed[0]);
-            hardwareDriver.leftRear.setPower(speed[1]);
-            hardwareDriver.rightFront.setPower(speed[2]);
-            hardwareDriver.rightRear.setPower(speed[3]);
 
             telemetry.update();
         }

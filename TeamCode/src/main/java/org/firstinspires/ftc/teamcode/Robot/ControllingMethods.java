@@ -73,11 +73,13 @@ public class ControllingMethods {
     public void openClaw() {
         claw = true;
         hr.claw.setPosition(.35); // open grabber
+        while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
     }
 
     public void closeClaw() {
         claw = false;
         hr.claw.setPosition(.61); // close grabber
+        while (Math.abs(hr.claw.getPosition() - .61) > .05) Thread.yield();
     }
 
 
@@ -89,6 +91,6 @@ public class ControllingMethods {
         hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setPower(position);
 
-        while (hr.lift_left.getCurrentPosition() != position | hr.lift_right.getCurrentPosition() != position) Thread.yield(); // wait until the movement is finished
+        while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is finished, accept any deviation below ±5
     }
 }
