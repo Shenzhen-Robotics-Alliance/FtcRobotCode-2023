@@ -128,8 +128,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 robotController.toMidArmPosition();
             }
 
-            if (gamepad1.right_stick_y > 0.5) robotController.raiseArm();
-            else if (gamepad1.right_stick_y < -0.5) robotController.lowerArm();
+            if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > 0.5) { // the elevator cannot be immediately activated until 0.5 seconds after the last activation
+                robotController.raiseArm();
+                PreviousElevatorActivation.reset();
+            } else if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > 0.5) {
+                robotController.lowerArm();
+                PreviousElevatorActivation.reset();
+            }
 
             double forward = -gamepad1.left_stick_y;
             // note here is the FTC field axis, and moreover, take the opposite number to charge the car
