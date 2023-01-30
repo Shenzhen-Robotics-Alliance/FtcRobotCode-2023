@@ -18,6 +18,8 @@ public class ControllingMethods {
     private final int midPos = 450; // midpoint position of the arm
     private final int lowPos = 280; // position of the arm when grabbing stuff
     private final int gndPos = 60; // lowest position of the arm
+    private final double armInclineSpeed = 0.6;
+    private final double armDeclineSpeed = 0.4;
 
     public ControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
@@ -88,11 +90,21 @@ public class ControllingMethods {
     private void elevateArm(int position) {
         hr.lift_left.setTargetPosition(position);
         hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hr.lift_left.setPower(position);
+        if (position > hr.lift_left.getCurrentPosition()) {
+            hr.lift_left.setPower(armInclineSpeed);
+            hr.lift_right.setPower(armInclineSpeed);
+        } else {
+            hr.lift_left.setPower(armDeclineSpeed);
+            hr.lift_right.setPower(armDeclineSpeed);
+        }
         hr.lift_right.setTargetPosition(position);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setPower(position);
 
         while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is finished, accept any deviation below ±5
+    }
+
+    public void deactivateArm() {
+        hr.lift_left.setPower(0);
     }
 }
