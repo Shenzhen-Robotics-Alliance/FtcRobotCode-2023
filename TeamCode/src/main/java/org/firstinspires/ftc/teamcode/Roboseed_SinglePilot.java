@@ -40,8 +40,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private ElapsedTime PreviousModeButtonActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
     private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
     private ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
-    double upspeed = 0.6; // speed when raising the arm
-    double downspeed = 0.4; // speed when lowering the arm
 
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
