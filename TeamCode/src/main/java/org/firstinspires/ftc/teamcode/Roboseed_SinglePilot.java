@@ -131,25 +131,25 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             telemetry.addData("going to pos", 0);
             if (gamepad1.right_trigger>0.2) {
                 controllingMethods.toLowArmPosition();
-                chassisThread.wait();
+                chassisModule.pause();
                 // TODO aim the target automatically using computer vision
-                chassisThread.notify();
+                chassisModule.resume();
                 controllingMethods.closeClaw();
                 controllingMethods.toMidArmPosition();
             }
 
-            if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
+            if (gamepad1.right_stick_y < -0.3 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
                 System.out.println("RA");
                 controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
-            } else if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .2) {
+            } else if (gamepad1.right_stick_y > 0.3 & PreviousElevatorActivation.seconds() > .2) {
                 System.out.println("LA");
                 controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
             }
 
-            if (PreviousElevatorActivation.seconds() > 3) {
-                controllingMethods.deactivateArm();
+            if (PreviousElevatorActivation.seconds() > 5) {
+                controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             }
 
             telemetry.update();

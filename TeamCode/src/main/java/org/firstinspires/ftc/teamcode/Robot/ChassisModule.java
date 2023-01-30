@@ -5,42 +5,47 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 public class ChassisModule implements Runnable { // controls the moving of the robot
-    private Gamepad gamepad;
-    private HardwareDriver driver;
+    private final Gamepad gamepad;
+    private final HardwareDriver driver;
 
     private boolean slowMotionActivationSwitch;
-    private ElapsedTime PreviousModeButtonActivation;
+    private final ElapsedTime PreviousModeButtonActivation;
+    private boolean paused;
 
     public ChassisModule(Gamepad gamepad, HardwareDriver driver) {
         this.gamepad = gamepad;
         this.driver = driver;
         this.slowMotionActivationSwitch = false;
         this.PreviousModeButtonActivation = new ElapsedTime();
+        this.paused = false;
     }
 
     @Override
     public void run() {
-        double yAxleMotion = linearMap(-gamepad.left_stick_y); // the left stick is reversed to match the vehicle
-        double xAxleMotion = linearMap(gamepad.left_stick_x);
-        double rotationalMotion = linearMap(gamepad.right_stick_x);
+        while (true) {
+            while (paused) Thread.yield();
+            double yAxleMotion = linearMap(-gamepad.left_stick_y); // the left stick is reversed to match the vehicle
+            double xAxleMotion = linearMap(gamepad.left_stick_x);
+            double rotationalMotion = linearMap(gamepad.right_stick_x);
 
-        yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
-        xAxleMotion = Math.copySign(xAxleMotion * xAxleMotion, xAxleMotion);
-        rotationalMotion = Math.copySign(rotationalMotion * rotationalMotion, rotationalMotion); // square the axis, keep the sign
+            yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
+            xAxleMotion = Math.copySign(xAxleMotion * xAxleMotion, xAxleMotion);
+            rotationalMotion = Math.copySign(rotationalMotion * rotationalMotion, rotationalMotion); // square the axis, keep the sign
 
-        yAxleMotion = Range.clip(yAxleMotion, -1, 1);
-        xAxleMotion = Range.clip(xAxleMotion, -1 ,1);
-        rotationalMotion = Range.clip(rotationalMotion, -1, 1);
+            yAxleMotion = Range.clip(yAxleMotion, -1, 1);
+            xAxleMotion = Range.clip(xAxleMotion, -1, 1);
+            rotationalMotion = Range.clip(rotationalMotion, -1, 1);
 
-        // control the Mecanum wheel
-        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-        driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            // control the Mecanum wheel
+            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+            driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+            driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
 
-        if (gamepad.dpad_down & PreviousModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
-            slowMotionActivationSwitch = ! slowMotionActivationSwitch; // activate or deactivate slow motion
-            PreviousModeButtonActivation.reset();
+            if (gamepad.dpad_down & PreviousModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
+                slowMotionActivationSwitch = !slowMotionActivationSwitch; // activate or deactivate slow motion
+                PreviousModeButtonActivation.reset();
+            }
         }
     }
 
@@ -57,5 +62,12 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         value *= (toCeiling-toFloor) / (fromCeiling - fromFloor);
         value += toFloor;
         return value;
+    }
+
+    public void pause() {
+        this.paused = true;
+    }
+    public void resume() {
+        this.paused = false;
     }
 }

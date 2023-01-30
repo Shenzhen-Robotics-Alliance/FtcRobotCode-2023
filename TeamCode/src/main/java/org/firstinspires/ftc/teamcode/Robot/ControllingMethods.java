@@ -30,18 +30,19 @@ public class ControllingMethods {
     }
 
     public void lowerArm() {
+        System.out.println(arm);
         switch (arm) {
-            case 2: case -1: toLowArmPosition(); break;
             case 3: toMidArmPosition(); break;
-            // cannot reverse the two, otherwise, case 2 will be triggered immediately after case 3 is executed
+            case 2: toLowArmPosition(); break;
+            case 1: toGroundArmPosition(); break;
         }
     }
 
     public void raiseArm() {
         switch (arm) {
+            case 0: toLowArmPosition(); break;
+            case 1: toMidArmPosition(); break;
             case 2: toHighArmPosition(); break;
-            case 0: case 1: case -1: toMidArmPosition(); break;
-            // cannot reverse the two cases, otherwise, case 2 will be triggered after case 0 or 1
         }
     }
 
