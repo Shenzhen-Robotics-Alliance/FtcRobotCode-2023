@@ -14,6 +14,8 @@ public class RobotController {
 
     private boolean claw;
 
+    private short arm;
+
     private final int highpos = 700; // highest position of the arm
     private final int midpos = 450; // midpoint position of the arm
     private final int lowpos = 280; // position of the arm when grabbing stuff
@@ -24,29 +26,49 @@ public class RobotController {
         this.telemetry = telemetry;
         this.claw = false;
         hr.claw.setPosition(0.6);
+        toGroundArmPosition();
     }
 
     public void switchMode() {
         slowMotionModeActivated = ! slowMotionModeActivated; // activate or deactivate slow motion
     }
 
+    public void lowerArm() {
+        switch (arm) {
+            case 3: toMidArmPosition(); break;
+            case 2: toLowArmPosition(); break;
+        }
+    }
+
+    public void raiseArm() {
+        switch (arm) {
+            case 0: toMidArmPosition(); break;
+            case 1: toMidArmPosition(); break;
+            case 2: toHighArmPosition(); break;
+        }
+    }
+
     public void toHighArmPosition() {
         elevateArm(highpos);
+        arm = 3;
         telemetry.addData("going to top_pos", highpos);
     }
 
     public void toMidArmPosition() {
         elevateArm(highpos);
+        arm = 2;
         telemetry.addData("going to mid_pos", midpos);
     }
 
     public void toLowArmPosition() {
         elevateArm(highpos);
+        arm = 1;
         telemetry.addData("going to low_pos", lowpos);
     }
 
     public void toGroundArmPosition() {
         elevateArm(highpos);
+        arm = 0;
         telemetry.addData("going to gnd_pos", gndpos);
     }
 
@@ -57,12 +79,12 @@ public class RobotController {
 
     public void openClaw() {
         claw = true;
-        hr.claw.setPosition(.35);
+        hr.claw.setPosition(.35); // open grabber
     }
 
     public void closeClaw() {
         claw = false;
-        hr.claw.setPosition(.61);
+        hr.claw.setPosition(.61); // close grabber
     }
 
 

@@ -37,7 +37,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     RobotController robotController = new RobotController(hr, telemetry);
 
     //Key Delay settings
-    private ElapsedTime PreviousModeActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
+    private ElapsedTime PreviousModeButtonActivation = new ElapsedTime(); // the time elapsed after the last time the "mode" button is pressed
     private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the elasped after the last time the arm is elevated
     double upspeed = 0.6; // speed when raising the arm
     double downspeed = 0.4; // speed when lowering the arm
@@ -105,10 +105,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
             //global claw
             if (gamepad1.right_bumper) {
-                hr.claw.setPosition(0.35); //open grabber
-            }
-            if (gamepad1.left_bumper) {
-                hr.claw.setPosition(0.61); //close grabber
+                robotController.open_closeClaw();
             }
 
             if (gamepad1.y) {
@@ -124,10 +121,15 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 robotController.toGroundArmPosition();
             }
             telemetry.addData("going to pos", 0);
-            if (gamepad1.right_trigger>0) {
+            if (gamepad1.right_trigger>0.2) {
                 robotController.toLowArmPosition();
+                // TODO aim the target automatically using computer vision
                 robotController.closeClaw();
+                robotController.toMidArmPosition();
             }
+
+            if (gamepad1.right_stick_y > 0.5) robotController.raiseArm();
+            else if (gamepad1.right_stick_y < -0.5) robotController.lowerArm();
 
             double forward = -gamepad1.left_stick_y;
             // note here is the FTC field axis, and moreover, take the opposite number to charge the car
@@ -169,9 +171,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             hr.rightFront.setPower(speed[2]);
             hr.rightRear.setPower(speed[3]);
 
-            if (gamepad1.dpad_down && PreviousModeActivation.seconds() > 0.3) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
-                robotController.switchMode(); // switch control
-                PreviousModeActivation.reset();
+            if (gamepad1.dpad_down && PreviousModeButtonActivation.seconds() > 0.3) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
+                robotController.switchMode(); // switch control mode
+                PreviousModeButtonActivation.reset();
             }
             telemetry.update();
         }
