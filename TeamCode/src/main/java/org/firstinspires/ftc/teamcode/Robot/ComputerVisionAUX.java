@@ -87,9 +87,11 @@ class ObjectDetectionUnitTest implements Runnable {
     VuforiaTrackable relicTemplate;
     public ObjectDetectionUnitTest(VuforiaTrackable relicTemplate) {
         this.relicTemplate = relicTemplate;
+        System.out.println("<--new test generated-->");
     }
     @Override
     public void run() {
+        System.out.println("<--test running...-->");
         while (true) {
             this.vuMark = RelicRecoveryVuMark.from(relicTemplate);
             OpenGLMatrix pose = ((VuforiaTrackableDefaultListener)relicTemplate.getListener()).getFtcCameraFromTarget(); // get the position of the vumark
@@ -115,6 +117,8 @@ class ObjectDetectionUnitTest implements Runnable {
                 System.out.print(", ");
                 System.out.print(tZ);
                 System.out.println("-->");
+            } else {
+                System.out.println("<--no object detected-->");
             }
         }
     }

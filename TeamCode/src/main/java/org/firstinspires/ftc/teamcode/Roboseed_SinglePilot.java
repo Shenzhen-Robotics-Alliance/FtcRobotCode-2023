@@ -73,14 +73,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         chassisModule = new ChassisModule(gamepad1, hardwareDriver);
         ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
 
+        telemetry.update(); // update the debug console
+
+        waitForStart();
         Thread chassisThread = new Thread(chassisModule);
         chassisThread.start(); // start an independent thread to run chassis module
 
         computerVisionAUX.test(); // run the test
-
-        telemetry.update(); // update the debug console
-
-        waitForStart();
 
         if (isStopRequested()) return;
 
