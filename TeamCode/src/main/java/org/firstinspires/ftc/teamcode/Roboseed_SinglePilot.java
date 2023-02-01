@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
+import org.firstinspires.ftc.teamcode.Robot.ComputerVisionAUX;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 import org.firstinspires.ftc.teamcode.Robot.ControllingMethods;
 
@@ -70,10 +71,12 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
         chassisModule = new ChassisModule(gamepad1, hardwareDriver);
+        ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
 
         Thread chassisThread = new Thread(chassisModule);
         chassisThread.start(); // start an independent thread to run chassis module
 
+        computerVisionAUX.test(); // run the test
 
         telemetry.update(); // update the debug console
 

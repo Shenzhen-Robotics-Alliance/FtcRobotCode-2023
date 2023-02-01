@@ -107,8 +107,7 @@ public class ControllingMethods {
 
     public void deactivateArm() {
         if (arm == -1) return;
-        toLowArmPosition();
-        toGroundArmPosition();
+        while (arm > 0) lowerArm(); // put the arm down step by step
         hr.lift_left.setPower(0);
         hr.lift_right.setPower(0);
         arm = -1;

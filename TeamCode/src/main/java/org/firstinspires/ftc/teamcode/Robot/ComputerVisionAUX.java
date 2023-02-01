@@ -46,6 +46,11 @@ public class ComputerVisionAUX {
         AimCone aimCone = new AimCone(this.relicTemplate);
         Thread aimConeThread = new Thread(aimCone);
     }
+
+    public void test() {
+        ObjectDetectionUnitTest objectDetectionUnitTest = new ObjectDetectionUnitTest(relicTemplate);
+        Thread testThread = new Thread(objectDetectionUnitTest);
+    }
 }
 
 class AimCone implements Runnable {
@@ -74,5 +79,43 @@ class AimCone implements Runnable {
 
             // TODO track the cone using the two sets of data each representing the translation and rotation of target, when the aiming precess is settled, exit this function
         } while (vuMark != RelicRecoveryVuMark.UNKNOWN); // when an vumark is visible
+    }
+}
+
+class ObjectDetectionUnitTest implements Runnable {
+    RelicRecoveryVuMark vuMark;
+    VuforiaTrackable relicTemplate;
+    public ObjectDetectionUnitTest(VuforiaTrackable relicTemplate) {
+        this.relicTemplate = relicTemplate;
+    }
+    @Override
+    public void run() {
+        while (true) {
+            this.vuMark = RelicRecoveryVuMark.from(relicTemplate);
+            OpenGLMatrix pose = ((VuforiaTrackableDefaultListener)relicTemplate.getListener()).getFtcCameraFromTarget(); // get the position of the vumark
+            VectorF trans = pose.getTranslation();
+            Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES); // analyze the result
+
+            // Extract the X, Y, and Z components of the offset of the target relative to the robot
+            double tX = trans.get(0);
+            double tY = trans.get(1);
+            double tZ = trans.get(2);
+
+            // Extract the rotational components of the target relative to the robot
+            double rX = rot.firstAngle;
+            double rY = rot.secondAngle;
+            double rZ = rot.thirdAngle;
+
+            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+                System.out.print("<--vumark detected ");
+                System.out.print("translation:");
+                System.out.print(tX);
+                System.out.print(", ");
+                System.out.print(tY);
+                System.out.print(", ");
+                System.out.print(tZ);
+                System.out.println("-->");
+            }
+        }
     }
 }
