@@ -4,8 +4,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 public class ComputerVisionAUX {
@@ -35,14 +43,36 @@ public class ComputerVisionAUX {
     }
 
     public void aimCone() {
-        AimCone aimCone = new AimCone();
-
+        AimCone aimCone = new AimCone(this.relicTemplate);
+        // TODO run aimcone in another thread
     }
 }
 
 class AimCone implements Runnable {
+    RelicRecoveryVuMark vuMark;
+    VuforiaTrackable relicTemplate;
+    public AimCone(VuforiaTrackable relicTemplate) {
+        this.relicTemplate = relicTemplate;
+    }
     @Override
     public void run() {
+        do {
+            this.vuMark = RelicRecoveryVuMark.from(relicTemplate);
+            OpenGLMatrix pose = ((VuforiaTrackableDefaultListener)relicTemplate.getListener()).getFtcCameraFromTarget(); // get the position of the vumark
+            VectorF trans = pose.getTranslation();
+            Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES); // analyze the result
 
+            // Extract the X, Y, and Z components of the offset of the target relative to the robot
+            double tX = trans.get(0);
+            double tY = trans.get(1);
+            double tZ = trans.get(2);
+
+            // Extract the rotational components of the target relative to the robot
+            double rX = rot.firstAngle;
+            double rY = rot.secondAngle;
+            double rZ = rot.thirdAngle;
+
+            // TODO track the cone using the two sets of data each representing the translation and rotation of target, when the aiming precess is settled, exit this function
+        } while (vuMark != RelicRecoveryVuMark.UNKNOWN); // when an vumark is visible
     }
 }
