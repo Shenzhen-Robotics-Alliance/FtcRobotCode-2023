@@ -44,7 +44,7 @@ public class ComputerVisionAUX {
 
     public void aimCone() {
         AimCone aimCone = new AimCone(this.relicTemplate);
-        // TODO run aimcone in another thread
+        Thread aimConeThread = new Thread(aimCone);
     }
 }
 
