@@ -107,13 +107,17 @@ public class ControllingMethods {
         hr.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setVelocity(0);
         hr.lift_left.setVelocity(0);
-        while (Math.abs(hr.lift_left.getVelocity()) < 3) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
+        while (Math.abs(hr.lift_left.getVelocity()) < 10) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
+        hr.lift_left.setTargetPosition(position);
+        hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hr.lift_right.setTargetPosition(position);
+        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // make the motor stick in the position
     }
 
     public void deactivateArm() {
         if (
                 arm == -1 |
-                (!claw & .61-hr.claw.getPosition() > .05) // if the claw is set to be closed, but is actually not closed, meaning it is holding stuff
+                (!claw) // if the claw is set to be closed
         ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort
         while (arm > 0) lowerArm(); // put the arm down step by step
         openClaw();
