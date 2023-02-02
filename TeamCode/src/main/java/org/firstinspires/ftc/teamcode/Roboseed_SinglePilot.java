@@ -113,9 +113,14 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             //global key action in all mode
 
             //global claw
-            if (gamepad1.right_bumper & PreviousClawActivation.seconds() > .3) {
+            /* if (gamepad1.right_bumper & PreviousClawActivation.seconds() > .3) {
                 controllingMethods.open_closeClaw();
                 PreviousClawActivation.reset();
+            } */
+            if (gamepad1.right_bumper) {
+                controllingMethods.openClaw();
+            } else if (gamepad1.left_bumper) {
+                controllingMethods.closeClaw();
             }
 
             if (gamepad1.y) {
@@ -158,6 +163,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 System.exit(0);
             } if (PreviousElevatorActivation.seconds() > 5 & !controllingMethods.getClaw()) {
                 controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+                PreviousElevatorActivation.reset();
             }
 
             telemetry.update();
