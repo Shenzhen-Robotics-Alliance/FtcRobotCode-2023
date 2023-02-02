@@ -10,8 +10,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private final HardwareDriver driver;
     private final IMU imu;
 
-    private boolean slowMotionActivationSwitch;
-    private boolean groundNavigationActivationSwitch;
+    private boolean slowMotionModeActivationSwitch;
+    private boolean groundNavigatingModeActivationSwitch;
 
     private final ElapsedTime PreviousMotionModeButtonActivation;
     private final ElapsedTime PreviousNavigationModeButtonActivation;
@@ -23,7 +23,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         this.gamepad = gamepad;
         this.driver = driver;
         this.imu = imu;
-        this.slowMotionActivationSwitch = false;
+        this.slowMotionModeActivationSwitch = false;
         this.PreviousMotionModeButtonActivation = new ElapsedTime();
         this.PreviousNavigationModeButtonActivation = new ElapsedTime();
         this.lastMovement = new ElapsedTime();
@@ -34,11 +34,11 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     public void run() {
         while (true) {
             while (paused) Thread.yield();
-            double yAxleMotion = linearMap(-gamepad.left_stick_y); // the left stick is reversed to match the vehicle
-            double xAxleMotion = linearMap(gamepad.left_stick_x);
-            double rotationalMotion = linearMap(gamepad.right_stick_x);
+            double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
+            double xAxleMotion = linearMap(gamepad.right_stick_x);
+            double rotationalMotion = linearMap(gamepad.left_stick_x);
 
-            if (groundNavigationActivationSwitch) { // when the pilot chooses to navigate according to the ground
+            if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
                 // TODO correct xAxelMotion and yAxelMotion using the IMU
             }
 
@@ -59,17 +59,17 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
 
             if (gamepad.dpad_down & PreviousMotionModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
-                slowMotionActivationSwitch = !slowMotionActivationSwitch; // activate or deactivate slow motion
+                slowMotionModeActivationSwitch = !slowMotionModeActivationSwitch; // activate or deactivate slow motion
                 PreviousMotionModeButtonActivation.reset();
             } if(gamepad.dpad_up & PreviousNavigationModeButtonActivation.seconds() > 0.5) {
-                groundNavigationActivationSwitch = !groundNavigationActivationSwitch;
+                groundNavigatingModeActivationSwitch = !groundNavigatingModeActivationSwitch;
                 PreviousNavigationModeButtonActivation.reset();
             }
         }
     }
 
     private double linearMap(double value) {
-        if (slowMotionActivationSwitch) { // when slow motion activated
+        if (slowMotionModeActivationSwitch) { // when slow motion activated
             if (value > 0) return linearMap(0.05, 1, 0, 0.4, value);
             return linearMap(-0.05, -1, 0, -0.4, value); // change the speed range to -0.4~0.4
         }

@@ -41,6 +41,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     //Key Delay settings
     private final ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
     private final ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
+    private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
     @Override
@@ -130,8 +131,10 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 controllingMethods.toGroundArmPosition();
             }
             telemetry.addData("going to pos", 0);
-            if (gamepad1.right_trigger>0.2) {
-                controllingMethods.toLowArmPosition();
+            if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
+                PreviousGrepActivation.reset();
+                controllingMethods.openClaw();
+                controllingMethods.toGroundArmPosition();
                 chassisModule.pause();
                 // TODO aim the target automatically using computer vision
                 chassisModule.resume();
@@ -139,11 +142,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 controllingMethods.toMidArmPosition();
             }
 
-            if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
+            if (gamepad1.left_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
                 System.out.println("RA");
                 controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
-            } else if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .3) {
+            } else if (gamepad1.left_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .3) {
                 System.out.println("LA");
                 controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
@@ -153,7 +156,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 hardwareDriver.lift_left.setPower(0);
                 hardwareDriver.lift_left.setPower(0);
                 System.exit(0);
-            } if (PreviousElevatorActivation.seconds() > 5) {
+            } if (PreviousElevatorActivation.seconds() > 5 & !controllingMethods.getClaw()) {
                 controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             }
 

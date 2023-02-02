@@ -36,6 +36,7 @@ public class ControllingMethods {
             case 3: toMidArmPosition(); break;
             case 2: toLowArmPosition(); break;
             case 1: toGroundArmPosition(); break;
+            case 0: deactivateArm(); break;
         }
     }
 
@@ -102,7 +103,7 @@ public class ControllingMethods {
         hr.lift_right.setTargetPosition(position);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // move the motor to position
 
-        while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 40 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 40) Thread.yield(); // wait until the movement almost complete
+        while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
         hr.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setVelocity(0);
@@ -115,14 +116,18 @@ public class ControllingMethods {
     }
 
     public void deactivateArm() {
-        if (
+        /*if (
                 arm == -1 |
                 (!claw) // if the claw is set to be closed
-        ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort
+        ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort*/
         while (arm > 0) lowerArm(); // put the arm down step by step
         openClaw();
         hr.lift_left.setPower(0);
         hr.lift_right.setPower(0);
         arm = -1;
+    }
+
+    public boolean getClaw() {
+        return claw;
     }
 }
