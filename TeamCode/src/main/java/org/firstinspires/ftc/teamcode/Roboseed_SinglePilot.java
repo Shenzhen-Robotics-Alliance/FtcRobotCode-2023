@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -68,7 +69,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
 
         ControllingMethods controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
-        ChassisModule chassisModule = new ChassisModule(gamepad1, hardwareDriver);
+        ChassisModule chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
         ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
 
         telemetry.update(); // update the debug console
