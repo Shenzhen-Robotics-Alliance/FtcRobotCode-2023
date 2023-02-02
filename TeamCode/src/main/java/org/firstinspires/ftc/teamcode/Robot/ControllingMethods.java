@@ -73,17 +73,20 @@ public class ControllingMethods {
     }
 
     public void open_closeClaw() {
-        if(claw) closeClaw();
-        else openClaw();
+        System.out.println("open_close");
+        if(claw) {closeClaw(); return;}
+        openClaw();
     }
 
     public void openClaw() {
+        System.out.println("opening");
         claw = true;
         hr.claw.setPosition(.35); // open grabber
         // while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
     }
 
     public void closeClaw() {
+        System.out.println("closing");
         claw = false;
         hr.claw.setPosition(.65); // close grabber
         // while (Math.abs(hr.claw.getPosition() - .65) > .05) Thread.yield();
