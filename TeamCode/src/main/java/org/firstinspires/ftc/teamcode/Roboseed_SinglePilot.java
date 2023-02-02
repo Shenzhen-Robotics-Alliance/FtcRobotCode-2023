@@ -162,12 +162,14 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 hardwareDriver.lift_left.setPower(0);
                 System.exit(0);
             } if (PreviousElevatorActivation.seconds() > 5 & !controllingMethods.getClaw()) {
+                System.out.println("saving battery...");
                 controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
-                PreviousElevatorActivation.reset();
+                PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
             }
-
+            System.out.println(!controllingMethods.getClaw());
             telemetry.update();
         }
+        chassisThread.join();
     }
 }
 
