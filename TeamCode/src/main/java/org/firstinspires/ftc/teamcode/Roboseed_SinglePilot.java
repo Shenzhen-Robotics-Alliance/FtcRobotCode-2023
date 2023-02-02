@@ -35,13 +35,11 @@ import org.firstinspires.ftc.teamcode.Robot.ControllingMethods;
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 //@Disabled //updated with some functions to all mode, intake
 public class Roboseed_SinglePilot extends LinearOpMode {
-    private HardwareDriver hardwareDriver = new HardwareDriver();
-    private ControllingMethods controllingMethods;
-    private ChassisModule chassisModule;
+    private final HardwareDriver hardwareDriver = new HardwareDriver();
 
     //Key Delay settings
-    private ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
-    private ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
+    private final ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
+    private final ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
     @Override
@@ -69,8 +67,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
-        controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
-        chassisModule = new ChassisModule(gamepad1, hardwareDriver);
+        ControllingMethods controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
+        ChassisModule chassisModule = new ChassisModule(gamepad1, hardwareDriver);
         ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
 
         telemetry.update(); // update the debug console
@@ -140,17 +138,21 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 controllingMethods.toMidArmPosition();
             }
 
-            if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
+            if (gamepad1.right_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
                 System.out.println("RA");
                 controllingMethods.raiseArm();
                 PreviousElevatorActivation.reset();
-            } else if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .2) {
+            } else if (gamepad1.right_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .3) {
                 System.out.println("LA");
                 controllingMethods.lowerArm();
                 PreviousElevatorActivation.reset();
             }
 
-            if (PreviousElevatorActivation.seconds() > 5) {
+            if (PreviousElevatorActivation.seconds() > 30 & chassisModule.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+                hardwareDriver.lift_left.setPower(0);
+                hardwareDriver.lift_left.setPower(0);
+                System.exit(0);
+            } if (PreviousElevatorActivation.seconds() > 5) {
                 controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             }
 

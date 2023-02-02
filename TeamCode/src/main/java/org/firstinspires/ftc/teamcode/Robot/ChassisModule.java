@@ -12,12 +12,15 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private final ElapsedTime PreviousModeButtonActivation;
     private boolean paused;
 
+    private final ElapsedTime lastMovement;
+
     public ChassisModule(Gamepad gamepad, HardwareDriver driver) {
         this.gamepad = gamepad;
         this.driver = driver;
         this.slowMotionActivationSwitch = false;
         this.PreviousModeButtonActivation = new ElapsedTime();
         this.paused = false;
+        lastMovement = new ElapsedTime();
     }
 
     @Override
@@ -27,6 +30,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double yAxleMotion = linearMap(-gamepad.left_stick_y); // the left stick is reversed to match the vehicle
             double xAxleMotion = linearMap(gamepad.left_stick_x);
             double rotationalMotion = linearMap(gamepad.right_stick_x);
+
+            if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
 
             yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
             xAxleMotion = Math.copySign(xAxleMotion * xAxleMotion, xAxleMotion);
@@ -69,5 +74,9 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     }
     public void resume() {
         this.paused = false;
+    }
+
+    public double getLastMovementTime() {
+        return lastMovement.seconds();
     }
 }

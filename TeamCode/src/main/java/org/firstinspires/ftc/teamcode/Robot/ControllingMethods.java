@@ -18,9 +18,9 @@ public class ControllingMethods {
     private final int highPos = 700; // highest position of the arm
     private final int midPos = 450; // midpoint position of the arm
     private final int lowPos = 280; // position of the arm when grabbing stuff
-    private final int gndPos = 80; // lowest position of the arm
-    private final double armInclineSpeed = 0.6;
-    private final double armDeclineSpeed = 0.4;
+    private final int gndPos = 45; // lowest position of the arm
+    private final double armInclineSpeed = 0.3;
+    private final double armDeclineSpeed = 0.2;
 
     public ControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
@@ -84,8 +84,8 @@ public class ControllingMethods {
 
     public void closeClaw() {
         claw = false;
-        hr.claw.setPosition(.61); // close grabber
-        // while (Math.abs(hr.claw.getPosition() - .61) > .05) Thread.yield();
+        hr.claw.setPosition(.65); // close grabber
+        // while (Math.abs(hr.claw.getPosition() - .65) > .05) Thread.yield();
     }
 
 
