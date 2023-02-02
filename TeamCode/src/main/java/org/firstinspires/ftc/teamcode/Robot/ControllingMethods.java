@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -17,7 +18,7 @@ public class ControllingMethods {
     private final int highPos = 700; // highest position of the arm
     private final int midPos = 450; // midpoint position of the arm
     private final int lowPos = 280; // position of the arm when grabbing stuff
-    private final int gndPos = 60; // lowest position of the arm
+    private final int gndPos = 80; // lowest position of the arm
     private final double armInclineSpeed = 0.6;
     private final double armDeclineSpeed = 0.4;
 
@@ -26,7 +27,7 @@ public class ControllingMethods {
         this.telemetry = telemetry;
         this.claw = false;
         hr.claw.setPosition(0.6);
-        toGroundArmPosition();
+        deactivateArm();
     }
 
     public void lowerArm() {
@@ -40,7 +41,7 @@ public class ControllingMethods {
 
     public void raiseArm() {
         switch (arm) {
-            case 0: toLowArmPosition(); break;
+            case -1: case 0: toLowArmPosition(); break;
             case 1: toMidArmPosition(); break;
             case 2: toHighArmPosition(); break;
         }
@@ -78,36 +79,44 @@ public class ControllingMethods {
     public void openClaw() {
         claw = true;
         hr.claw.setPosition(.35); // open grabber
-        while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
+        // while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
     }
 
     public void closeClaw() {
         claw = false;
         hr.claw.setPosition(.61); // close grabber
-        while (Math.abs(hr.claw.getPosition() - .61) > .05) Thread.yield();
+        // while (Math.abs(hr.claw.getPosition() - .61) > .05) Thread.yield();
     }
 
 
     private void elevateArm(int position) {
-        hr.lift_left.setTargetPosition(position);
-        hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         if (position > hr.lift_left.getCurrentPosition()) {
             hr.lift_left.setPower(armInclineSpeed);
             hr.lift_right.setPower(armInclineSpeed);
         } else {
             hr.lift_left.setPower(armDeclineSpeed);
             hr.lift_right.setPower(armDeclineSpeed);
-        }
+        } // set the power of the motor
+        hr.lift_left.setTargetPosition(position);
+        hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setTargetPosition(position);
-        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hr.lift_right.setPower(position);
+        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // move the motor to position
 
-        while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is finished, accept any deviation below ±5
+        while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 40 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 40) Thread.yield(); // wait until the movement almost complete
+        hr.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hr.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hr.lift_right.setVelocity(0);
+        hr.lift_left.setVelocity(0);
+        while (Math.abs(hr.lift_left.getVelocity()) < 3) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
     }
 
     public void deactivateArm() {
-        if (arm == -1) return;
+        if (
+                arm == -1 |
+                (!claw & .61-hr.claw.getPosition() > .05) // if the claw is set to be closed, but is actually not closed, meaning it is holding stuff
+        ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort
         while (arm > 0) lowerArm(); // put the arm down step by step
+        openClaw();
         hr.lift_left.setPower(0);
         hr.lift_right.setPower(0);
         arm = -1;

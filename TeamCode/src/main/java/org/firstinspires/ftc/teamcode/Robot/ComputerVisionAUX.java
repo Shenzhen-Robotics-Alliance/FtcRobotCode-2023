@@ -50,6 +50,7 @@ public class ComputerVisionAUX {
     public void test() {
         ObjectDetectionUnitTest objectDetectionUnitTest = new ObjectDetectionUnitTest(relicTemplate);
         Thread testThread = new Thread(objectDetectionUnitTest);
+        testThread.start();
     }
 }
 

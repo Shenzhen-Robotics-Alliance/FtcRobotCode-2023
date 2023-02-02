@@ -79,7 +79,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         Thread chassisThread = new Thread(chassisModule);
         chassisThread.start(); // start an independent thread to run chassis module
 
-        computerVisionAUX.test(); // run the test
+        // computerVisionAUX.test(); // run the test
 
         if (isStopRequested()) return;
 
