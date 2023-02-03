@@ -1,9 +1,19 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
+import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
+
+import android.graphics.drawable.GradientDrawable;
+
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class ChassisModule implements Runnable { // controls the moving of the robot
     private final Gamepad gamepad;
@@ -23,6 +33,16 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         this.gamepad = gamepad;
         this.driver = driver;
         this.imu = imu;
+
+        // the rotation of the control hub, in reference to the chassis, see https://ftc-docs.firstinspires.org/programming_resources/imu/imu.html
+        final double xRotation = 0;
+        final double yRotation = 145.64;
+        final double zRotation = 0;
+        // init the imu
+        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
+
         this.slowMotionModeActivationSwitch = false;
         this.PreviousMotionModeButtonActivation = new ElapsedTime();
         this.PreviousNavigationModeButtonActivation = new ElapsedTime();
@@ -32,6 +52,11 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
     @Override
     public void run() {
+        YawPitchRollAngles orientation;
+        AngularVelocity angularVelocity;
+        double facing;
+        double velocityYAW;
+
         while (true) {
             while (paused) Thread.yield();
             double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
@@ -39,6 +64,14 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double rotationalMotion = linearMap(gamepad.left_stick_x);
 
             if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
+                // get the rotation and angular velocity of the robot from imu
+                orientation = imu.getRobotYawPitchRollAngles();
+                angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
+
+                // get the facing, and the angular velocity in YAW axle, of the robot
+                facing = orientation.getYaw(AngleUnit.RADIANS);
+                velocityYAW = angularVelocity.zRotationRate;
+
                 // TODO correct xAxelMotion and yAxelMotion using the IMU
             }
 
@@ -64,6 +97,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             } if(gamepad.dpad_up & PreviousNavigationModeButtonActivation.seconds() > 0.5) {
                 groundNavigatingModeActivationSwitch = !groundNavigatingModeActivationSwitch;
                 PreviousNavigationModeButtonActivation.reset();
+            } if (gamepad.dpad_right) { // debug the imu by resetting the heading
+                imu.resetYaw();
             }
         }
     }

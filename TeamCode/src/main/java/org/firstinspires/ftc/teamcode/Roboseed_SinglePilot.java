@@ -92,9 +92,14 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
+            runLoop(controllingMethods, chassisModule);
+        }
+        chassisThread.stop();
+    }
 
+    private void runLoop(ControllingMethods controllingMethods, ChassisModule chassisModule) {
 
-            //auto constraint for machine protecting
+        //auto constraint for machine protecting
             /*
             if (hardwareRobot.armLift.item.getCurrentPosition() > 900 && autoHoldFlag) {
                 autoHoldFlag = false;
@@ -110,67 +115,63 @@ public class Roboseed_SinglePilot extends LinearOpMode {
              */
 
 
-            //global key action in all mode
+        //global key action in all mode
 
-            //global claw
+        //global claw
             /* if (gamepad1.right_bumper & PreviousClawActivation.seconds() > .3) {
                 controllingMethods.open_closeClaw();
                 PreviousClawActivation.reset();
             } */
-            if (gamepad1.right_bumper) {
-                controllingMethods.openClaw();
-            } else if (gamepad1.left_bumper) {
-                controllingMethods.closeClaw();
-            }
-
-            if (gamepad1.y) {
-                controllingMethods.toHighArmPosition();
-            }
-            if (gamepad1.x) {
-                controllingMethods.toMidArmPosition();
-            }
-            if (gamepad1.b) {
-                controllingMethods.toLowArmPosition();
-            }
-            if (gamepad1.a) {
-                controllingMethods.toGroundArmPosition();
-            }
-            telemetry.addData("going to pos", 0);
-            if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
-                PreviousGrepActivation.reset();
-                controllingMethods.openClaw();
-                controllingMethods.toGroundArmPosition();
-                chassisModule.pause();
-                // TODO aim the target automatically using computer vision
-                chassisModule.resume();
-                controllingMethods.closeClaw();
-                controllingMethods.toMidArmPosition();
-            }
-
-            if (gamepad1.left_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
-                System.out.println("RA");
-                controllingMethods.raiseArm();
-                PreviousElevatorActivation.reset();
-            } else if (gamepad1.left_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .3) {
-                System.out.println("LA");
-                controllingMethods.lowerArm();
-                PreviousElevatorActivation.reset();
-            }
-
-            if (PreviousElevatorActivation.seconds() > 30 & chassisModule.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
-                hardwareDriver.lift_left.setPower(0);
-                hardwareDriver.lift_left.setPower(0);
-                System.exit(0);
-            } if (PreviousElevatorActivation.seconds() > 5 & controllingMethods.getClaw()) {
-                System.out.println("saving battery...");
-                controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
-                PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
-            }
-            telemetry.update();
+        if (gamepad1.right_bumper) {
+            controllingMethods.openClaw();
+        } else if (gamepad1.left_bumper) {
+            controllingMethods.closeClaw();
         }
-        chassisThread.join();
+
+        if (gamepad1.y) {
+            controllingMethods.toHighArmPosition();
+        }
+        if (gamepad1.x) {
+            controllingMethods.toMidArmPosition();
+        }
+        if (gamepad1.b) {
+            controllingMethods.toLowArmPosition();
+        }
+        if (gamepad1.a) {
+            controllingMethods.toGroundArmPosition();
+        }
+        telemetry.addData("going to pos", 0);
+        if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
+            PreviousGrepActivation.reset();
+            controllingMethods.openClaw();
+            controllingMethods.toGroundArmPosition();
+            chassisModule.pause();
+            // TODO aim the target automatically using computer vision
+            chassisModule.resume();
+            controllingMethods.closeClaw();
+            controllingMethods.toMidArmPosition();
+        }
+
+        if (gamepad1.left_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.3 seconds after the last activation
+            System.out.println("RA");
+            controllingMethods.raiseArm();
+            PreviousElevatorActivation.reset();
+        } else if (gamepad1.left_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .3) {
+            System.out.println("LA");
+            controllingMethods.lowerArm();
+            PreviousElevatorActivation.reset();
+        }
+
+        if (PreviousElevatorActivation.seconds() > 30 & chassisModule.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+            hardwareDriver.lift_left.setPower(0);
+            hardwareDriver.lift_left.setPower(0);
+            System.exit(0);
+        } if (PreviousElevatorActivation.seconds() > 5 & controllingMethods.getClaw()) {
+            System.out.println("saving battery...");
+            controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+            PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
+        }
+        telemetry.update();
     }
 }
-
-
 
