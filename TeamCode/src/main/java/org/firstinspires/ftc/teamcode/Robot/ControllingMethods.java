@@ -19,8 +19,8 @@ public class ControllingMethods {
     private final int midPos = 450; // midpoint position of the arm
     private final int lowPos = 280; // position of the arm when grabbing stuff
     private final int gndPos = 45; // lowest position of the arm
-    private final double armInclineSpeed = 0.3;
-    private final double armDeclineSpeed = 0.2;
+    private final double armInclineSpeed = 0.6;
+    private final double armDeclineSpeed = 0.3;
 
     public ControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;

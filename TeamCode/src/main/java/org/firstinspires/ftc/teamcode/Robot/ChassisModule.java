@@ -28,6 +28,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private final ElapsedTime lastMovement;
 
     private boolean paused;
+    private boolean terminated;
 
     public ChassisModule(Gamepad gamepad, HardwareDriver driver, IMU imu) {
         this.gamepad = gamepad;
@@ -42,12 +43,14 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
+        imu.resetYaw();
 
         this.slowMotionModeActivationSwitch = false;
         this.PreviousMotionModeButtonActivation = new ElapsedTime();
         this.PreviousNavigationModeButtonActivation = new ElapsedTime();
         this.lastMovement = new ElapsedTime();
         this.paused = false;
+        this.terminated = false;
     }
 
     @Override
@@ -59,11 +62,13 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
         while (true) {
             while (paused) Thread.yield();
+            if (terminated) break;
             double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
             double xAxleMotion = linearMap(gamepad.right_stick_x);
             double rotationalMotion = linearMap(gamepad.left_stick_x);
 
-            if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
+            if (true) {
+            // if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
                 // get the rotation and angular velocity of the robot from imu
                 orientation = imu.getRobotYawPitchRollAngles();
                 angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
@@ -72,6 +77,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
                 facing = orientation.getYaw(AngleUnit.RADIANS);
                 velocityYAW = angularVelocity.zRotationRate;
 
+                System.out.println(facing);
                 // TODO correct xAxelMotion and yAxelMotion using the IMU
             }
 
@@ -123,6 +129,10 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     }
     public void resume() {
         this.paused = false;
+    }
+
+    public void terminate() {
+        terminated = true;
     }
 
     public double getLastMovementTime() {
