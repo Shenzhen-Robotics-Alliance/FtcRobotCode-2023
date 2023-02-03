@@ -86,7 +86,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             }
 
             if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
-            
+
             yAxleMotion = Range.clip(yAxleMotion, -1, 1);
             xAxleMotion = Range.clip(xAxleMotion, -1, 1);
             rotationalMotion = Range.clip(rotationalMotion, -1, 1);
@@ -95,10 +95,10 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             xAxleMotion *= -1;
             rotationalMotion *= -1; // flip the axles, to replace ground navigation mode temporarily */
 
-            System.out.print(xAxleMotion); System.out.print("  ");
+            /* System.out.print(xAxleMotion); System.out.print("  ");
             System.out.print(yAxleMotion); System.out.print("  ");
             System.out.print(rotationalMotion); System.out.print("  ");
-            System.out.println();
+            System.out.println(); */
 
 
             // control the Mecanum wheel
