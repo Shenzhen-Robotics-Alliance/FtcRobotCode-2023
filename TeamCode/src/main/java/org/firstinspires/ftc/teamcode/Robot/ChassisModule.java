@@ -68,8 +68,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double xAxleMotion = linearMap(gamepad.right_stick_x);
             double rotationalMotion = linearMap(gamepad.left_stick_x);
 
-            if (true) {
-            // if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
+            if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
                 // get the rotation and angular velocity of the robot from imu
                 orientation = imu.getRobotYawPitchRollAngles();
                 angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
@@ -117,7 +116,74 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {
         double[] correctedMotion = new double[2];
 
-        // TODO correct the motion
+        // correct the motion
+        double speed = Math.sqrt(objectiveXMotion * objectiveXMotion + objectiveYMotion * objectiveYMotion); // the magnitude of resultant velocity
+
+        int sector; // calculate the sector of the direction we want the robot to move(in reference to the ground)
+        if (objectiveXMotion > 0) {
+            if (objectiveYMotion > 0) sector = 1;
+            else sector = 4;
+        } else if (objectiveYMotion > 0) sector = 2;
+        else sector = 3;
+
+        // System.out.print(sector); System.out.print("    "); // until here, no problem
+
+        objectiveXMotion = Math.abs(objectiveXMotion); objectiveYMotion = Math.abs(objectiveYMotion); // take abs value, avoid errors in calculation
+        double targetedVelocityArc = Math.atan(objectiveYMotion / objectiveXMotion); // find the angle of the direction we want the robot to move, but taking it down to sector 1
+        switch (sector) { // transfer targetedVeloctiyArc back to the sector its taken down from
+            // at sector 1, the velocity arc is itself
+            case 2 :{
+                targetedVelocityArc = Math.PI - targetedVelocityArc; // at sector 2, the arc needs to be flipped according to y-axis, so the actual arc will be 180deg - arc
+                break;
+            }
+            case 3 :{
+                targetedVelocityArc += Math.PI; // at sector 3, the arc needs to be pointing at the other way around, makes the actual arc be 180deg + arc
+                break;
+            }
+            case 4 :{
+                targetedVelocityArc = Math.PI * 2 - targetedVelocityArc; // at sector 4, the arc needs to be flipped according to x-axis
+                break;
+            }
+        }
+
+        // System.out.print(targetedVelocityArc); System.out.print("    "); // until here, no problem found
+
+        double correctedVelocityArc = targetedVelocityArc + facing; // correct the direction of velocity according the direction of the car, the corrected velocity is now in reference to the car itself.
+
+        // System.out.print(correctedVelocityArc); System.out.print("    "); // no problem until here
+
+        if (correctedVelocityArc > Math.PI) {
+            // if (correctedVelocityArc > 3/2*Math.PI) {sector = 4; correctedVelocityArc = Math.PI*2 - correctedVelocityArc; } // error, 3/2 will be automatically taken down to integer
+            if (correctedVelocityArc > Math.PI*1.5) {sector = 4; correctedVelocityArc = Math.PI*2 - correctedVelocityArc; } // taking it down to sector 1 is the reverse of the above process
+            else {sector = 3; correctedVelocityArc -= Math.PI; }
+            // } else if (correctedVelocityArc > 1/2*Math.PI) {sector = 2; correctedVelocityArc = Math.PI - correctedVelocityArc; } // error, 1/2 will be automatically taken down to integer
+        } else if (correctedVelocityArc > Math.PI*0.5) {sector = 2; correctedVelocityArc = Math.PI - correctedVelocityArc; }
+        else {sector = 1; } // judge the sector of correctVelocityArc, store the secotr, and take correctedVelocityArc down to sector1
+
+        // System.out.print(correctedVelocityArc); System.out.print("    "); System.out.print(sector); System.out.print("    "); // problem found, sector incorrect
+
+        double xVelocity = 0, yVelocity = 0; // the velocity the robot needs to achieve the resultant velocity, now in refernce to itself
+        xVelocity = Math.cos(correctedVelocityArc) * speed;
+        yVelocity = Math.sin(correctedVelocityArc) * speed;
+        switch (sector) { // transform the velocity back to the sector
+            // in the first sector, velocity remains the same
+            case 2 :{
+                xVelocity *= -1; // in the second sector, velocity is mirrored according to y-axis
+                break;
+            }
+            case 3 :{
+                xVelocity *= -1;
+                yVelocity *= -1; // in the third sector, velocity is pointing to the opposite direction
+                break;
+            }
+            case 4:{
+                yVelocity *= -1; // in the fourth sector, velocity is mirrored according to x-axis
+                break;
+            }
+        }
+
+        correctedMotion[0] = xVelocity;
+        correctedMotion[1] = yVelocity;
 
         return correctedMotion;
     }
