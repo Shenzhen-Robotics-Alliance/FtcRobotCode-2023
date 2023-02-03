@@ -68,7 +68,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double xAxleMotion = linearMap(gamepad.right_stick_x);
             double rotationalMotion = linearMap(gamepad.left_stick_x);
 
-            if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
+            boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
+            if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
                 // get the rotation and angular velocity of the robot from imu
                 orientation = imu.getRobotYawPitchRollAngles();
                 angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
@@ -85,11 +86,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             }
 
             if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
-
-            /* yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
-            xAxleMotion = Math.copySign(xAxleMotion * xAxleMotion, xAxleMotion);
-            rotationalMotion = Math.copySign(rotationalMotion * rotationalMotion, rotationalMotion); // square the axis, keep the sign */
-
+            
             yAxleMotion = Range.clip(yAxleMotion, -1, 1);
             xAxleMotion = Range.clip(xAxleMotion, -1, 1);
             rotationalMotion = Range.clip(rotationalMotion, -1, 1);
