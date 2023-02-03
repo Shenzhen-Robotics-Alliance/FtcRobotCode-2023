@@ -68,8 +68,6 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double xAxleMotion = linearMap(gamepad.right_stick_x);
             double rotationalMotion = linearMap(gamepad.left_stick_x);
 
-            System.out.println(xAxleMotion);
-
             if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
                 // get the rotation and angular velocity of the robot from imu
                 orientation = imu.getRobotYawPitchRollAngles();
@@ -81,7 +79,6 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
 
                 // correct xAxelMotion and yAxelMotion using the IMU
-                System.out.println(facing);
                 correctedMotion = navigateGround(xAxleMotion, yAxleMotion, -facing);
                 xAxleMotion = correctedMotion[0];
                 yAxleMotion = correctedMotion[1];
@@ -96,6 +93,16 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             yAxleMotion = Range.clip(yAxleMotion, -1, 1);
             xAxleMotion = Range.clip(xAxleMotion, -1, 1);
             rotationalMotion = Range.clip(rotationalMotion, -1, 1);
+
+            /* yAxleMotion *= -1;
+            xAxleMotion *= -1;
+            rotationalMotion *= -1; // flip the axles, to replace ground navigation mode temporarily */
+
+            System.out.print(xAxleMotion); System.out.print("  ");
+            System.out.print(yAxleMotion); System.out.print("  ");
+            System.out.print(rotationalMotion); System.out.print("  ");
+            System.out.println();
+
 
             // control the Mecanum wheel
             driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);

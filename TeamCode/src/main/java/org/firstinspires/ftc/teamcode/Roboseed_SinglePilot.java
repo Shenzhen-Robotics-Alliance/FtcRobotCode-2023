@@ -117,10 +117,12 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         //global key action in all mode
 
         //global claw
-        if (gamepad1.right_bumper & PreviousClawActivation.seconds() > .3) {
+        /* if (gamepad1.right_bumper & PreviousClawActivation.seconds() > .3) {
             controllingMethods.open_closeClaw();
             PreviousClawActivation.reset();
-        }
+        } */
+        if (gamepad1.right_bumper) controllingMethods.closeClaw();
+        else if (gamepad1.left_bumper) controllingMethods.openClaw();
 
         if (gamepad1.y) {
             controllingMethods.toHighArmPosition();
