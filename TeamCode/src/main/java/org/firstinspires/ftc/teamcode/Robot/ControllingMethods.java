@@ -94,24 +94,35 @@ public class ControllingMethods {
 
 
     private void elevateArm(int position) {
-        if (position > hr.lift_left.getCurrentPosition()) {
-            hr.lift_left.setPower(armInclineSpeed);
-            hr.lift_right.setPower(armInclineSpeed);
-        } else {
+        boolean isDecline = position < hr.lift_left.getCurrentPosition();
+
+        if (isDecline) {
             hr.lift_left.setPower(armDeclineSpeed);
             hr.lift_right.setPower(armDeclineSpeed);
+        } else {
+            hr.lift_left.setPower(armInclineSpeed);
+            hr.lift_right.setPower(armInclineSpeed);
         } // set the power of the motor
+
         hr.lift_left.setTargetPosition(position);
         hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setTargetPosition(position);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // move the motor to position
 
+        if (!isDecline) { // if the arm isn't declining, move to the position directly
+            while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is completed
+            return;
+        }
+
+        // if the arm is declining, deceleration precess is necessary
         while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
+        //slow the motor down
         hr.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setVelocity(0);
         hr.lift_left.setVelocity(0);
         while (Math.abs(hr.lift_left.getVelocity()) < 10) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
+        // set the desired position
         hr.lift_left.setTargetPosition(position);
         hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setTargetPosition(position);
