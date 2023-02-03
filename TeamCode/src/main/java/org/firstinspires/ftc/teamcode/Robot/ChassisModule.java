@@ -59,6 +59,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         AngularVelocity angularVelocity;
         double facing;
         double velocityYAW;
+        double[] correctedMotion;
 
         while (true) {
             while (paused) Thread.yield();
@@ -77,8 +78,12 @@ public class ChassisModule implements Runnable { // controls the moving of the r
                 facing = orientation.getYaw(AngleUnit.RADIANS);
                 velocityYAW = angularVelocity.zRotationRate;
 
+
+                // correct xAxelMotion and yAxelMotion using the IMU
                 System.out.println(facing);
-                // TODO correct xAxelMotion and yAxelMotion using the IMU
+                correctedMotion = navigateGround(xAxleMotion, yAxleMotion, facing);
+                xAxleMotion = correctedMotion[0];
+                yAxleMotion = correctedMotion[1];
             }
 
             if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
@@ -109,6 +114,13 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         }
     }
 
+    private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {
+        double[] correctedMotion = new double[2];
+
+        // TODO correct the motion
+
+        return correctedMotion;
+    }
     private double linearMap(double value) {
         if (slowMotionModeActivationSwitch) { // when slow motion activated
             if (value > 0) return linearMap(0.05, 1, 0, 0.4, value);
