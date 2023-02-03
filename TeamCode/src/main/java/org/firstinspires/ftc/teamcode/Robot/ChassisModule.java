@@ -68,6 +68,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double xAxleMotion = linearMap(gamepad.right_stick_x);
             double rotationalMotion = linearMap(gamepad.left_stick_x);
 
+            System.out.println(xAxleMotion);
+
             if (groundNavigatingModeActivationSwitch) { // when the pilot chooses to navigate according to the ground
                 // get the rotation and angular velocity of the robot from imu
                 orientation = imu.getRobotYawPitchRollAngles();
@@ -80,16 +82,16 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
                 // correct xAxelMotion and yAxelMotion using the IMU
                 System.out.println(facing);
-                correctedMotion = navigateGround(xAxleMotion, yAxleMotion, facing);
+                correctedMotion = navigateGround(xAxleMotion, yAxleMotion, -facing);
                 xAxleMotion = correctedMotion[0];
                 yAxleMotion = correctedMotion[1];
             }
 
             if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
 
-            yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
+            /* yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
             xAxleMotion = Math.copySign(xAxleMotion * xAxleMotion, xAxleMotion);
-            rotationalMotion = Math.copySign(rotationalMotion * rotationalMotion, rotationalMotion); // square the axis, keep the sign
+            rotationalMotion = Math.copySign(rotationalMotion * rotationalMotion, rotationalMotion); // square the axis, keep the sign */
 
             yAxleMotion = Range.clip(yAxleMotion, -1, 1);
             xAxleMotion = Range.clip(xAxleMotion, -1, 1);
@@ -190,12 +192,12 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private double linearMap(double value) {
         if (slowMotionModeActivationSwitch) { // when slow motion activated
             if (value > 0) return linearMap(0.05, 1, 0, 0.4, value);
-            return linearMap(-0.05, -1, 0, -0.4, value); // change the speed range to -0.4~0.4
-        }
-        if (value > 0) return linearMap(0.1, 1, 0, 1, value);
-        return linearMap(-0.1, -1, 0, -1, value); // map the axle of the stick to make sure inputs below 10% are ignored
+            return linearMap(-1, -0.05, -0.4, 0, value); // change the speed range to -0.4~0.4
+        } if (value > 0) return linearMap(0.1, 1, 0, 1, value);
+        return linearMap(-1, -0.1, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
     }
     private double linearMap(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double value){
+        if (value < fromFloor | value > fromCeiling) return 0;
         value -= fromFloor;
         value *= (toCeiling-toFloor) / (fromCeiling - fromFloor);
         value += toFloor;

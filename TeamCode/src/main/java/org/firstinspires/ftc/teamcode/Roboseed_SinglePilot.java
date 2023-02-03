@@ -138,7 +138,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
             PreviousGrepActivation.reset();
             controllingMethods.openClaw();
-            controllingMethods.toGroundArmPosition();
+            controllingMethods.deactivateArm();
             chassisModule.pause();
             // TODO aim the target automatically using computer vision
             chassisModule.resume();
