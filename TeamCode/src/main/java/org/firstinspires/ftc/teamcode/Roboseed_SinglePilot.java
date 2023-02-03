@@ -96,7 +96,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         } chassisModule.terminate(); // stop the chassis module after the op mode is put to stop
     }
 
-    private void runLoop(ControllingMethods controllingMethods, ChassisModule chassisModule) {
+    private void runLoop(ControllingMethods controllingMethods, ChassisModule chassisModule) throws InterruptedException {
 
         //auto constraint for machine protecting
             /*
@@ -143,6 +143,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             // TODO aim the target automatically using computer vision
             chassisModule.resume();
             controllingMethods.closeClaw();
+            Thread.sleep(300);
             controllingMethods.toMidArmPosition();
         }
 
