@@ -16,20 +16,20 @@ public class Roboseed_AutoStage extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
-        waitForStart();
-        elaspsedTime.reset();
-        if (opModeIsActive()) {
-            // find the top stick and place the goal
-            while(true) {
-                // TODO test and debug field navigation system, make the navigation system return whether it have visual of any marks, and complete the task using these informations
-                // TODO add telemetry module
-                System.out.print(fieldNavigation.getRobotPosition()[0]);
-                System.out.print(" ");
-                System.out.print(fieldNavigation.getRobotPosition()[1]);
-                System.out.print(" ");
-                System.out.println(fieldNavigation.getRobotPosition()[2]);
-            }
-        }
+        Thread fieldNavigationThread = new Thread(fieldNavigation);
 
+        waitForStart();
+
+        fieldNavigationThread.start();
+        elaspsedTime.reset();
+        while(opModeIsActive()) {
+            // TODO test and debug field navigation system, make the navigation system return whether it have visual of any marks, and complete the task using these informations
+            // TODO add telemetry module
+            System.out.print(fieldNavigation.getRobotPosition()[0]);
+            System.out.print(" ");
+            System.out.print(fieldNavigation.getRobotPosition()[1]);
+            System.out.print(" ");
+            System.out.println(fieldNavigation.getRobotPosition()[2]);
+        } fieldNavigation.terminate();
     }
 }

@@ -32,7 +32,8 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         AxesOrder axesOrder = AxesOrder.XZY;
         float firstAngle = 90; float secondAngle = 90; float thirdAngle = 0;
         boolean useCompetitionFieldTargetLocations = true; // params for initializing vuforia power play
-        
+
+        vuforiaPOWERPLAY = new VuforiaCurrentGame(); // instantiate
         vuforiaPOWERPLAY.initialize(vuforiaLicenseKey, cameraName, webcamCalibrationFilename, useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback, dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
         
         robotPosition = new double[3];
