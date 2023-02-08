@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
@@ -23,18 +24,9 @@ import java.util.List;
 public class ComputerVisionFieldNavigation {
     private static final String VUFORIA_KEY = "AUrp8E//////AAABmR9EFFA6dECthZSIH4YjVNY8QqiA+WhfTqkO4koNt+QYbXrW9k3nqcvIL16tY13jQdTckP3BXh9+vKLJHQjATt6uffiXKfKUM3k+q3ZcB5g8v8+FT1WKJaOIf+vgOl84gghjBgira8FLQwuOB62wzkJRpoMKSNoyunOqG3PR7ttCl0izt9VRfaJy/2CmqLkXNj//tjcRj1xRqf3Xpo9omrSQcC8qQIRapKCcFUWyc+86WzQD2uVRwBAicmIs6yAHvUqMh/Xj0waomLYgvZ4CTDhgX2srIEgnLmlzxxIy2bggLV7vxnFILfe3wzLh1HYuQ0mHV9YF8ShgxXEbCrQDmUwripCsh3IST2Oxk/ZyVGZD";
 
-    private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
-    private static final float halfField        = 72 * mmPerInch;
-    private static final float halfTile         = 12 * mmPerInch;
-    private static final float oneAndHalfTile   = 36 * mmPerInch;
-
-    private OpenGLMatrix lastLocation;
     private VuforiaLocalizer vuforia;
     private VuforiaTrackables targets;
     private WebcamName webcamName;
-
-    private boolean targetVisible = false;
 
     public ComputerVisionFieldNavigation (HardwareMap hardwareMap) {
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1"); // get the instance of webcam
@@ -69,10 +61,6 @@ public class ComputerVisionFieldNavigation {
         }
     }
 
-    public double[] getRobotPosition () {
-
-    }
-
     private void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
         VuforiaTrackable aTarget = targets.get(targetIndex);
         aTarget.setName(targetName);
@@ -82,12 +70,80 @@ public class ComputerVisionFieldNavigation {
 }
 
 class NavigationRunnable implements Runnable {
-    public NavigationRunnable () {
-        
+    private boolean paused = false;
+    private boolean terminated = false; // to pause or terminate the thread
+
+    private boolean targetVisible = false;
+    private OpenGLMatrix lastLocation;
+
+    private double[] currentPosition;
+    private double[] currentRotation;
+
+    private List<VuforiaTrackable> allTrackables;
+
+    public NavigationRunnable (List<VuforiaTrackable> allTrackables) {
+        this.allTrackables = allTrackables;
+    }
+
+
+    private static final float mmPerInch        = 25.4f;
+    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float halfField        = 72 * mmPerInch;
+    private static final float halfTile         = 12 * mmPerInch;
+    private static final float oneAndHalfTile   = 36 * mmPerInch;
+
+    public void updateRobotPosition() {
+        targetVisible = false;
+        for (VuforiaTrackable trackable : this.allTrackables) {
+            if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                targetVisible = true;
+
+                // getUpdatedRobotLocation() will return null if no new information is available since
+                // the last time that call was made, or if the trackable is not currently visible.
+                OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                if (robotLocationTransform != null) {
+                    lastLocation = robotLocationTransform;
+                }
+                break;
+            }
+        }
+
+        // Provide feedback as to where the robot is located (if we know).
+        if (targetVisible) {
+            // express position (translation) of robot in inches.
+            VectorF translation = lastLocation.getTranslation();
+            currentPosition[0] = translation.get(0) / mmPerInch;
+            currentPosition[1] = translation.get(1) / mmPerInch;
+            currentPosition[2] = translation.get(2) / mmPerInch;
+
+            // express the rotation of the robot in degrees.
+            Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+            telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+        }
+        else {
+            telemetry.addData("Visible Target", "none");
+        }
     }
 
     @Override
     public void run() {
+        while (true) {
+            if (terminated) break;
+            while (paused) Thread.yield();
 
+            updateRobotPosition();
+        }
+    }
+
+    public void pause() {
+        this.paused = true;
+    }
+
+    public void resume() {
+        this.paused = false;
+    }
+
+    public void terminate() {
+        this.terminated = true;
     }
 }
