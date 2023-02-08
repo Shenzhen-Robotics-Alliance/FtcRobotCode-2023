@@ -53,21 +53,14 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         for (String target: targets) if (isTargetVisible(target)) {
             processTarget();
             positionLastUpdateTime.reset();
+            System.out.println("object detected");
         }
     }
 
     private boolean isTargetVisible(String trackableName) {
-        boolean isVisible;
-
         // Get vuforia results for target.
         vuforiaResults = vuforiaPOWERPLAY.track(trackableName);
-        // Is this target visible?
-        if (vuforiaResults.isVisible) {
-            isVisible = true;
-        } else {
-            isVisible = false;
-        }
-        return isVisible;
+        return vuforiaResults.isVisible;
     }
 
     private void processTarget() {

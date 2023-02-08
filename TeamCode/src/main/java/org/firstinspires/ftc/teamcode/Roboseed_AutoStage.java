@@ -24,7 +24,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         elaspsedTime.reset();
         while(opModeIsActive()) {
             // TODO test and debug field navigation system, make the navigation system return whether it have visual of any marks, and complete the task using these informations
-            // TODO add telemetry module
+            // I guess it's about the problem of thread priority
             System.out.print(fieldNavigation.getRobotPosition()[0]);
             System.out.print(" ");
             System.out.print(fieldNavigation.getRobotPosition()[1]);
