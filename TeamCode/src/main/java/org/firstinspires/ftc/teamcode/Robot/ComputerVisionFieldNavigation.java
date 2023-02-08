@@ -140,6 +140,7 @@ class NavigationRunnable implements Runnable {
 
         // Provide feedback as to where the robot is located (if we know).
         if (targetVisible) {
+            System.out.println("target visible");
             // express position (translation) of robot in inches.
             VectorF translation = lastLocation.getTranslation();
             currentPosition[0] = translation.get(0) / ComputerVisionFieldNavigation.mmPerInch;
