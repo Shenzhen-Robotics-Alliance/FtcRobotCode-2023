@@ -5,16 +5,17 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation;
+import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 
 @TeleOp(name = "AutoStateProgram_v1.0")
 public class Roboseed_AutoStage extends LinearOpMode {
     ElapsedTime elaspsedTime = new ElapsedTime();
 
-    ComputerVisionFieldNavigation fieldNavigation;
+    ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        fieldNavigation = new ComputerVisionFieldNavigation(hardwareMap);
+        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
         waitForStart();
         elaspsedTime.reset();
         if (opModeIsActive()) {

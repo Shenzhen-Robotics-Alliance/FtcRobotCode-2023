@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -15,7 +16,7 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     
     private double[] robotPosition;
     private double robotRotation;
-    private boolean targetDetected;
+    private ElapsedTime positionLastUpdateTime = new ElapsedTime();
 
     private boolean paused = false;
     private boolean terminated = false;
@@ -50,7 +51,7 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
 
         for (String target: targets) if (isTargetVisible(target)) {
             processTarget();
-            this.targetDetected = true;
+            positionLastUpdateTime.reset();
         }
     }
 
@@ -87,6 +88,7 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
 
     public double[] getRobotPosition() { return robotPosition; } // return the position of the robot, in mm
     public double getRobotRotation() { return robotRotation; } // return the rotation of the robot, in radian
+    public double PositionLastUpdate() { return positionLastUpdateTime.seconds(); } // so that you can know how accurate the results are
 
     public void pause() { paused = true; }
     public void resume() { paused = false;}
