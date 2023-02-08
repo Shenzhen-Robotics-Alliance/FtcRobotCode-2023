@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
@@ -27,6 +28,14 @@ public class ComputerVisionFieldNavigation {
     private VuforiaLocalizer vuforia;
     private VuforiaTrackables targets;
     private WebcamName webcamName;
+
+    private NavigationRunnable navigationRunnable;
+
+    public static final float mmPerInch        = 25.4f;
+    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
+    private static final float halfField        = 72 * mmPerInch;
+    private static final float halfTile         = 12 * mmPerInch;
+    private static final float oneAndHalfTile   = 36 * mmPerInch;
 
     public ComputerVisionFieldNavigation (HardwareMap hardwareMap) {
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1"); // get the instance of webcam
@@ -59,6 +68,8 @@ public class ComputerVisionFieldNavigation {
         for (VuforiaTrackable trackable : allTrackables) {
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(parameters.cameraName, cameraLocationOnRobot);
         }
+
+        this.navigationRunnable = new NavigationRunnable(allTrackables);
     }
 
     private void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
@@ -66,6 +77,19 @@ public class ComputerVisionFieldNavigation {
         aTarget.setName(targetName);
         aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
+    }
+
+    public void startNavigating() {
+        Thread navigationThread = new Thread();
+        navigationThread.start();
+    }
+
+    public double[] getRobotPosition() {
+        return navigationRunnable.getCurrentPosition();
+    }
+
+    public double[] getRobotRotation() {
+        return navigationRunnable.getCurrentRotation();
     }
 }
 
@@ -83,14 +107,20 @@ class NavigationRunnable implements Runnable {
 
     public NavigationRunnable (List<VuforiaTrackable> allTrackables) {
         this.allTrackables = allTrackables;
+        currentPosition = new double[3];
+        currentRotation = new double[3];
     }
 
 
-    private static final float mmPerInch        = 25.4f;
-    private static final float mmTargetHeight   = 6 * mmPerInch;          // the height of the center of the target image above the floor
-    private static final float halfField        = 72 * mmPerInch;
-    private static final float halfTile         = 12 * mmPerInch;
-    private static final float oneAndHalfTile   = 36 * mmPerInch;
+    @Override
+    public void run() {
+        while (true) {
+            if (terminated) break;
+            while (paused) Thread.yield();
+
+            updateRobotPosition();
+        }
+    }
 
     public void updateRobotPosition() {
         targetVisible = false;
@@ -112,27 +142,24 @@ class NavigationRunnable implements Runnable {
         if (targetVisible) {
             // express position (translation) of robot in inches.
             VectorF translation = lastLocation.getTranslation();
-            currentPosition[0] = translation.get(0) / mmPerInch;
-            currentPosition[1] = translation.get(1) / mmPerInch;
-            currentPosition[2] = translation.get(2) / mmPerInch;
+            currentPosition[0] = translation.get(0) / ComputerVisionFieldNavigation.mmPerInch;
+            currentPosition[1] = translation.get(1) / ComputerVisionFieldNavigation.mmPerInch;
+            currentPosition[2] = translation.get(2) / ComputerVisionFieldNavigation.mmPerInch;
 
             // express the rotation of the robot in degrees.
-            Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
-            telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
-        }
-        else {
-            telemetry.addData("Visible Target", "none");
+            Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, RADIANS);
+            currentRotation[0] = rotation.firstAngle;
+            currentRotation[1] = rotation.secondAngle;
+            currentRotation[2] = rotation.thirdAngle;
         }
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            if (terminated) break;
-            while (paused) Thread.yield();
+    public double[] getCurrentPosition() {
+        return currentPosition;
+    }
 
-            updateRobotPosition();
-        }
+    public double[] getCurrentRotation() {
+        return currentRotation;
     }
 
     public void pause() {
