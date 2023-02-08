@@ -66,7 +66,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             if (terminated) break;
             double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
             double xAxleMotion = linearMap(gamepad.right_stick_x);
-            double rotationalMotion = linearMap(gamepad.left_stick_x);
+            double rotationalMotion = linearMap(gamepad.left_stick_x) * 0.8;
 
             boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
             if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -198,8 +198,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         if (slowMotionModeActivationSwitch) { // when slow motion activated
             if (value > 0) return linearMap(0.05, 1, 0, 0.4, value);
             return linearMap(-1, -0.05, -0.4, 0, value); // change the speed range to -0.4~0.4
-        } if (value > 0) return linearMap(0.1, 1, 0, 1, value);
-        return linearMap(-1, -0.1, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
+        } if (value > 0) return linearMap(0.05, 1, 0, 1, value);
+        return linearMap(-1, -0.05, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
     }
     private double linearMap(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double value){
         if (value < fromFloor | value > fromCeiling) return 0;

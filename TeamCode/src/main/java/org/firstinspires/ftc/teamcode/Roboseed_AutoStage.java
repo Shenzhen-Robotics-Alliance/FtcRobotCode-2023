@@ -19,6 +19,14 @@ public class Roboseed_AutoStage extends LinearOpMode {
         elaspsedTime.reset();
         if (opModeIsActive()) {
             // find the top stick and place the goal
+            while(true) {
+                // TODO test and debug field navigation system
+                System.out.print(fieldNavigation.getRobotPosition()[0]);
+                System.out.print(" ");
+                System.out.print(fieldNavigation.getRobotPosition()[1]);
+                System.out.print(" ");
+                System.out.println(fieldNavigation.getRobotPosition()[2]);
+            }
         }
 
     }
