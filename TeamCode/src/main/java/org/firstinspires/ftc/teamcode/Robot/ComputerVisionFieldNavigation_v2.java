@@ -35,7 +35,8 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
 
         vuforiaPOWERPLAY = new VuforiaCurrentGame(); // instantiate
         vuforiaPOWERPLAY.initialize(vuforiaLicenseKey, cameraName, webcamCalibrationFilename, useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback, dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
-        
+        vuforiaPOWERPLAY.activate();
+
         robotPosition = new double[3];
     }
 
@@ -47,13 +48,14 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         }
     }
 
-    private void updateRobotPosition() {
+    // private void updateRobotPosition() {
+    public void updateRobotPosition() {
         final String[] targets = {"Red Audience Wall", "Red Rear Wall", "Blue Audience Wall", "Blue Rear Wall"};
 
         for (String target: targets) if (isTargetVisible(target)) {
             processTarget();
             positionLastUpdateTime.reset();
-            System.out.println("object detected");
+            // System.out.println("object detected");
         }
     }
 
