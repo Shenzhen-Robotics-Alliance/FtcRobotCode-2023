@@ -70,10 +70,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
 
         ControllingMethods controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
-        ChassisModule chassisModule;
-        chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
-        if (gamepad2 != null) chassisModule = new ChassisModule(gamepad1, gamepad2, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
-
+        ChassisModule chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
         ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
 
         telemetry.update(); // update the debug console

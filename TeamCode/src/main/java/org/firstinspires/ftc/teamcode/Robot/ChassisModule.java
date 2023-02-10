@@ -16,10 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class ChassisModule implements Runnable { // controls the moving of the robot
-    private Gamepad gamepad = null; // single pilot
-    private Gamepad gamepad1 = null;
-    private Gamepad gamepad2 = null; // dual pilot
-    private final boolean dualPilot;
+    private final Gamepad gamepad;
     private final HardwareDriver driver;
     private final IMU imu;
 
@@ -34,33 +31,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private boolean terminated;
 
     public ChassisModule(Gamepad gamepad, HardwareDriver driver, IMU imu) {
-        this.dualPilot = true;
         this.gamepad = gamepad;
-        this.driver = driver;
-        this.imu = imu;
-
-        // the rotation of the control hub, in reference to the chassis, see https://ftc-docs.firstinspires.org/programming_resources/imu/imu.html
-        final double xRotation = 0;
-        final double yRotation = 145.64;
-        final double zRotation = 0;
-        // init the imu
-        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
-        imu.initialize(new IMU.Parameters(orientationOnRobot));
-        imu.resetYaw();
-
-        this.slowMotionModeActivationSwitch = false;
-        this.PreviousMotionModeButtonActivation = new ElapsedTime();
-        this.PreviousNavigationModeButtonActivation = new ElapsedTime();
-        this.lastMovement = new ElapsedTime();
-        this.paused = false;
-        this.terminated = false;
-    }
-
-    public ChassisModule(Gamepad gamepad1, Gamepad gamepad2, HardwareDriver driver, IMU imu) {
-        this.dualPilot = true;
-        this.gamepad1 = gamepad1;
-        this.gamepad2 = gamepad2;
         this.driver = driver;
         this.imu = imu;
 
