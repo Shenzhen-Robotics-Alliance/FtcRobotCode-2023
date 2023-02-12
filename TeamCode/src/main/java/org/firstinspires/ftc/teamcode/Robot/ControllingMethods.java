@@ -15,13 +15,6 @@ public class ControllingMethods {
 
     private short arm;
 
-    private final int highPos = 700; // highest position of the arm
-    private final int midPos = 450; // midpoint position of the arm
-    private final int lowPos = 280; // position of the arm when grabbing stuff
-    private final int gndPos = 45; // lowest position of the arm
-    private final double armInclineSpeed = 0.6;
-    private final double armDeclineSpeed = 0.3;
-
     public ControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
         this.telemetry = telemetry;
@@ -49,24 +42,32 @@ public class ControllingMethods {
     }
 
     public void toHighArmPosition() {
+        // highest position of the arm
+        int highPos = 700;
         elevateArm(highPos);
         arm = 3;
         telemetry.addData("going to top_pos", highPos);
     }
 
     public void toMidArmPosition() {
+        // midpoint position of the arm
+        int midPos = 450;
         elevateArm(midPos);
         arm = 2;
         telemetry.addData("going to mid_pos", midPos);
     }
 
     public void toLowArmPosition() {
+        // position of the arm when grabbing stuff
+        int lowPos = 280;
         elevateArm(lowPos);
         arm = 1;
         telemetry.addData("going to low_pos", lowPos);
     }
 
     public void toGroundArmPosition() {
+        // lowest position of the arm
+        int gndPos = 45;
         elevateArm(gndPos);
         arm = 0;
         telemetry.addData("going to gnd_pos", gndPos);
@@ -97,9 +98,11 @@ public class ControllingMethods {
         boolean isDecline = position < hr.lift_left.getCurrentPosition();
 
         if (isDecline) {
+            double armDeclineSpeed = 0.2;
             hr.lift_left.setPower(armDeclineSpeed);
             hr.lift_right.setPower(armDeclineSpeed);
         } else {
+            double armInclineSpeed = 0.4;
             hr.lift_left.setPower(armInclineSpeed);
             hr.lift_right.setPower(armInclineSpeed);
         } // set the power of the motor

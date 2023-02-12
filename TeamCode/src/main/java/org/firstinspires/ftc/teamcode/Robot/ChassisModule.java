@@ -102,7 +102,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
 
             // control the Mecanum wheel
-            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            driver.leftFront.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
             driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
             driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
             driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
@@ -118,6 +118,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             }
 
         }
+        System.out.println("chassis module stopped");
     }
 
     private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {
