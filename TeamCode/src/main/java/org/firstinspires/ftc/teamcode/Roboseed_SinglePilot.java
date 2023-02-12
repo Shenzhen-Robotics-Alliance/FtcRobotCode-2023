@@ -45,6 +45,10 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
+    private ControllingMethods controllingMethods;
+    private ChassisModule chassisModule;
+    private ComputerVisionFieldNavigation_v2 fieldNavigation;
+
     @Override
     public void runOpMode() throws InterruptedException {
         // config motors
@@ -70,16 +74,21 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
-        ControllingMethods controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
-        ChassisModule chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
-        ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
-        ComputerVisionFieldNavigation_v2 fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
+        controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
+        chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
+        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
         telemetry.addLine("currentRobotPosition");
 
+
         waitForStart();
+
+
         Thread chassisThread = new Thread(chassisModule);
         chassisThread.start(); // start an independent thread to run chassis module
+
+        Thread navigationThread = new Thread(fieldNavigation);
+        navigationThread.start();
 
         // computerVisionAUX.test(); // run the test
 
@@ -95,11 +104,14 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop(controllingMethods, chassisModule);
-        } chassisModule.terminate(); // stop the chassis module after the op mode is put to stop
+        } chassisModule.terminate(); fieldNavigation.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
     private void runLoop(ControllingMethods controllingMethods, ChassisModule chassisModule) throws InterruptedException {
-        telemetry.addLine()
+        double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
+        String robotPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+        telemetry.addData("robotCurrentPosition", robotPositionString);
+
         if (gamepad1.right_bumper) controllingMethods.closeClaw();
         else if (gamepad1.left_bumper) controllingMethods.openClaw();
 
