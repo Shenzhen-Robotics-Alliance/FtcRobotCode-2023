@@ -66,7 +66,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             if (terminated) break;
             double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
             double xAxleMotion = linearMap(gamepad.right_stick_x);
-            double rotationalMotion = linearMap(gamepad.left_stick_x) * 0.8;
+            double rotationalMotion = linearMap(gamepad.left_stick_x);
 
             boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
             if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
