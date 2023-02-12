@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionAUX;
+import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 import org.firstinspires.ftc.teamcode.Robot.ControllingMethods;
 
@@ -72,8 +73,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         ControllingMethods controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
         ChassisModule chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
         ComputerVisionAUX computerVisionAUX = new ComputerVisionAUX(hardwareMap);
+        ComputerVisionFieldNavigation_v2 fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
-        telemetry.update(); // update the debug console
+        telemetry.addLine("currentRobotPosition");
 
         waitForStart();
         Thread chassisThread = new Thread(chassisModule);
@@ -97,30 +99,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     }
 
     private void runLoop(ControllingMethods controllingMethods, ChassisModule chassisModule) throws InterruptedException {
-
-        //auto constraint for machine protecting
-            /*
-            if (hardwareRobot.armLift.item.getCurrentPosition() > 900 && autoHoldFlag) {
-                autoHoldFlag = false;
-                if(!gamepad2.x)
-                    hardwareRobot.claw.holdTheBowl();
-            }
-
-            if (hardwareRobot.armLift.item.getCurrentPosition() < 900 && !autoHoldFlag) {
-                autoHoldFlag = true;
-                if(!gamepad2.x)
-                    hardwareRobot.claw.setBowlReady();
-            }
-             */
-
-
-        //global key action in all mode
-
-        //global claw
-        /* if (gamepad1.right_bumper & PreviousClawActivation.seconds() > .3) {
-            controllingMethods.open_closeClaw();
-            PreviousClawActivation.reset();
-        } */
+        telemetry.addLine()
         if (gamepad1.right_bumper) controllingMethods.closeClaw();
         else if (gamepad1.left_bumper) controllingMethods.openClaw();
 
@@ -168,6 +147,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
         }
+
         telemetry.update();
     }
 }
