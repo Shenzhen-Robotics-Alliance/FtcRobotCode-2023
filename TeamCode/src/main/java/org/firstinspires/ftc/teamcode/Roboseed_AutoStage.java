@@ -4,12 +4,18 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
+
+/*
+* the robot starts in the corner of the field.
+* first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
+* the robot moves to position(according to camera) -1022, -782
+*
+* */
 
 @TeleOp(name = "AutoStateProgram_v1.0")
 public class Roboseed_AutoStage extends LinearOpMode {
-    ElapsedTime elaspsedTime = new ElapsedTime();
+    ElapsedTime elapsedTime = new ElapsedTime();
 
     ComputerVisionFieldNavigation_v2 fieldNavigation;
 
@@ -21,7 +27,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         waitForStart();
 
         fieldNavigationThread.start();
-        elaspsedTime.reset();
+        elapsedTime.reset();
         while(opModeIsActive()) {
             System.out.print(fieldNavigation.getRobotPosition()[0]);
             System.out.print(" ");
