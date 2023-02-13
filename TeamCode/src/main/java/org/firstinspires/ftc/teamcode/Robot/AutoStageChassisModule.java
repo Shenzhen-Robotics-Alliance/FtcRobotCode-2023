@@ -62,25 +62,34 @@ public class AutoStageChassisModule {
         }
     }
 
-    private void rotateClockWise(double clockWiseDifference) {
-        while (clockWiseDifference > Math.toRadians(5)) {
+    private void rotateClockWise(double targetedRotation) {
+        double clockWiseDifference ;
+        do {
+            double currentRotation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) * -1;
+            if (targetedRotation > currentRotation) clockWiseDifference = targetedRotation - currentRotation;
+            else clockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of clockwise difference
+
             double rotatingSpeed = new ChassisModule(null, null, imu)
                     .linearMap(
                             0, Math.toRadians(90), 0.6, 0.85, clockWiseDifference
                     ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
-        }
+        } while (clockWiseDifference > Math.toRadians(5));
     }
 
-    private void rotateCounterClockWise(double counterClockWiseDifference) {
-        while (counterClockWiseDifference > Math.toRadians(5)) {
+    private void rotateCounterClockWise(double targetedRotation) {
+        double counterClockWiseDifference ;
+        do {
+            double currentRotation = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) * -1;
+            if (targetedRotation < currentRotation) counterClockWiseDifference = targetedRotation - currentRotation;
+            else counterClockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of counter-clockwise difference
+
             double rotatingSpeed = new ChassisModule(null, null, imu)
                     .linearMap(
                             0, Math.toRadians(90), 0.6, 0.85, counterClockWiseDifference
-                    )
-                    * -1; // as it is counter-clockwise, multiply it by a factor of -1
+                    ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
-        }
+        } while (counterClockWiseDifference > Math.toRadians(5));
     }
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
