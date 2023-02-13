@@ -209,8 +209,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         return linearMap(-1, -0.05, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
     }
     private double linearMap(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double value){
-        if (value < fromFloor) return toFloor;
-        else if (value > fromCeiling) return toCeiling;
+        if (value > Math.max(fromCeiling, fromFloor)) return Math.max(toCeiling, toFloor);
+        else if (value < Math.min(fromCeiling, fromFloor)) return Math.min(toCeiling, toFloor);
         value -= fromFloor;
         value *= (toCeiling-toFloor) / (fromCeiling - fromFloor);
         value += toFloor;
