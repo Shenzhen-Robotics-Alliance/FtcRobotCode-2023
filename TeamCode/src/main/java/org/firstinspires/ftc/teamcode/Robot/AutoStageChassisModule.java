@@ -43,6 +43,8 @@ public class AutoStageChassisModule {
 
         double numericalRotationDifference = targetedRotation - currentRotation;
         double counterClockWiseDifference, clockWiseDifference;
+
+        // TODO separate the calculation of rotation difference into another function, apply the same calculation in the loop inside rotate-clockwise and rotate-counter-clockwise functions
         if (numericalRotationDifference > 0) { // when the target is at the positive(clockwise) direction
             clockWiseDifference = numericalRotationDifference;
             double targetedToOrigin = fullCircle - targetedRotation;
