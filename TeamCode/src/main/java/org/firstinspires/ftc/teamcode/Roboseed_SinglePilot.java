@@ -51,28 +51,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // config motors
-
-        hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
-        hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
-        hardwareDriver.rightFront = hardwareMap.get(DcMotorEx.class, "rightfront");
-        hardwareDriver.rightRear = hardwareMap.get(DcMotorEx.class, "rightrear");
-
-        hardwareDriver.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        hardwareDriver.rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        hardwareDriver.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hardwareDriver.leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hardwareDriver.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hardwareDriver.rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        hardwareDriver.claw = hardwareMap.get(Servo.class, "tipperhopper");
-
-        hardwareDriver.lift_left = hardwareMap.get(DcMotorEx.class, "lifter");
-        hardwareDriver.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
-
-        hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        this.configureRobot();
 
         controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
         chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
@@ -161,6 +140,28 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         }
 
         telemetry.update();
+    }
+
+    private void configureRobot() {
+        hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
+        hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
+        hardwareDriver.rightFront = hardwareMap.get(DcMotorEx.class, "rightfront");
+        hardwareDriver.rightRear = hardwareMap.get(DcMotorEx.class, "rightrear");
+
+        hardwareDriver.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardwareDriver.rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        hardwareDriver.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        hardwareDriver.claw = hardwareMap.get(Servo.class, "tipperhopper");
+
+        hardwareDriver.lift_left = hardwareMap.get(DcMotorEx.class, "lifter");
+        hardwareDriver.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
+
+        hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 }
 

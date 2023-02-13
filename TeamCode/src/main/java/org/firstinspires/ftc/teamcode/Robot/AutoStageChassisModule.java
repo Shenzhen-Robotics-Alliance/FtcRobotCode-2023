@@ -44,16 +44,20 @@ public class AutoStageChassisModule {
         double numericalRotationDifference = targetedRotation - currentRotation;
         double counterClockWiseDifference, clockWiseDifference;
 
-        // TODO separate the calculation of rotation difference into another function, apply the same calculation in the loop inside rotate-clockwise and rotate-counter-clockwise functions
+        System.out.print("robot facing:");
+        System.out.println(currentRotation);
+        // TODO fix bugs on IMU, the IMUs are not working, BNO055 found, but no BHI260AP found, maybe the system went for a wrong IMU
         if (numericalRotationDifference > 0) { // when the target is at the positive(clockwise) direction
             clockWiseDifference = numericalRotationDifference;
             double targetedToOrigin = fullCircle - targetedRotation;
             counterClockWiseDifference = targetedToOrigin + currentRotation;
         } else {
-            counterClockWiseDifference = numericalRotationDifference;
+            counterClockWiseDifference = -numericalRotationDifference;
             double targetedToOrigin = fullCircle - targetedRotation;
             clockWiseDifference = targetedToOrigin + currentRotation;
         }
+
+        System.out.println(numericalRotationDifference);
 
         if (clockWiseDifference < counterClockWiseDifference) {
             rotateClockWise(clockWiseDifference);
@@ -74,6 +78,8 @@ public class AutoStageChassisModule {
                             0, Math.toRadians(90), 0.6, 0.85, clockWiseDifference
                     ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
+            System.out.print("clockwise difference: ");
+            System.out.println(clockWiseDifference);
         } while (clockWiseDifference > Math.toRadians(5));
     }
 
@@ -87,9 +93,10 @@ public class AutoStageChassisModule {
             double rotatingSpeed = new ChassisModule(null, null, imu)
                     .linearMap(
                             0, Math.toRadians(90), 0.6, 0.85, counterClockWiseDifference
-                    ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
+                    ) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
         } while (counterClockWiseDifference > Math.toRadians(5));
+        setRobotMotion(0, 0, 0);
     }
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
@@ -97,5 +104,10 @@ public class AutoStageChassisModule {
         driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+    }
+
+    public double getImuYaw() {
+        YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+        return -orientation.getYaw(AngleUnit.RADIANS);
     }
 }
