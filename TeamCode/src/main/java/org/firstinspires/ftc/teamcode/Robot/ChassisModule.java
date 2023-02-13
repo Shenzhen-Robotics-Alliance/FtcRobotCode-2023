@@ -70,7 +70,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             double rotationalMotion = Math.copySign(
                     linearMap(0.05, 1, 0, 1,
                             Math.abs(gamepad.left_stick_x)
-                    ), gamepad.right_stick_x);
+                    ), gamepad.left_stick_x);
 
             boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
             if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -91,9 +91,9 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
             if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
 
-            yAxleMotion = Range.clip(yAxleMotion, -1, 1);
-            xAxleMotion = Range.clip(xAxleMotion, -1, 1);
-            rotationalMotion = Range.clip(rotationalMotion, -1, 1);
+//            yAxleMotion = Range.clip(yAxleMotion, -1, 1);
+//            xAxleMotion = Range.clip(xAxleMotion, -1, 1);
+//            rotationalMotion = Range.clip(rotationalMotion, -1, 1);
 
             /* yAxleMotion *= -1;
             xAxleMotion *= -1;
