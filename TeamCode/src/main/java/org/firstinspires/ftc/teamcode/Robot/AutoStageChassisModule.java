@@ -35,17 +35,49 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
+        final double fullCircle = 2 * Math.PI;
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-        final double imuRotationCorrectionRate = -1;
-        double currentRotation = orientation.getYaw(AngleUnit.RADIANS) * imuRotationCorrectionRate;
-        if (currentRotation < 0) currentRotation = 2*Math.PI + currentRotation;
+        final double imuRotationCorrectionFactor = -1;
+        double currentRotation = orientation.getYaw(AngleUnit.RADIANS) * imuRotationCorrectionFactor;
+        if (currentRotation < 0) currentRotation = fullCircle + currentRotation;
 
-        double rotationDifference = targetedRotation - currentRotation;
-        while (rotationDifference > 0) {
-            double expectedRotationalVelocity = new ChassisModule(null, null, imu).linearMap(
-                    0, (Math.PI / 2), 0.6, 1, rotationDifference
-            ); // the robot spins in a velocity that depends on the rotation difference
-            setRobotMotion(0, 0, expectedRotationalVelocity);
+        double numericalRotationDifference = targetedRotation - currentRotation;
+        double counterClockWiseDifference, clockWiseDifference;
+        if (numericalRotationDifference > 0) { // when the target is at the positive(clockwise) direction
+            clockWiseDifference = numericalRotationDifference;
+            double targetedToOrigin = fullCircle - targetedRotation;
+            counterClockWiseDifference = targetedToOrigin + currentRotation;
+        } else {
+            counterClockWiseDifference = numericalRotationDifference;
+            double targetedToOrigin = fullCircle - targetedRotation;
+            clockWiseDifference = targetedToOrigin + currentRotation;
+        }
+
+        if (clockWiseDifference < counterClockWiseDifference) {
+            rotateClockWise(clockWiseDifference);
+        } else {
+            rotateCounterClockWise(counterClockWiseDifference);
+        }
+    }
+
+    private void rotateClockWise(double clockWiseDifference) {
+        while (clockWiseDifference > Math.toRadians(5)) {
+            double rotatingSpeed = new ChassisModule(null, null, imu)
+                    .linearMap(
+                            0, Math.toRadians(90), 0.6, 0.85, clockWiseDifference
+                    ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
+            setRobotMotion(0, 0, rotatingSpeed);
+        }
+    }
+
+    private void rotateCounterClockWise(double counterClockWiseDifference) {
+        while (counterClockWiseDifference > Math.toRadians(5)) {
+            double rotatingSpeed = new ChassisModule(null, null, imu)
+                    .linearMap(
+                            0, Math.toRadians(90), 0.6, 0.85, counterClockWiseDifference
+                    )
+                    * -1; // as it is counter-clockwise, multiply it by a factor of -1
+            setRobotMotion(0, 0, rotatingSpeed);
         }
     }
 
