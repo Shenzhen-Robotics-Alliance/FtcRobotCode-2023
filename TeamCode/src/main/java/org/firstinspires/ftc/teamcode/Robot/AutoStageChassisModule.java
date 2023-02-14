@@ -11,13 +11,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoStageChassisModule {
-    private final HardwareDriver driver;
-    private IMUReader imu;
+    private final double acceptedRotationDeviation = Math.toRadians(5);
+    private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
+    private final double minRotatingPower = 0.1;
+    private final double stableRotatingPower = 0.35;
+
+    private HardwareDriver driver;
+    private final IMUReader imu;
     private Thread imuReaderThread;
-    private boolean isStopRequested = false;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
+
     private double[] robotCurrentPosition = new double[2];
+
+    private boolean isStopRequested = false;
 
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap) {
         this.driver = driver;
@@ -70,8 +77,8 @@ public class AutoStageChassisModule {
             else clockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of clockwise difference
 
             double rotatingSpeed = ChassisModule.linearMap(
-                            0, Math.toRadians(90), 0.6, 0.85, clockWiseDifference
-                    ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
+                    acceptedRotationDeviation, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, clockWiseDifference
+            ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
             // TODO fix bugs on imu data processing
             System.out.print("clockwise difference: ");
@@ -87,7 +94,7 @@ public class AutoStageChassisModule {
             else counterClockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of counter-clockwise difference
 
             double rotatingSpeed = ChassisModule.linearMap(
-                            0, Math.toRadians(90), 0.6, 0.85, counterClockWiseDifference
+                    acceptedRotationDeviation, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, counterClockWiseDifference
                     ) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
             System.out.print("counter-clockwise difference: ");
