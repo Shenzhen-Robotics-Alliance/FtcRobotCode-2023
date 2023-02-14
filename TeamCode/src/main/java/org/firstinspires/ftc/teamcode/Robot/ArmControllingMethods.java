@@ -1,11 +1,10 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class ControllingMethods {
+public class ArmControllingMethods {
 
     private HardwareDriver hr;
 
@@ -15,7 +14,7 @@ public class ControllingMethods {
 
     private short arm;
 
-    public ControllingMethods(HardwareDriver hr, Telemetry telemetry) {
+    public ArmControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
         this.telemetry = telemetry;
         this.claw = false;

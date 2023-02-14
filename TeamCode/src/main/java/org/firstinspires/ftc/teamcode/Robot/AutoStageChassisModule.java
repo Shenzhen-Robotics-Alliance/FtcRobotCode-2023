@@ -42,11 +42,25 @@ public class AutoStageChassisModule {
             while (!isStopRequested) imu.updateIMUStatus();
         });
         imuReaderThread.start();
-
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
-        // TODO move to the requested targeted position, in reference to the starting position
+        // move to the requested targeted position, in reference to the starting position
+
+        calculateCurrentEncoderPosition();
+
+        // calculate the required movement to get to the objective position
+        double[] requiredMovement = new double[2];
+        requiredMovement[0] = targetedXPosition - robotStartingPosition[0]; requiredMovement[1] = targetedYPosition - robotStartingPosition[1];
+
+        // set the targeted position for each motor
+        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation + requiredMovement[0]));
+        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation - requiredMovement[0]));
+        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation - requiredMovement[0]));
+        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation + requiredMovement[0]));
+
+        // set the running parameters for each motors
+        
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 

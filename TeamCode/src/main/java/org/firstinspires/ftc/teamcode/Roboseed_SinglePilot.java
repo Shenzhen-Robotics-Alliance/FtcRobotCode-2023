@@ -8,13 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
-import org.firstinspires.ftc.teamcode.Robot.ComputerVisionAUX;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
-import org.firstinspires.ftc.teamcode.Robot.ControllingMethods;
+import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
 
 /**
  * This opmode explains how you follow multiple trajectories in succession, asynchronously. This
@@ -45,7 +43,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
     boolean slowMotionActivated = false; // if the slow-motion mode is activated
 
-    private ControllingMethods controllingMethods;
+    private ArmControllingMethods armControllingMethods;
     private ChassisModule chassisModule;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
@@ -53,7 +51,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
 
-        controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
+        armControllingMethods = new ArmControllingMethods(hardwareDriver, telemetry);
         chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
@@ -82,50 +80,50 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
-            runLoop(controllingMethods, chassisModule);
+            runLoop(armControllingMethods, chassisModule);
         } chassisModule.terminate(); fieldNavigation.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
-    private void runLoop(ControllingMethods controllingMethods, ChassisModule chassisModule) throws InterruptedException {
+    private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
         String robotPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
         telemetry.addData("robotCurrentPosition", robotPositionString);
 
-        if (gamepad1.right_bumper) controllingMethods.closeClaw();
-        else if (gamepad1.left_bumper) controllingMethods.openClaw();
+        if (gamepad1.right_bumper) armControllingMethods.closeClaw();
+        else if (gamepad1.left_bumper) armControllingMethods.openClaw();
 
         if (gamepad1.y) {
-            controllingMethods.toHighArmPosition();
+            armControllingMethods.toHighArmPosition();
         }
         if (gamepad1.x) {
-            controllingMethods.toMidArmPosition();
+            armControllingMethods.toMidArmPosition();
         }
         if (gamepad1.b) {
-            controllingMethods.toLowArmPosition();
+            armControllingMethods.toLowArmPosition();
         }
         if (gamepad1.a) {
-            controllingMethods.toGroundArmPosition();
+            armControllingMethods.toGroundArmPosition();
         }
         telemetry.addData("going to pos", 0);
         if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
             PreviousGrepActivation.reset();
-            controllingMethods.openClaw();
-            controllingMethods.deactivateArm();
+            armControllingMethods.openClaw();
+            armControllingMethods.deactivateArm();
             chassisModule.pause();
             // TODO aim the target automatically using computer vision
             chassisModule.resume();
-            controllingMethods.closeClaw();
+            armControllingMethods.closeClaw();
             Thread.sleep(300);
-            controllingMethods.toMidArmPosition();
+            armControllingMethods.toMidArmPosition();
         }
 
         if (gamepad1.left_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
             System.out.println("RA");
-            controllingMethods.raiseArm();
+            armControllingMethods.raiseArm();
             PreviousElevatorActivation.reset();
         } else if (gamepad1.left_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .2) {
             System.out.println("LA");
-            controllingMethods.lowerArm();
+            armControllingMethods.lowerArm();
             PreviousElevatorActivation.reset();
         }
 
@@ -133,9 +131,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             hardwareDriver.lift_left.setPower(0);
             hardwareDriver.lift_left.setPower(0);
             System.exit(0);
-        } if (PreviousElevatorActivation.seconds() > 5 & controllingMethods.getClaw()) {
+        } if (PreviousElevatorActivation.seconds() > 5 & armControllingMethods.getClaw()) {
             System.out.println("saving battery...");
-            controllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+            armControllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
         }
 
