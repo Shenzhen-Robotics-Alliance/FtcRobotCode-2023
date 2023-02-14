@@ -33,11 +33,9 @@ public class Roboseed_Test extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
         waitForStart();
-        IMUReader imuReader = new IMUReader(hardwareMap);
-        while (true) {
-            imuReader.updateIMUStatus();
-            System.out.println(imuReader.getRobotHeading());
-        }
+        AutoStageChassisModule autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
+        autoStageChassisModule.initRobotChassis();
+        autoStageChassisModule.setRobotRotation(Math.toRadians(90));
     }
 
     private void configureRobot() {

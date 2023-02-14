@@ -26,9 +26,9 @@ public class AutoStageChassisModule {
 
     public void initRobotChassis() {
         imu.calibrateIMUHeading();
-        this.imuReaderThread = new Thread(new Runnable() {@Override public void run() {
+        this.imuReaderThread = new Thread(() -> {
             while (true) imu.updateIMUStatus();
-        }});
+        });
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
@@ -63,6 +63,7 @@ public class AutoStageChassisModule {
     private void rotateClockWise(double targetedRotation) {
         double clockWiseDifference ;
         do {
+            imu.updateIMUStatus();
             double currentRotation = imu.getRobotHeading();
             if (targetedRotation > currentRotation) clockWiseDifference = targetedRotation - currentRotation;
             else clockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of clockwise difference
@@ -79,6 +80,7 @@ public class AutoStageChassisModule {
     private void rotateCounterClockWise(double targetedRotation) {
         double counterClockWiseDifference ;
         do {
+            imu.updateIMUStatus();
             double currentRotation = imu.getRobotHeading();
             if (targetedRotation < currentRotation) counterClockWiseDifference = targetedRotation - currentRotation;
             else counterClockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of counter-clockwise difference
