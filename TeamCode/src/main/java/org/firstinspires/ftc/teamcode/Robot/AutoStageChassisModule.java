@@ -3,18 +3,20 @@ package org.firstinspires.ftc.teamcode.Robot;
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoStageChassisModule {
     private final double acceptedRotationDeviation = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.1;
-    private final double stableRotatingPower = 0.35;
+    private final double minRotatingPower = 0.15;
+    private final double stableRotatingPower = 0.45;
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -22,13 +24,16 @@ public class AutoStageChassisModule {
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
 
-    private double[] robotCurrentPosition = new double[2];
+    private double robotStartingRotation;
+    private double[] robotStartingPosition = new double[2];
 
+    private double[] robotCurrentPosition = new double[2];
     private boolean isStopRequested = false;
 
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
+        this.robotStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + ;
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
     }
 
@@ -38,6 +43,11 @@ public class AutoStageChassisModule {
             while (!isStopRequested) imu.updateIMUStatus();
         });
         imuReaderThread.start();
+
+    }
+
+    public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
+        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
@@ -84,6 +94,7 @@ public class AutoStageChassisModule {
             System.out.print("clockwise difference: ");
             System.out.println(clockWiseDifference);
         } while (clockWiseDifference > Math.toRadians(5));
+        setRobotMotion(0, 0, 0);
     }
 
     private void rotateCounterClockWise(double targetedRotation) {
@@ -119,3 +130,15 @@ public class AutoStageChassisModule {
         isStopRequested = true;
     }
 }
+
+/*
+* about Mecanum wheel
+* leftFront Wheel = Y + R + X
+* leftRear Wheel = Y + R - X
+* rightFront Wheel = Y - R - X
+* rightRear Wheel = Y - R + X
+*
+* X = (LF - LR) / 2
+* Y = LF + RF = LR + RR
+* R = (LF - RR) / 2
+* */
