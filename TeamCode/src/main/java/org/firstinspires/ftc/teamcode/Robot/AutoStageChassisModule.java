@@ -18,6 +18,11 @@ public class AutoStageChassisModule {
     private final double minRotatingPower = 0.15;
     private final double stableRotatingPower = 0.45;
 
+    private final double acceptedPositionDeviation = 10;
+    private final double distanceStartDecelerating = 100; // TODO set these two values to be some small encoder values
+    private final double minMotioningPower = 0.15;
+    private final double stableMotioningPower = 0.6;
+
     private HardwareDriver driver;
     private final IMUReader imu;
     private Thread imuReaderThread;
@@ -55,13 +60,27 @@ public class AutoStageChassisModule {
 
         // set the targeted position for each motor
         this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation + requiredMovement[0]));
-        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation - requiredMovement[0]));
-        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation - requiredMovement[0]));
-        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation + requiredMovement[0]));
+        this.driver.leftRear.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation - requiredMovement[0]));
+        this.driver.rightFront.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation - requiredMovement[0]));
+        this.driver.rightRear.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation + requiredMovement[0]));
 
         // set the running parameters for each motors
-        
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        this.driver.leftFront.setPower(stableMotioningPower);
+        this.driver.leftRear.setPower(stableMotioningPower);
+        this.driver.rightFront.setPower(stableMotioningPower);
+        this.driver.rightRear.setPower(stableMotioningPower);
+
+        double xPositionDifferent; double yPositionDifferent;
+        double distanceLeft;
+        do {
+            // TODO correct the power of the driving motors according to the distance left
+
+        } while (Math.abs()); // wait until the process is done, accept a small amount of error
     }
 
     private void calculateCurrentEncoderPosition() {
