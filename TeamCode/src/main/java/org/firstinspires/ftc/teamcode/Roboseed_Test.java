@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -30,9 +31,9 @@ public class Roboseed_Test extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
+        waitForStart();
         AutoStageChassisModule chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
         chassisModule.initRobotChassis();
-        waitForStart();
         chassisModule.setRobotRotation(Math.toRadians(45));
     }
 
