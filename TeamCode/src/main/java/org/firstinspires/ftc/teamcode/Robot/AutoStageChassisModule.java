@@ -14,6 +14,7 @@ public class AutoStageChassisModule {
     private final HardwareDriver driver;
     private IMUReader imu;
     private Thread imuReaderThread;
+    private boolean isStopRequested;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     private double[] robotCurrentPosition = new double[2];
@@ -27,7 +28,8 @@ public class AutoStageChassisModule {
     public void initRobotChassis() {
         imu.calibrateIMUHeading();
         this.imuReaderThread = new Thread(() -> {
-            while (true) imu.updateIMUStatus();
+            while (!isStopRequested) imu.updateIMUStatus();
+
         });
     }
 
@@ -90,7 +92,7 @@ public class AutoStageChassisModule {
                             0, Math.toRadians(90), 0.6, 0.85, counterClockWiseDifference
                     ) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
-            System.out.print("clockwise difference: ");
+            System.out.print("counter-clockwise difference: ");
             System.out.println(counterClockWiseDifference);
         } while (counterClockWiseDifference > Math.toRadians(5));
         setRobotMotion(0, 0, 0);
@@ -108,6 +110,6 @@ public class AutoStageChassisModule {
     }
 
     public void terminate() {
-        imuReaderThread.stop();
+        isStopRequested = true;
     }
 }
