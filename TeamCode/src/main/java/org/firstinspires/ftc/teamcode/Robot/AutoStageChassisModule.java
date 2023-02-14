@@ -33,7 +33,6 @@ public class AutoStageChassisModule {
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
-        this.robotStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + ;
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
     }
 
@@ -47,7 +46,14 @@ public class AutoStageChassisModule {
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
+        // TODO move to the requested targeted position, in reference to the starting position
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private void calculateCurrentEncoderPosition() {
+        this.robotStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
+        this.robotStartingPosition[1] = this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
+        this.robotStartingRotation = this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
