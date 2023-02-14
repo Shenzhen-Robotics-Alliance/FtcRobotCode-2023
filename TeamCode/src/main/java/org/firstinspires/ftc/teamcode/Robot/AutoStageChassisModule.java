@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoStageChassisModule {
     private final HardwareDriver driver;
-    private final IMU imu;
+    private IMU imu;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     private double[] robotCurrentPosition = new double[2];
@@ -20,14 +20,14 @@ public class AutoStageChassisModule {
 
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap) {
         this.driver = driver;
-        this.imu = hardwareMap.get(IMU.class, "imu");
+        this.imu = hardwareMap.get(IMU.class, "imu2"); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
     }
 
     public void initRobotChassis() {
         final double imuXRotation = 0;
         final double imuYRotation = 145.64;
-        final double imuZRotation = 0;// init the imu
+        final double imuZRotation = 0; // the rotation of the IMU in reference to the vehicle
         Orientation imuRotation = xyzOrientation(imuXRotation, imuYRotation, imuZRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(imuRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
@@ -95,6 +95,8 @@ public class AutoStageChassisModule {
                             0, Math.toRadians(90), 0.6, 0.85, counterClockWiseDifference
                     ) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
+            System.out.print("clockwise difference: ");
+            System.out.println(counterClockWiseDifference);
         } while (counterClockWiseDifference > Math.toRadians(5));
         setRobotMotion(0, 0, 0);
     }

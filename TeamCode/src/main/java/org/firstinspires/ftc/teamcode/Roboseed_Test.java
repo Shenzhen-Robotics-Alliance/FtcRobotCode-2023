@@ -31,8 +31,8 @@ public class Roboseed_Test extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
         AutoStageChassisModule chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
-        waitForStart();
         chassisModule.initRobotChassis();
+        waitForStart();
         chassisModule.setRobotRotation(Math.toRadians(45));
     }
 

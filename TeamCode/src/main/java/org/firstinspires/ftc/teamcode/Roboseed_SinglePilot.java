@@ -54,7 +54,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         this.configureRobot();
 
         controllingMethods = new ControllingMethods(hardwareDriver, telemetry);
-        chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu"));
+        chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
         telemetry.addLine("currentRobotPosition");

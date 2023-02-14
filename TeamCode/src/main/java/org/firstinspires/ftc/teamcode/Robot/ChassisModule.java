@@ -62,11 +62,11 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         double[] correctedMotion;
 
         while (true) {
+            System.out.println(terminated);
             while (paused) Thread.yield();
             if (terminated) break;
             double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
             double xAxleMotion = linearMap(gamepad.right_stick_x);
-            // TODO fixed bugs on rotationMotion
             double rotationalMotion = Math.copySign(
                     linearMap(0.05, 1, 0, 1,
                             Math.abs(gamepad.left_stick_x)
@@ -120,6 +120,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             } if (gamepad.dpad_right) { // debug the imu by resetting the heading
                 imu.resetYaw();
             }
+
+            System.out.println(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
         }
         System.out.println("chassis module stopped");
