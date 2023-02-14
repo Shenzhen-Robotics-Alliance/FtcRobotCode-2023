@@ -14,6 +14,7 @@ import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Robot.IMUReader;
 
 /*
  * the robot starts in the corner of the field.
@@ -32,9 +33,11 @@ public class Roboseed_Test extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
         waitForStart();
-        AutoStageChassisModule chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
-        chassisModule.initRobotChassis();
-        chassisModule.setRobotRotation(Math.toRadians(45));
+        IMUReader imuReader = new IMUReader(hardwareMap);
+        while (true) {
+            imuReader.updateIMUStatus();
+            System.out.println(imuReader.getRobotHeading());
+        }
     }
 
     private void configureRobot() {

@@ -22,6 +22,7 @@ public class IMUReader {
     // State used for updating telemetry
     Orientation angles;
     Acceleration gravity;
+    double headingCorrectionBias;
 
 
     public IMUReader(HardwareMap hardwareMap) {
@@ -51,38 +52,43 @@ public class IMUReader {
     // Telemetry Configuration
     //----------------------------------------------------------------------------------------------
 
-    void updateIMUStatus() {
+    public void calibrateIMUHeading() {
+        updateIMUStatus();
+        headingCorrectionBias = -getRobotHeading();
+    }
+    public void updateIMUStatus() {
         // Acquiring the angles is relatively expensive; we don't want
         // to do that in each of the three items that need that info, as that's
         // three times the necessary expense.
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
         gravity = imu.getGravity();
     }
 
-    private double getRobotHeading() {
-        return angles.firstAngle;
+    public double getRobotHeading() {
+        final double imuHeadingCorrectionFactor = -1;
+        return angles.firstAngle * imuHeadingCorrectionFactor;
     }
-    private double getRobotRoll() {
+    public double getRobotRoll() {
         return angles.secondAngle;
     }
-    private double getRobotPitch() {
+    public double getRobotPitch() {
         return angles.thirdAngle;
     }
 
-    private double getRobotXAcceleration() {
+    public double getRobotXAcceleration() {
         return gravity.xAccel;
     }
-    private double getRobotYAcceleration() {
+    public double getRobotYAcceleration() {
         return gravity.yAccel;
     }
-    private double getRobotZAcceleration() {
+    public double getRobotZAcceleration() {
         return getRobotZAcceleration(false);
     }
-    private double getRobotZAcceleration(boolean Calibrate) {
+    public double getRobotZAcceleration(boolean Calibrate) {
         if (Calibrate) return gravity.zAccel - 9.8;
         return gravity.zAccel;
     }
-    private String getGravitation() {
+    public String getGravitation() {
         return gravity.toString();
     }
 }
