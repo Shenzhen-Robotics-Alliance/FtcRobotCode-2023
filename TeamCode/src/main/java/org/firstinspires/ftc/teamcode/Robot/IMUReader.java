@@ -82,9 +82,7 @@ public class IMUReader {
         if (Calibrate) return gravity.zAccel - 9.8;
         return gravity.zAccel;
     }
-        private String getGravitation() {
-            return gravity.toString();
-        }
+    private String getGravitation() {
+        return gravity.toString();
     }
-
 }
