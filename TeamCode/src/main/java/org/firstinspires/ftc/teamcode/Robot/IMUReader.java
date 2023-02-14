@@ -59,29 +59,29 @@ public class IMUReader {
         gravity = imu.getGravity();
     }
 
-        private double getRobotHeading() {
-            return angles.firstAngle;
-        }
-        private double getRobotRoll() {
-            return angles.secondAngle;
-        }
-        private double getRobotPitch() {
-            return angles.thirdAngle;
-        }
+    private double getRobotHeading() {
+        return angles.firstAngle;
+    }
+    private double getRobotRoll() {
+        return angles.secondAngle;
+    }
+    private double getRobotPitch() {
+        return angles.thirdAngle;
+    }
 
-        private double getRobotXAcceleration() {
-            return gravity.xAccel;
-        }
-        private double getRobotYAcceleration() {
-            return gravity.yAccel;
-        }
-        private double getRobotZAcceleration() {
-            return getRobotZAcceleration(false);
-        }
-        private double getRobotZAcceleration(boolean Calibrate) {
-            if (Calibrate) return gravity.zAccel - 9.8;
-            return gravity.zAccel;
-        }
+    private double getRobotXAcceleration() {
+        return gravity.xAccel;
+    }
+    private double getRobotYAcceleration() {
+        return gravity.yAccel;
+    }
+    private double getRobotZAcceleration() {
+        return getRobotZAcceleration(false);
+    }
+    private double getRobotZAcceleration(boolean Calibrate) {
+        if (Calibrate) return gravity.zAccel - 9.8;
+        return gravity.zAccel;
+    }
         private String getGravitation() {
             return gravity.toString();
         }
