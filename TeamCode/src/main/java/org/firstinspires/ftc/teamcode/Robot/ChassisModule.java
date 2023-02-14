@@ -67,10 +67,11 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             if (terminated) break;
             double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
             double xAxleMotion = linearMap(gamepad.right_stick_x);
-            double rotationalMotion = Math.copySign(
+            /* double rotationalMotion = Math.copySign(
                     linearMap(0.05, 1, 0, 1,
                             Math.abs(gamepad.left_stick_x)
-                    ), gamepad.left_stick_x);
+                    ), gamepad.left_stick_x); */
+            double rotationalMotion = linearMap(gamepad.left_stick_x);
 
             boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
             if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -106,10 +107,10 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
 
             // control the Mecanum wheel
-            driver.leftFront.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
             driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
             driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-            driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
 
             if (gamepad.dpad_down & PreviousMotionModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
                 slowMotionModeActivationSwitch = !slowMotionModeActivationSwitch; // activate or deactivate slow motion
