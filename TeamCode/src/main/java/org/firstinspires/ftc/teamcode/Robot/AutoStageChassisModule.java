@@ -14,7 +14,7 @@ public class AutoStageChassisModule {
     private final HardwareDriver driver;
     private IMUReader imu;
     private Thread imuReaderThread;
-    private boolean isStopRequested;
+    private boolean isStopRequested = false;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     private double[] robotCurrentPosition = new double[2];
@@ -26,11 +26,13 @@ public class AutoStageChassisModule {
     }
 
     public void initRobotChassis() {
+        System.out.println("init robot");
         imu.calibrateIMUHeading();
         this.imuReaderThread = new Thread(() -> {
             while (!isStopRequested) imu.updateIMUStatus();
-
+            System.out.println("imu data updated");
         });
+        imuReaderThread.start();
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
@@ -99,10 +101,11 @@ public class AutoStageChassisModule {
     }
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
-        driver.leftFront.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        // control the Mecanum wheel
+        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
         driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-        driver.rightRear.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
     }
 
     public double getImuYaw() {

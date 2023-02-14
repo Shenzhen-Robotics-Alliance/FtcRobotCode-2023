@@ -47,7 +47,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         });
 
         // go forward one step
-        
+
 
         // end of the program
         fieldNavigation.terminate();
