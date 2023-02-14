@@ -66,7 +66,7 @@ public class IMUReader {
 
     public double getRobotHeading() {
         final double imuHeadingCorrectionFactor = -1;
-        return angles.firstAngle * imuHeadingCorrectionFactor;
+        return angles.firstAngle * imuHeadingCorrectionFactor + headingCorrectionBias;
     }
     public double getRobotRoll() {
         return angles.secondAngle;
