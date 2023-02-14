@@ -72,6 +72,7 @@ public class AutoStageChassisModule {
                             0, Math.toRadians(90), 0.6, 0.85, clockWiseDifference
                     ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
+            // TODO fix bugs on imu data processing
             System.out.print("clockwise difference: ");
             System.out.println(clockWiseDifference);
         } while (clockWiseDifference > Math.toRadians(5));
