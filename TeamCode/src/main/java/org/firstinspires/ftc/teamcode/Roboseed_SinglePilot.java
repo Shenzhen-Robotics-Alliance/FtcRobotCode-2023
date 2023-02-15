@@ -86,7 +86,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 //        currentState = State.TRAJECTORY_1;
 //        drive.followTrajectoryAsync(trajectory1);
 
-        Thread robotStatusMonitoringThread = new Thread(new Runnable() {
+        /* Thread robotStatusMonitoringThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (opModeIsActive() && !isStopRequested()) {
@@ -105,7 +105,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                     telemetry.update();
                 }
             }
-        }); robotStatusMonitoringThread.start();
+        }); robotStatusMonitoringThread.start(); */
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
@@ -114,7 +114,16 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     }
 
     private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
+        double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
+        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+        telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
 
+        double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
+        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+        telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+
+        telemetry.update();
+        
         if (gamepad1.right_bumper) armControllingMethods.closeClaw();
         else if (gamepad1.left_bumper) armControllingMethods.openClaw();
 

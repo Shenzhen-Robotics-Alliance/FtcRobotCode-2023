@@ -1,16 +1,7 @@
 package org.firstinspires.ftc.teamcode.Robot;
 
-import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
-
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class AutoStageChassisModule {
     private final double acceptedRotationDeviation = Math.toRadians(5);
@@ -29,10 +20,11 @@ public class AutoStageChassisModule {
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
 
-    private double robotStartingRotation;
-    private double[] robotStartingPosition = new double[2];
+    private double encoderStartingRotation;
+    private double[] encoderStartingPosition = new double[2];
 
-    private double[] robotCurrentPosition = new double[2];
+    private double[] encoderCurrentPosition = new double[2];
+    private double encoderCurrentRotation;
     private boolean isStopRequested = false;
 
 
@@ -58,17 +50,17 @@ public class AutoStageChassisModule {
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
         // move to the requested targeted position, in reference to the starting position
 
-        calculateCurrentEncoderPosition();
+        calculateStartingEncoderPosition();
 
         // calculate the required movement to get to the objective position
         double[] requiredMovement = new double[2];
-        requiredMovement[0] = targetedXPosition - robotStartingPosition[0]; requiredMovement[1] = targetedYPosition - robotStartingPosition[1];
+        requiredMovement[0] = targetedXPosition - encoderStartingPosition[0]; requiredMovement[1] = targetedYPosition - encoderStartingPosition[1];
 
         // set the targeted position for each motor
-        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation + requiredMovement[0]));
-        this.driver.leftRear.setTargetPosition((int) (requiredMovement[1] + robotStartingRotation - requiredMovement[0]));
-        this.driver.rightFront.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation - requiredMovement[0]));
-        this.driver.rightRear.setTargetPosition((int) (requiredMovement[1] - robotStartingRotation + requiredMovement[0]));
+        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + encoderStartingRotation + requiredMovement[0]));
+        this.driver.leftRear.setTargetPosition((int) (requiredMovement[1] + encoderStartingRotation - requiredMovement[0]));
+        this.driver.rightFront.setTargetPosition((int) (requiredMovement[1] - encoderStartingRotation - requiredMovement[0]));
+        this.driver.rightRear.setTargetPosition((int) (requiredMovement[1] - encoderStartingRotation + requiredMovement[0]));
 
         // set the running parameters for each motors
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -89,16 +81,29 @@ public class AutoStageChassisModule {
         } while (Math.abs(0) > acceptedPositionDeviation); // wait until the process is done, accept a small amount of error
     }
 
-    private void calculateCurrentEncoderPosition() {
+    private void calculateStartingEncoderPosition() {
         // calculate the current position with encoder data, using the algorithm of Mecanum wheel
-        this.robotStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
-        this.robotStartingPosition[1] = this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
-        this.robotStartingRotation = this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
+        this.encoderStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
+        this.encoderStartingPosition[1] = this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
+        this.encoderStartingRotation = this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
     }
 
     public double[] getEncoderPosition() {
-        calculateCurrentEncoderPosition();
-        return robotStartingPosition;
+        double[] encoderPosition = new double[2];
+        this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
+        this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
+
+        encoderPosition[0] = encoderCurrentPosition[0] - encoderStartingPosition[0];
+        encoderPosition[1] = encoderCurrentPosition[1] - encoderStartingPosition[1];
+        return encoderPosition;
+    }
+
+    public double getEncoderRotation() {
+        double encoderRotation;
+        this.encoderCurrentRotation = (double) this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
+
+        encoderRotation = encoderCurrentRotation - encoderStartingRotation;
+        return encoderRotation;
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
