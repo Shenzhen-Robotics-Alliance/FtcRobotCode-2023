@@ -42,7 +42,7 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        while (!terminated) {
             updateRobotPosition();
             threadReactions();
         }

@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoStageChassisModule {
+    private final double encoderCorrectionFactor = -1;
+
     private final double acceptedRotationDeviation = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
     private final double minRotatingPower = 0.15;
@@ -98,15 +100,15 @@ public class AutoStageChassisModule {
 
     private void calculateStartingEncoderPosition() {
         // calculate the current position with encoder data, using the algorithm of Mecanum wheel
-        this.encoderStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
-        this.encoderStartingPosition[1] = this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
-        this.encoderStartingRotation = this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
+        this.encoderStartingPosition[0] = this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition()*encoderCorrectionFactor;
+        this.encoderStartingPosition[1] = this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition()*encoderCorrectionFactor;
+        this.encoderStartingRotation = this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.rightRear.getCurrentPosition()*encoderCorrectionFactor;
     }
 
     public double[] getEncoderPosition() {
         double[] encoderPosition = new double[2];
-        this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
-        this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
+        this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition()*encoderCorrectionFactor;
+        this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition()*encoderCorrectionFactor;
 
         encoderPosition[0] = encoderCurrentPosition[0] - encoderStartingPosition[0];
         encoderPosition[1] = encoderCurrentPosition[1] - encoderStartingPosition[1];
@@ -115,7 +117,7 @@ public class AutoStageChassisModule {
 
     public double getEncoderRotation() {
         double encoderRotation;
-        this.encoderCurrentRotation = (double) this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
+        this.encoderCurrentRotation = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.rightRear.getCurrentPosition()*encoderCorrectionFactor;
 
         encoderRotation = encoderCurrentRotation - encoderStartingRotation;
         return encoderRotation;

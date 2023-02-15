@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 @Autonomous(name = "AutoStateProgram_v1.0")
 public class Roboseed_AutoStage extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
+    private boolean terminationFlag;
 
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
@@ -44,13 +45,15 @@ public class Roboseed_AutoStage extends LinearOpMode {
                 while (!isStopRequested() && opModeIsActive()) Thread.yield();
                 fieldNavigation.terminate();
                 chassisModule.terminate();
-                System.exit(0);
+                terminationFlag = true;
             }
         }); terminationListenerThread.start();
 
         // go to the center of the grid
         chassisModule.setRobotPosition(-324, 0);
         chassisModule.setRobotPosition(-324, -177);
+
+        if (terminationFlag) return; // check for termination in each step
 
         // end of the program
         fieldNavigation.terminate();
