@@ -92,9 +92,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                 while (opModeIsActive() && !isStopRequested()) {
                     try {
                         Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    } catch (InterruptedException e) { throw new RuntimeException(e); }
+                    System.out.println("monitoring thread running");
                     double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
                     String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
                     telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
@@ -102,6 +101,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                     double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
                     String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
                     telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+
+                    telemetry.update();
                 }
             }
         }); robotStatusMonitoringThread.start();
@@ -109,7 +110,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop(armControllingMethods, chassisModule);
-        } chassisModule.terminate(); fieldNavigation.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
+        } chassisModule.terminate(); fieldNavigation.terminate(); autoStageChassisModule.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
     private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
