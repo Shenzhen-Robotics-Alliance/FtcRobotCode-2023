@@ -91,7 +91,7 @@ public class AutoStageChassisModule {
             this.driver.rightFront.setPower(power);
             this.driver.rightRear.setPower(power);
 
-        } while (Math.abs(distanceLeft) > acceptedPositionDeviation); // wait until the process is done, accept a small amount of error
+        } while (distanceLeft > acceptedPositionDeviation & !isStopRequested); // wait until the process is done, accept a small amount of error
     }
 
     public void calibrateEncoder() { calculateStartingEncoderPosition(); }
@@ -163,7 +163,7 @@ public class AutoStageChassisModule {
             setRobotMotion(0, 0, rotatingSpeed);
             System.out.print("clockwise difference: ");
             System.out.println(clockWiseDifference);
-        } while (clockWiseDifference > Math.toRadians(5));
+        } while (clockWiseDifference > Math.toRadians(5) & !isStopRequested);
         setRobotMotion(0, 0, 0);
     }
 
@@ -180,7 +180,7 @@ public class AutoStageChassisModule {
             setRobotMotion(0, 0, rotatingSpeed);
             System.out.print("counter-clockwise difference: ");
             System.out.println(counterClockWiseDifference);
-        } while (counterClockWiseDifference > Math.toRadians(5));
+        } while (counterClockWiseDifference > Math.toRadians(5) & !isStopRequested);
         setRobotMotion(0, 0, 0);
     }
 
@@ -198,6 +198,7 @@ public class AutoStageChassisModule {
 
     public void terminate() {
         isStopRequested = true;
+        setRobotMotion(0, 0, 0);
     }
 }
 

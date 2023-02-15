@@ -43,9 +43,10 @@ public class Roboseed_AutoStage extends LinearOpMode {
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
                 while (!isStopRequested() && opModeIsActive()) Thread.yield();
                 fieldNavigation.terminate();
+                chassisModule.terminate();
                 System.exit(0);
             }
-        });
+        }); terminationListenerThread.start();
 
         // go to the center of the grid
         chassisModule.setRobotPosition(-324, 0);
