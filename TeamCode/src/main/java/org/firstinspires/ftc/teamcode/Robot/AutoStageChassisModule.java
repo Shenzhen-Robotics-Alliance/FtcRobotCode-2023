@@ -80,13 +80,19 @@ public class AutoStageChassisModule {
         do {
             // TODO correct the power of the driving motors according to the distance left
 
-        } while (Math.abs()); // wait until the process is done, accept a small amount of error
+        } while (Math.abs(0) > acceptedPositionDeviation); // wait until the process is done, accept a small amount of error
     }
 
     private void calculateCurrentEncoderPosition() {
+        // calculate the current position with encoder data, using the algorithm of Mecanum wheel
         this.robotStartingPosition[0] = this.driver.leftFront.getCurrentPosition() + this.driver.rightFront.getCurrentPosition();
         this.robotStartingPosition[1] = this.driver.leftFront.getCurrentPosition() - this.driver.leftRear.getCurrentPosition();
         this.robotStartingRotation = this.driver.leftFront.getCurrentPosition() - this.driver.rightRear.getCurrentPosition();
+    }
+
+    public double[] getEncoderPosition() {
+        calculateCurrentEncoderPosition();
+        return robotStartingPosition;
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian

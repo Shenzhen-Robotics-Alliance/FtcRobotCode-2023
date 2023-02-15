@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.checkerframework.checker.units.qual.A;
+import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
@@ -47,6 +49,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private ChassisModule chassisModule;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
+    private AutoStageChassisModule autoStageChassisModule;
+
     @Override
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
@@ -55,7 +59,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
-        telemetry.addLine("currentRobotPosition");
+        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
+        autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
+
+        telemetry.addLine("robotCurrentPosition(Camera)");
+        telemetry.addLine("robotCurrentPosition(Encoder)");
 
 
         waitForStart();
@@ -86,8 +94,12 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
     private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-        String robotPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
-        telemetry.addData("robotCurrentPosition", robotPositionString);
+        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+        telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
+
+        double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
+        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+        telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
 
         if (gamepad1.right_bumper) armControllingMethods.closeClaw();
         else if (gamepad1.left_bumper) armControllingMethods.openClaw();
