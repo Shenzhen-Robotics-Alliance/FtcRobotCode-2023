@@ -60,7 +60,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
         autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
-        autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
+        // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
 
         telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
