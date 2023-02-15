@@ -2,13 +2,10 @@ package org.firstinspires.ftc.teamcode.Robot;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
-import android.graphics.drawable.GradientDrawable;
-
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
@@ -22,9 +19,11 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
     private boolean slowMotionModeActivationSwitch;
     private boolean groundNavigatingModeActivationSwitch;
+    private boolean yAxleReversedSwitch;
 
-    private final ElapsedTime PreviousMotionModeButtonActivation;
-    private final ElapsedTime PreviousNavigationModeButtonActivation;
+    private final ElapsedTime previousMotionModeButtonActivation;
+    private final ElapsedTime previousNavigationModeButtonActivation;
+    private final ElapsedTime previousYAxleReverseSwitchActivation;
     private final ElapsedTime lastMovement;
 
     private boolean paused;
@@ -46,8 +45,9 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         imu.resetYaw();
 
         this.slowMotionModeActivationSwitch = false;
-        this.PreviousMotionModeButtonActivation = new ElapsedTime();
-        this.PreviousNavigationModeButtonActivation = new ElapsedTime();
+        this.previousMotionModeButtonActivation = new ElapsedTime();
+        this.previousNavigationModeButtonActivation = new ElapsedTime();
+        this.previousYAxleReverseSwitchActivation = new ElapsedTime();
         this.lastMovement = new ElapsedTime();
         this.paused = false;
         this.terminated = false;
@@ -87,7 +87,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
                 correctedMotion = navigateGround(xAxleMotion, yAxleMotion, -facing);
                 xAxleMotion = correctedMotion[0];
                 yAxleMotion = correctedMotion[1];
-            } else yAxleMotion *= -1;
+            } else if (yAxleReversedSwitch) yAxleMotion *= -1;
 
             if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
 
@@ -111,12 +111,15 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
             driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
 
-            if (gamepad.dpad_down & PreviousMotionModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
+            if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
                 slowMotionModeActivationSwitch = !slowMotionModeActivationSwitch; // activate or deactivate slow motion
-                PreviousMotionModeButtonActivation.reset();
-            } if(gamepad.dpad_up & PreviousNavigationModeButtonActivation.seconds() > 0.5) {
+                previousMotionModeButtonActivation.reset();
+            } if(gamepad.dpad_up & previousNavigationModeButtonActivation.seconds() > 0.5) {
                 groundNavigatingModeActivationSwitch = !groundNavigatingModeActivationSwitch;
-                PreviousNavigationModeButtonActivation.reset();
+                previousNavigationModeButtonActivation.reset();
+            } if(gamepad.dpad_left & previousYAxleReverseSwitchActivation.seconds() > 0.5) {
+                yAxleReversedSwitch = !yAxleReversedSwitch;
+                previousYAxleReverseSwitchActivation.reset();
             } if (gamepad.dpad_right) { // debug the imu by resetting the heading
                 imu.resetYaw();
             }
