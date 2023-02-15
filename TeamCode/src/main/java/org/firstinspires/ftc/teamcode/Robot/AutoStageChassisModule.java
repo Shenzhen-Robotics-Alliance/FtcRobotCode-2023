@@ -6,12 +6,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class AutoStageChassisModule {
     private final double encoderCorrectionFactor = -1;
 
-    private final double acceptedRotationDeviation = Math.toRadians(5);
+    private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
     private final double minRotatingPower = 0.15;
     private final double stableRotatingPower = 0.35;
 
-    private final double acceptedPositionDeviation = 10;
+    private final double positionDeviationTolerance = 10;
     private final double distanceStartDecelerating = 100; // TODO set these two values to be some small encoder values
     private final double minMotioningPower = 0.15;
     private final double stableMotioningPower = 0.35;
@@ -57,6 +57,7 @@ public class AutoStageChassisModule {
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
         // move to the requested targeted position, in reference to the starting position
+        // TODO test this method
 
         // calculate the required movement to get to the objective position
         double[] requiredMovement = new double[2];
@@ -69,31 +70,77 @@ public class AutoStageChassisModule {
         this.driver.rightRear.setTargetPosition((int) (requiredMovement[1] - encoderStartingRotation + requiredMovement[0]));
 
         // set the running parameters for each motors
-        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        this.driver.leftFront.setPower(stableMotioningPower);
-        this.driver.leftRear.setPower(stableMotioningPower);
-        this.driver.rightFront.setPower(stableMotioningPower);
-        this.driver.rightRear.setPower(stableMotioningPower);
-
-        double xPositionDifferent; double yPositionDifferent;
-        double distanceLeft;
-        double power;
+        double leftFrontEncoderCurrent, leftRearEncoderCurrent, rightFrontEncoderCurrent, rightRearEncoderCurrent;
+        double leftFrontEncoderDifference, leftRearEncoderDifference, rightFrontEncoderDifference, rightRearEncoderDifference;
+        double leftFrontMotorPower, leftRearMotorPower, rightFrontMotorPower, rightRearMotorPower;
+        double averageMotorEncoderDifference;
         do {
-            getEncoderPosition();
-            xPositionDifferent = targetedXPosition - encoderCurrentPosition[0];
-            yPositionDifferent = targetedYPosition - encoderCurrentPosition[1];
-            distanceLeft = Math.sqrt(xPositionDifferent*xPositionDifferent + yPositionDifferent*yPositionDifferent);
-            power = ChassisModule.linearMap(acceptedPositionDeviation, distanceStartDecelerating, minMotioningPower, stableMotioningPower, distanceLeft);
-            this.driver.leftFront.setPower(power);
-            this.driver.leftRear.setPower(power);
-            this.driver.rightFront.setPower(power);
-            this.driver.rightRear.setPower(power);
+            // get the current position of the motors
+            leftFrontEncoderCurrent = this.driver.leftFront.getCurrentPosition();
+            leftRearEncoderCurrent = this.driver.leftRear.getCurrentPosition();
+            rightFrontEncoderCurrent = this.driver.rightFront.getCurrentPosition();
+            rightRearEncoderCurrent = this.driver.rightRear.getCurrentPosition();
 
-        } while (distanceLeft > acceptedPositionDeviation & !isStopRequested); // wait until the process is done, accept a small amount of error
+            // calculate the difference
+            leftFrontEncoderDifference = this.driver.leftFront.getTargetPosition() - leftFrontEncoderCurrent;
+            leftRearEncoderDifference = this.driver.leftRear.getTargetPosition() - leftRearEncoderCurrent;
+            rightFrontEncoderDifference = this.driver.rightFront.getTargetPosition() - rightFrontEncoderCurrent;
+            rightRearEncoderDifference = this.driver.rightRear.getTargetPosition() - rightRearEncoderCurrent;
+
+            // calculate the power needed
+            leftFrontMotorPower = Math.copySign(
+                    ChassisModule.linearMap(
+                            positionDeviationTolerance,
+                            distanceStartDecelerating,
+                            minMotioningPower,
+                            stableMotioningPower,
+                            leftFrontEncoderDifference),
+                    leftFrontEncoderCurrent
+            );
+            leftRearMotorPower = Math.copySign(
+                    ChassisModule.linearMap(
+                            positionDeviationTolerance,
+                            distanceStartDecelerating,
+                            minMotioningPower,
+                            stableMotioningPower,
+                            leftRearEncoderDifference),
+                    leftRearEncoderDifference
+            );
+            rightFrontMotorPower = Math.copySign(
+                    ChassisModule.linearMap(
+                            positionDeviationTolerance,
+                            distanceStartDecelerating,
+                            minMotioningPower,
+                            stableMotioningPower,
+                            rightFrontEncoderDifference),
+                    rightFrontEncoderDifference
+            );
+            rightRearMotorPower = Math.copySign(
+                    ChassisModule.linearMap(
+                            positionDeviationTolerance,
+                            distanceStartDecelerating,
+                            minMotioningPower,
+                            stableMotioningPower,
+                            rightRearEncoderDifference),
+                    rightRearEncoderDifference
+            );
+
+            // apply the motor power to each motor
+            this.driver.leftFront.setPower(leftFrontMotorPower);
+            this.driver.leftRear.setPower(leftRearMotorPower);
+            this.driver.rightFront.setPower(rightFrontMotorPower);
+            this.driver.rightRear.setPower(rightRearMotorPower);
+
+            // calculate the average of distance that each motor are left to the objective, for further judgement on whether the process is completed
+            averageMotorEncoderDifference = Math.abs(leftFrontEncoderDifference) + Math.abs(leftRearEncoderDifference) + Math.abs(rightFrontEncoderDifference) + Math.abs(rightRearEncoderDifference);
+            averageMotorEncoderDifference /= 4;
+
+        } while (averageMotorEncoderDifference > positionDeviationTolerance & !isStopRequested); // wait until the process is done, accept a small amount of error
     }
 
     public void calibrateEncoder() { calculateStartingEncoderPosition(); }
@@ -160,7 +207,7 @@ public class AutoStageChassisModule {
             else clockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of clockwise difference
 
             double rotatingSpeed = ChassisModule.linearMap(
-                    acceptedRotationDeviation, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, clockWiseDifference
+                    rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, clockWiseDifference
             ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
             System.out.print("clockwise difference: ");
@@ -177,7 +224,7 @@ public class AutoStageChassisModule {
             else counterClockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of counter-clockwise difference
 
             double rotatingSpeed = ChassisModule.linearMap(
-                    acceptedRotationDeviation, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, counterClockWiseDifference
+                    rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, counterClockWiseDifference
                     ) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
             System.out.print("counter-clockwise difference: ");
