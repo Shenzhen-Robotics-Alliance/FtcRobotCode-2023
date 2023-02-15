@@ -29,9 +29,10 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        configureRobot();
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
         Thread fieldNavigationThread = new Thread(fieldNavigation);
-        chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
+        chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
 
         waitForStart();
 
@@ -46,8 +47,9 @@ public class Roboseed_AutoStage extends LinearOpMode {
             }
         });
 
-        // go forward one step
-
+        // go to the center of the grid
+        chassisModule.setRobotPosition(-324, 0);
+        chassisModule.setRobotPosition(-324, -177);
 
         // end of the program
         fieldNavigation.terminate();

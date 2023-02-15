@@ -29,6 +29,13 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private boolean paused;
     private boolean terminated;
 
+    /*
+    * dpad upper button: switch on/off field-navigation mode
+    * dpad lower button: switch on/off slow motion mode
+    * dpad left button: switch reverse y axle
+    * dpad right button: reset IMU YAW direction
+    * */
+
     public ChassisModule(Gamepad gamepad, HardwareDriver driver, IMU imu) {
         this.gamepad = gamepad;
         this.driver = driver;

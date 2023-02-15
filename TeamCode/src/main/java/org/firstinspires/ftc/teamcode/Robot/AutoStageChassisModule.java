@@ -7,12 +7,12 @@ public class AutoStageChassisModule {
     private final double acceptedRotationDeviation = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
     private final double minRotatingPower = 0.15;
-    private final double stableRotatingPower = 0.45;
+    private final double stableRotatingPower = 0.35;
 
     private final double acceptedPositionDeviation = 10;
     private final double distanceStartDecelerating = 100; // TODO set these two values to be some small encoder values
     private final double minMotioningPower = 0.15;
-    private final double stableMotioningPower = 0.6;
+    private final double stableMotioningPower = 0.35;
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -48,9 +48,13 @@ public class AutoStageChassisModule {
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
-        // move to the requested targeted position, in reference to the starting position
-
+        // reposition the distance of a given value, in reference to the robot itself before motion
         calculateStartingEncoderPosition();
+        setRobotPosition(targetedXPosition, targetedYPosition);
+    }
+
+    public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
+        // move to the requested targeted position, in reference to the starting position
 
         // calculate the required movement to get to the objective position
         double[] requiredMovement = new double[2];
@@ -75,11 +79,22 @@ public class AutoStageChassisModule {
 
         double xPositionDifferent; double yPositionDifferent;
         double distanceLeft;
+        double power;
         do {
-            // TODO correct the power of the driving motors according to the distance left
+            getEncoderPosition();
+            xPositionDifferent = targetedXPosition - encoderCurrentPosition[0];
+            yPositionDifferent = targetedYPosition - encoderCurrentPosition[1];
+            distanceLeft = Math.sqrt(xPositionDifferent*xPositionDifferent + yPositionDifferent*yPositionDifferent);
+            power = ChassisModule.linearMap(acceptedPositionDeviation, distanceStartDecelerating, minMotioningPower, stableMotioningPower, distanceLeft);
+            this.driver.leftFront.setPower(power);
+            this.driver.leftRear.setPower(power);
+            this.driver.rightFront.setPower(power);
+            this.driver.rightRear.setPower(power);
 
-        } while (Math.abs(0) > acceptedPositionDeviation); // wait until the process is done, accept a small amount of error
+        } while (Math.abs(distanceLeft) > acceptedPositionDeviation); // wait until the process is done, accept a small amount of error
     }
+
+    public void calibrateEncoder() { calculateStartingEncoderPosition(); }
 
     private void calculateStartingEncoderPosition() {
         // calculate the current position with encoder data, using the algorithm of Mecanum wheel
@@ -146,7 +161,6 @@ public class AutoStageChassisModule {
                     acceptedRotationDeviation, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, clockWiseDifference
             ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
-            // TODO fix bugs on imu data processing
             System.out.print("clockwise difference: ");
             System.out.println(clockWiseDifference);
         } while (clockWiseDifference > Math.toRadians(5));

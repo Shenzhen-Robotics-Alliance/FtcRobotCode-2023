@@ -107,6 +107,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             }
         }); robotStatusMonitoringThread.start(); */
 
+        autoStageChassisModule.calibrateEncoder();
+
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop(armControllingMethods, chassisModule);
