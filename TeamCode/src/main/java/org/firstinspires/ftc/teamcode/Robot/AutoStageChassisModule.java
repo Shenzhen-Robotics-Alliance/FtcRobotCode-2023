@@ -35,10 +35,16 @@ public class AutoStageChassisModule {
     private double[] robotCurrentPosition = new double[2];
     private boolean isStopRequested = false;
 
+
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
+    }
+    public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
+        this.driver = driver;
+        this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
+        this.fieldNavigation = fieldNavigation;
     }
 
     public void initRobotChassis() {

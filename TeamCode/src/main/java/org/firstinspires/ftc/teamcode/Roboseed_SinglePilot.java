@@ -59,7 +59,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
-        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
+        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
         // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
 
         telemetry.addLine("robotCurrentPosition(Camera)");
@@ -86,6 +86,26 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 //        currentState = State.TRAJECTORY_1;
 //        drive.followTrajectoryAsync(trajectory1);
 
+        Thread robotStatusMonitoringThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (opModeIsActive() && !isStopRequested()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
+                    String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+                    telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
+
+                    double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
+                    String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+                    telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+                }
+            }
+        }); robotStatusMonitoringThread.start();
+
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop(armControllingMethods, chassisModule);
@@ -93,13 +113,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     }
 
     private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
-        double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
-        telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
-
-        double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
-        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-        telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
 
         if (gamepad1.right_bumper) armControllingMethods.closeClaw();
         else if (gamepad1.left_bumper) armControllingMethods.openClaw();
