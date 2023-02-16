@@ -35,12 +35,7 @@ public class Roboseed_Test extends LinearOpMode {
         waitForStart();
         AutoStageChassisModule autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
         autoStageChassisModule.initRobotChassis();
-        telemetry.addLine("Robot Heading:");
-        autoStageChassisModule.setRobotRotation(Math.toRadians(90));
-        while (!isStopRequested() && opModeIsActive()) {
-            telemetry.addData("Robot Heading:", autoStageChassisModule.getImuYaw());
-            telemetry.update();
-        }
+        autoStageChassisModule.setRobotPosition(100, 0);
     }
 
     private void configureRobot() {

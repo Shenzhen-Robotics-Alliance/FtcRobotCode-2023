@@ -17,7 +17,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private final HardwareDriver driver;
     private final IMU imu;
 
-    private boolean slowMotionModeActivationSwitch;
+    private static boolean slowMotionModeActivationSwitch;
     private boolean groundNavigatingModeActivationSwitch;
     private boolean yAxleReversedSwitch;
 
@@ -208,14 +208,14 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
         return correctedMotion;
     }
-    public double linearMap(double value) {
+    private static double linearMap(double value) {
         if (slowMotionModeActivationSwitch) { // when slow motion activated
-            if (value > 0) return linearMap(0.05, 1, 0, 0.4, value);
-            return linearMap(-1, -0.05, -0.4, 0, value); // change the speed range to -0.4~0.4
-        } if (value > 0) return linearMap(0.05, 1, 0, 1, value);
-        return linearMap(-1, -0.05, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
+            if (value > 0) return linearMapMethod(0.05, 1, 0, 0.4, value);
+            return linearMapMethod(-1, -0.05, -0.4, 0, value); // change the speed range to -0.4~0.4
+        } if (value > 0) return linearMapMethod(0.05, 1, 0, 1, value);
+        return linearMapMethod(-1, -0.05, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
     }
-    public static double linearMap(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double value){
+    public static double linearMapMethod(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double value){
         if (value > Math.max(fromCeiling, fromFloor)) return Math.max(toCeiling, toFloor);
         else if (value < Math.min(fromCeiling, fromFloor)) return Math.min(toCeiling, toFloor);
         value -= fromFloor;
@@ -224,6 +224,12 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         return value;
     }
 
+    public static double linearMap(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double magnitude) {
+        return Math.copySign(
+                linearMapMethod(fromFloor, fromCeiling, toFloor, toCeiling, magnitude),
+                magnitude
+        );
+    }
     public void pause() {
         this.paused = true;
     }

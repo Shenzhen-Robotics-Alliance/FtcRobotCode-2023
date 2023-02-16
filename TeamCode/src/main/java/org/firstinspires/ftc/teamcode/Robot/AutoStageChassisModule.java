@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoStageChassisModule {
-    private final double encoderCorrectionFactor = -1;
+    private final double encoderCorrectionFactor = 1;
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
@@ -47,6 +47,7 @@ public class AutoStageChassisModule {
             while (!isStopRequested) imu.updateIMUStatus();
         });
         imuReaderThread.start();
+        calculateStartingEncoderPosition();
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
@@ -56,91 +57,43 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
-        // move to the requested targeted position, in reference to the starting position
-        // TODO test this method
-
-        // calculate the required movement to get to the objective position
-        double[] requiredMovement = new double[2];
-        requiredMovement[0] = targetedXPosition - encoderStartingPosition[0]; requiredMovement[1] = targetedYPosition - encoderStartingPosition[1];
-
-        // set the targeted position for each motor
-        this.driver.leftFront.setTargetPosition((int) (requiredMovement[1] + encoderStartingRotation + requiredMovement[0]));
-        this.driver.leftRear.setTargetPosition((int) (requiredMovement[1] + encoderStartingRotation - requiredMovement[0]));
-        this.driver.rightFront.setTargetPosition((int) (requiredMovement[1] - encoderStartingRotation - requiredMovement[0]));
-        this.driver.rightRear.setTargetPosition((int) (requiredMovement[1] - encoderStartingRotation + requiredMovement[0]));
-
         // set the running parameters for each motors
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        double leftFrontEncoderCurrent, leftRearEncoderCurrent, rightFrontEncoderCurrent, rightRearEncoderCurrent;
-        double leftFrontEncoderDifference, leftRearEncoderDifference, rightFrontEncoderDifference, rightRearEncoderDifference;
-        double leftFrontMotorPower, leftRearMotorPower, rightFrontMotorPower, rightRearMotorPower;
-        double averageMotorEncoderDifference;
+        double distanceXPosition, distanceYPosition, distanceLeft;
         do {
-            // get the current position of the motors
-            leftFrontEncoderCurrent = this.driver.leftFront.getCurrentPosition();
-            leftRearEncoderCurrent = this.driver.leftRear.getCurrentPosition();
-            rightFrontEncoderCurrent = this.driver.rightFront.getCurrentPosition();
-            rightRearEncoderCurrent = this.driver.rightRear.getCurrentPosition();
+            // get the distance left in x and y position
+            double[] robotCurrentPosition = getEncoderPosition();
+            distanceXPosition = targetedXPosition - robotCurrentPosition[0];
+            distanceYPosition = targetedYPosition - robotCurrentPosition[1];
 
-            // calculate the difference
-            leftFrontEncoderDifference = this.driver.leftFront.getTargetPosition() - leftFrontEncoderCurrent;
-            leftRearEncoderDifference = this.driver.leftRear.getTargetPosition() - leftRearEncoderCurrent;
-            rightFrontEncoderDifference = this.driver.rightFront.getTargetPosition() - rightFrontEncoderCurrent;
-            rightRearEncoderDifference = this.driver.rightRear.getTargetPosition() - rightRearEncoderCurrent;
-
-            // calculate the power needed
-            leftFrontMotorPower = Math.copySign(
-                    ChassisModule.linearMap(
-                            positionDeviationTolerance,
-                            distanceStartDecelerating,
-                            minMotioningPower,
-                            stableMotioningPower,
-                            leftFrontEncoderDifference),
-                    leftFrontEncoderCurrent
-            );
-            leftRearMotorPower = Math.copySign(
-                    ChassisModule.linearMap(
-                            positionDeviationTolerance,
-                            distanceStartDecelerating,
-                            minMotioningPower,
-                            stableMotioningPower,
-                            leftRearEncoderDifference),
-                    leftRearEncoderDifference
-            );
-            rightFrontMotorPower = Math.copySign(
-                    ChassisModule.linearMap(
-                            positionDeviationTolerance,
-                            distanceStartDecelerating,
-                            minMotioningPower,
-                            stableMotioningPower,
-                            rightFrontEncoderDifference),
-                    rightFrontEncoderDifference
-            );
-            rightRearMotorPower = Math.copySign(
-                    ChassisModule.linearMap(
-                            positionDeviationTolerance,
-                            distanceStartDecelerating,
-                            minMotioningPower,
-                            stableMotioningPower,
-                            rightRearEncoderDifference),
-                    rightRearEncoderDifference
+            // calculate, according to the distance left, using linear mapping, the needed motor power
+            double xVelocity = ChassisModule.linearMap(
+                    positionDeviationTolerance,
+                    distanceStartDecelerating,
+                    minMotioningPower,
+                    stableMotioningPower,
+                    distanceXPosition);
+            double yVelocity = ChassisModule.linearMap(
+                    positionDeviationTolerance,
+                    distanceStartDecelerating,
+                    minMotioningPower,
+                    stableMotioningPower,
+                    distanceYPosition
             );
 
-            // apply the motor power to each motor
-            this.driver.leftFront.setPower(leftFrontMotorPower);
-            this.driver.leftRear.setPower(leftRearMotorPower);
-            this.driver.rightFront.setPower(rightFrontMotorPower);
-            this.driver.rightRear.setPower(rightRearMotorPower);
+            driver.leftFront.setPower(yVelocity + xVelocity);
+            driver.leftRear.setPower(yVelocity - xVelocity);
+            driver.rightFront.setPower(yVelocity - xVelocity);
+            driver.rightRear.setPower(yVelocity + xVelocity);
 
-            // calculate the average of distance that each motor are left to the objective, for further judgement on whether the process is completed
-            averageMotorEncoderDifference = Math.abs(leftFrontEncoderDifference) + Math.abs(leftRearEncoderDifference) + Math.abs(rightFrontEncoderDifference) + Math.abs(rightRearEncoderDifference);
-            averageMotorEncoderDifference /= 4;
+            distanceLeft = Math.sqrt(xVelocity*xVelocity + yVelocity*yVelocity);
 
-        } while (averageMotorEncoderDifference > positionDeviationTolerance & !isStopRequested); // wait until the process is done, accept a small amount of error
+            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(distanceYPosition);
+        } while(distanceLeft > positionDeviationTolerance);
     }
 
     public void calibrateEncoder() { calculateStartingEncoderPosition(); }
