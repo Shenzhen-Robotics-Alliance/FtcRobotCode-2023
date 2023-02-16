@@ -12,13 +12,13 @@ public class AutoStageChassisModule {
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.15;
-    private final double stableRotatingPower = 0.35;
+    private final double minRotatingPower = 0.30;
+    private final double stableRotatingPower = 0.95;
 
     private final double positionDeviationTolerance = 128;
-    private final double distanceStartDecelerating = 512; // TODO set these two values to be some small encoder values
-    private final double minMotioningPower = 0.1;
-    private final double stableMotioningPower = 0.35;
+    private final double distanceStartDecelerating = 512;
+    private final double minMotioningPower = 0.35;
+    private final double stableMotioningPower = 0.85;
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -70,6 +70,7 @@ public class AutoStageChassisModule {
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
         // set the running parameters for each motors
+        // TODO correct the rotation automatically using IMU
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -110,10 +111,10 @@ public class AutoStageChassisModule {
 
     public void setRobotXPosition(double targetedXPosition) {
         // set the running parameters for each motors
-        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         double distanceXPosition, distanceLeft;
         do {
