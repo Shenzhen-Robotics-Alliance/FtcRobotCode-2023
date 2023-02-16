@@ -5,6 +5,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoStageChassisModule {
     private final double encoderCorrectionFactor = 1;
+    private final boolean x_y_Reversed = true;
+
+    private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
+
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
@@ -90,7 +94,7 @@ public class AutoStageChassisModule {
             driver.rightFront.setPower(yVelocity - xVelocity);
             driver.rightRear.setPower(yVelocity + xVelocity);
 
-            distanceLeft = Math.sqrt(xVelocity*xVelocity + yVelocity*yVelocity);
+            distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
 
             System.out.print(distanceXPosition); System.out.print(" "); System.out.println(distanceYPosition);
         } while(distanceLeft > positionDeviationTolerance);
@@ -100,15 +104,21 @@ public class AutoStageChassisModule {
 
     private void calculateStartingEncoderPosition() {
         // calculate the current position with encoder data, using the algorithm of Mecanum wheel
-        this.encoderStartingPosition[0] = this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition()*encoderCorrectionFactor;
-        this.encoderStartingPosition[1] = this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition()*encoderCorrectionFactor;
-        this.encoderStartingRotation = this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.rightRear.getCurrentPosition()*encoderCorrectionFactor;
+        encoderStartingPosition = getEncoderPosition();
+        encoderStartingRotation = getEncoderRotation();
     }
 
     public double[] getEncoderPosition() {
+        // get the encoder value and calculate the position using Mecanum wheel algorithm
         double[] encoderPosition = new double[2];
         this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition()*encoderCorrectionFactor;
         this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition()*encoderCorrectionFactor;
+
+        if (x_y_Reversed) {
+            encoderPosition[0] = encoderCurrentPosition[1] - encoderStartingPosition[1];
+            encoderPosition[1] = encoderCurrentPosition[0] - encoderStartingPosition[0];
+            return encoderPosition;
+        }
 
         encoderPosition[0] = encoderCurrentPosition[0] - encoderStartingPosition[0];
         encoderPosition[1] = encoderCurrentPosition[1] - encoderStartingPosition[1];
@@ -192,6 +202,12 @@ public class AutoStageChassisModule {
         driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+    }
+
+    private void correctEncoderValueUsingIMU() {
+        // TODO write this method to correct the encoder with IMu, which is far more accurate
+        // calculate the difference between the actual encoder value and the expected ones using the IMU, which is more accurate
+        imu.updateIMUStatus();
     }
 
     public double getImuYaw() {

@@ -49,9 +49,12 @@ public class Roboseed_AutoStage extends LinearOpMode {
             }
         }); terminationListenerThread.start();
 
-        // go to the center of the grid
-        chassisModule.setRobotPosition(-324, 0);
-        chassisModule.setRobotPosition(-324, -177);
+
+        // start of the auto stage scripts
+        // go to the center of the grid (3220, 280)
+        chassisModule.setRobotPosition(500, 0);
+        chassisModule.setRobotPosition(500, 280);
+        chassisModule.setRobotPosition(3220, 280);
 
         if (terminationFlag) return; // check for termination in each step
 
