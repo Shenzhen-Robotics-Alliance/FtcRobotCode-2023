@@ -15,8 +15,8 @@ public class AutoStageChassisModule {
     private final double minRotatingPower = 0.15;
     private final double stableRotatingPower = 0.35;
 
-    private final double positionDeviationTolerance = 64;
-    private final double distanceStartDecelerating = 256; // TODO set these two values to be some small encoder values
+    private final double positionDeviationTolerance = 128;
+    private final double distanceStartDecelerating = 512; // TODO set these two values to be some small encoder values
     private final double minMotioningPower = 0.1;
     private final double stableMotioningPower = 0.35;
 
@@ -69,7 +69,6 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
-        // TODO split this function into two, one controlling the x position, the other controlling the y position, so that errors in one does not influence the other
         // set the running parameters for each motors
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -104,6 +103,70 @@ public class AutoStageChassisModule {
             driver.rightRear.setPower(yVelocity + xVelocity);
 
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
+
+            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(xVelocity);
+        } while(distanceLeft > positionDeviationTolerance);
+    }
+
+    public void setRobotXPosition(double targetedXPosition) {
+        // set the running parameters for each motors
+        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        double distanceXPosition, distanceLeft;
+        do {
+            // get the distance left in x and y position
+            double[] robotCurrentPosition = getEncoderPosition();
+            distanceXPosition = targetedXPosition - robotCurrentPosition[0];
+
+            // calculate, according to the distance left, using linear mapping, the needed motor power
+            double xVelocity = ChassisModule.linearMap(
+                    positionDeviationTolerance,
+                    distanceStartDecelerating,
+                    minMotioningPower,
+                    stableMotioningPower,
+                    distanceXPosition);
+
+            driver.leftFront.setPower(xVelocity);
+            driver.leftRear.setPower(-xVelocity);
+            driver.rightFront.setPower(-xVelocity);
+            driver.rightRear.setPower(xVelocity);
+
+            distanceLeft = Math.abs(distanceXPosition);
+
+            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(xVelocity);
+        } while(distanceLeft > positionDeviationTolerance);
+    }
+
+    public void setRobotYPosition(double targetedYPosition) {
+        // set the running parameters for each motors
+        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        double distanceYPosition, distanceLeft;
+        do {
+            // get the distance left in x and y position
+            double[] robotCurrentPosition = getEncoderPosition();
+            distanceYPosition = targetedYPosition - robotCurrentPosition[0];
+
+            // calculate, according to the distance left, using linear mapping, the needed motor power
+            double yVelocity = ChassisModule.linearMap(
+                    positionDeviationTolerance,
+                    distanceStartDecelerating,
+                    minMotioningPower,
+                    stableMotioningPower,
+                    distanceYPosition);
+
+            driver.leftFront.setPower(yVelocity);
+            driver.leftRear.setPower(yVelocity);
+            driver.rightFront.setPower(yVelocity);
+            driver.rightRear.setPower(yVelocity);
+
+            distanceLeft = Math.abs(distanceYPosition);
 
             System.out.print(distanceYPosition); System.out.print(" "); System.out.println(yVelocity);
         } while(distanceLeft > positionDeviationTolerance);
