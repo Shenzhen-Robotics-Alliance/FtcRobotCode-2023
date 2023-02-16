@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoStageChassisModule {
-    private final double encoderCorrectionFactor = 1;
+    private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
@@ -15,8 +15,8 @@ public class AutoStageChassisModule {
     private final double minRotatingPower = 0.15;
     private final double stableRotatingPower = 0.35;
 
-    private final double positionDeviationTolerance = 10;
-    private final double distanceStartDecelerating = 100; // TODO set these two values to be some small encoder values
+    private final double positionDeviationTolerance = 64;
+    private final double distanceStartDecelerating = 256; // TODO set these two values to be some small encoder values
     private final double minMotioningPower = 0.15;
     private final double stableMotioningPower = 0.35;
 
@@ -43,6 +43,14 @@ public class AutoStageChassisModule {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = fieldNavigation;
+
+        System.out.print("power:");
+        System.out.println(ChassisModule.linearMap(
+                positionDeviationTolerance,
+                distanceStartDecelerating,
+                minMotioningPower,
+                stableMotioningPower,
+                2000));
     }
 
     public void initRobotChassis() {
@@ -61,6 +69,7 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
+        // TODO split this function into two, one controlling the x position, the other controlling the y position, so that errors in one does not influence the other
         // set the running parameters for each motors
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
