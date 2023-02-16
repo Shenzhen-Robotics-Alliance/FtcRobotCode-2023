@@ -111,15 +111,12 @@ public class AutoStageChassisModule {
     public double[] getEncoderPosition() {
         // get the encoder value and calculate the position using Mecanum wheel algorithm
         double[] encoderPosition = new double[2];
-        this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition()*encoderCorrectionFactor;
-        this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition()*encoderCorrectionFactor;
-
-        // if the x and y axles are reversed
-        if (x_y_Reversed) {
-            // calculate the position, reverse the axles
-            encoderPosition[0] = encoderCurrentPosition[1] - encoderStartingPosition[1];
-            encoderPosition[1] = encoderCurrentPosition[0] - encoderStartingPosition[0];
-            return encoderPosition;
+        if (x_y_Reversed) { // if the x and y axles are reversed
+            this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor;
+            this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor;
+        } else {
+            this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor;
+            this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor;
         }
 
         // calculate the position
