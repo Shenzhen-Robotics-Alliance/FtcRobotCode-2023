@@ -86,7 +86,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 //        currentState = State.TRAJECTORY_1;
 //        drive.followTrajectoryAsync(trajectory1);
 
-        /* Thread robotStatusMonitoringThread = new Thread(new Runnable() {
+        Thread robotStatusMonitoringThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (opModeIsActive() && !isStopRequested()) {
@@ -105,7 +105,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                     telemetry.update();
                 }
             }
-        }); robotStatusMonitoringThread.start(); */
+        }); // robotStatusMonitoringThread.start();
 
         autoStageChassisModule.calibrateEncoder();
 

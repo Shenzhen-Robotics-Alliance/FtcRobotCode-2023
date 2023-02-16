@@ -49,6 +49,28 @@ public class Roboseed_AutoStage extends LinearOpMode {
             }
         }); terminationListenerThread.start();
 
+        Thread robotStatusMonitoringThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (opModeIsActive() && !isStopRequested()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) { throw new RuntimeException(e); }
+                    // System.out.println("monitoring thread running");
+                    double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
+                    String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+                    telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
+
+                    double[] encoderPosition = chassisModule.getEncoderPosition();
+                    String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+                    telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+
+                    telemetry.update();
+                }
+            }
+        }); robotStatusMonitoringThread.start();
+
+
 
         // start of the auto stage scripts
         // go to the center of the grid (280, 3220), in reference to the red side team
