@@ -51,7 +51,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) { throw new RuntimeException(e); }
-                // System.out.println("monitoring thread running");
+                System.out.println("monitoring thread running");
                 double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
                 String cameraPositionString = robotCurrentPosition[0] + " " + robotCurrentPosition[1] + " " + robotCurrentPosition[2];
                 telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);

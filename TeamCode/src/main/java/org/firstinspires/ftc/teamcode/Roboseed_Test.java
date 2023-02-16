@@ -33,9 +33,24 @@ public class Roboseed_Test extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
         waitForStart();
-        AutoStageChassisModule autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
-        autoStageChassisModule.initRobotChassis();
-        autoStageChassisModule.setRobotPosition(100, 0);
+
+        hardwareDriver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        hardwareDriver.leftFront.setPower(0.2);
+        hardwareDriver.leftRear.setPower(0.2);
+        hardwareDriver.rightFront.setPower(0.2);
+        hardwareDriver.rightRear.setPower(0.2);
+
+        while (opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("leftFront", hardwareDriver.leftFront.getCurrentPosition());
+            telemetry.addData("leftRear", hardwareDriver.leftRear.getCurrentPosition());
+            telemetry.addData("rightFront", hardwareDriver.rightFront.getCurrentPosition());
+            telemetry.addData("rightRear", hardwareDriver.rightRear.getCurrentPosition());
+            telemetry.update();
+        }
     }
 
     private void configureRobot() {

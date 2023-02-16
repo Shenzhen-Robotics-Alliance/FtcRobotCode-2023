@@ -17,7 +17,7 @@ public class AutoStageChassisModule {
 
     private final double positionDeviationTolerance = 64;
     private final double distanceStartDecelerating = 256; // TODO set these two values to be some small encoder values
-    private final double minMotioningPower = 0.15;
+    private final double minMotioningPower = 0.1;
     private final double stableMotioningPower = 0.35;
 
     private HardwareDriver driver;
@@ -105,7 +105,7 @@ public class AutoStageChassisModule {
 
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
 
-            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(distanceYPosition);
+            System.out.print(distanceYPosition); System.out.print(" "); System.out.println(yVelocity);
         } while(distanceLeft > positionDeviationTolerance);
     }
 
@@ -121,11 +121,24 @@ public class AutoStageChassisModule {
         // get the encoder value and calculate the position using Mecanum wheel algorithm
         double[] encoderPosition = new double[2];
         if (x_y_Reversed) { // if the x and y axles are reversed
-            this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor;
-            this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor;
-        } else {
-            this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor;
-            this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor;
+            this.encoderCurrentPosition[1] = (
+                    (double)
+                            this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor)
+                    / 2;
+            this.encoderCurrentPosition[0] = (
+                    (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor)
+                    / 2;        } else {
+            this.encoderCurrentPosition[0] = (
+                    (double)
+                            this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor)
+                / 2;
+            this.encoderCurrentPosition[1] = (
+                    (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor)
+                / 2;
         }
 
         // calculate the position
@@ -237,6 +250,6 @@ public class AutoStageChassisModule {
 * rightRear Wheel = Y - R + X
 *
 * X = (LF - LR) / 2
-* Y = LF + RF = LR + RR
+* Y = (LF + RF) / 2 = (LR + RR) / 2
 * R = (LF - RR) / 2
 * */
