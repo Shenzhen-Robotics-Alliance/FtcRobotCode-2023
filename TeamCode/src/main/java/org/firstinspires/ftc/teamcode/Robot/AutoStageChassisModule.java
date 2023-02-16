@@ -51,7 +51,7 @@ public class AutoStageChassisModule {
             while (!isStopRequested) imu.updateIMUStatus();
         });
         imuReaderThread.start();
-        calculateStartingEncoderPosition();
+        this.calibrateEncoder();
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
@@ -114,12 +114,15 @@ public class AutoStageChassisModule {
         this.encoderCurrentPosition[0] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor + this.driver.rightFront.getCurrentPosition()*encoderCorrectionFactor;
         this.encoderCurrentPosition[1] = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.leftRear.getCurrentPosition()*encoderCorrectionFactor;
 
+        // if the x and y axles are reversed
         if (x_y_Reversed) {
+            // calculate the position, reverse the axles
             encoderPosition[0] = encoderCurrentPosition[1] - encoderStartingPosition[1];
             encoderPosition[1] = encoderCurrentPosition[0] - encoderStartingPosition[0];
             return encoderPosition;
         }
 
+        // calculate the position
         encoderPosition[0] = encoderCurrentPosition[0] - encoderStartingPosition[0];
         encoderPosition[1] = encoderCurrentPosition[1] - encoderStartingPosition[1];
         return encoderPosition;
