@@ -21,8 +21,8 @@ public class AutoStageChassisModule {
 
     private final double positionDeviationTolerance = 128;
     private final double distanceStartDecelerating = 512;
-    private final double minMotioningPower = 0.25;
-    private final double stableMotioningPower = 0.45;
+    private final double minMotioningPower = 0.05;
+    private final double stableMotioningPower = 0.35;
     private final double minMotioningEncoderVelocity = 0.05;
     private final double stableMotioningEncoderVelocity = 0.25;
 
@@ -123,7 +123,7 @@ public class AutoStageChassisModule {
 
             // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
-            System.out.print(startingRotation); System.out.print(" "); System.out.println(getEncoderRotation());
+            System.out.print(xVelocity); System.out.print(" "); System.out.println(yVelocity);
         } while(distanceLeft > positionDeviationTolerance);
 
         setRobotMotion(0, 0, 0);
