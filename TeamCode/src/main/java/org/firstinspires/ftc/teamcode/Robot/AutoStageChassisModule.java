@@ -301,6 +301,10 @@ public class AutoStageChassisModule {
         isStopRequested = true;
         setRobotMotion(0, 0, 0);
     }
+
+    public void testRobtMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
+        setRobotMotion(xAxleMotion, yAxleMotion, rotationalMotion);
+    }
 }
 
 /*
