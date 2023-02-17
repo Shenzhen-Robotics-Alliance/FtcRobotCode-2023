@@ -34,7 +34,7 @@ public class Roboseed_Test extends LinearOpMode {
         autoStageChassisModule.initRobotChassis();
         waitForStart();
 
-        autoStageChassisModule.testRobtMotion(0.35, 0.35, 0.65);
+        autoStageChassisModule.testRobtMotion(0.35, 0.35, 0);
 
         while (opModeIsActive() && !isStopRequested()) {
             final double[] robotPosition = autoStageChassisModule.getEncoderPosition();

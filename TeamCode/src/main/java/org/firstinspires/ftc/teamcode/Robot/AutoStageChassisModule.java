@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class AutoStageChassisModule {
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
+    private final boolean useIMUCorrection = true;
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
 
@@ -76,7 +77,9 @@ public class AutoStageChassisModule {
         this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // get the rotation at the start of the motion
-        double startingRotation = getEncoderRotation();
+        double startingRotation;
+        if (useIMUCorrection) startingRotation = getImuYaw();
+        else startingRotation = getEncoderRotation();
 
         double distanceXPosition, distanceYPosition, distanceLeft;
         double rotationDeviationDuringProcess, dynamicalRotationCorrection;
@@ -101,7 +104,10 @@ public class AutoStageChassisModule {
                     distanceYPosition
             );
 
-            rotationDeviationDuringProcess = startingRotation - getEncoderRotation();
+            // correct the rotation using IMU or encoder, depending on the presets
+            if (useIMUCorrection) rotationDeviationDuringProcess = startingRotation - getImuYaw();
+            else rotationDeviationDuringProcess = startingRotation - getEncoderRotation();
+
             dynamicalRotationCorrection = ChassisModule.linearMap(rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, rotationDeviationDuringProcess);
 
             setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
