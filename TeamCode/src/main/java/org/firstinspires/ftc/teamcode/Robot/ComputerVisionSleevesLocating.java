@@ -25,6 +25,10 @@ public class ComputerVisionSleevesLocating implements Runnable {
     private VuforiaLocalizer vuforia;
     private TFObjectDetector TFOD;
 
+    // store the data caught from vuforia
+    private double col, row, width, height;
+    private String detectedLabelName;
+
     private boolean terminated = false;
     private boolean paused = false;
 
@@ -61,10 +65,10 @@ public class ComputerVisionSleevesLocating implements Runnable {
                     // step through the list of recognitions and display image position/size information for each one
                     // Note: "Image number" refers to the randomized image orientation/number
                     for (Recognition recognition : updatedRecognitions) {
-                        double col = (recognition.getLeft() + recognition.getRight()) / 2 ;
-                        double row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
-                        double width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
-                        double height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
+                        this.col = (recognition.getLeft() + recognition.getRight()) / 2 ;
+                        this.row = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+                        this.width  = Math.abs(recognition.getRight() - recognition.getLeft()) ;
+                        this.height = Math.abs(recognition.getTop()  - recognition.getBottom()) ;
 
                         /*
                         telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100 );

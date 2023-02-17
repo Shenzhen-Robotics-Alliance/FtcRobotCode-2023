@@ -83,6 +83,9 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // check for termination in each step
         if (terminationFlag) return;
 
+        // precise navigation to the sleeves using visual guidance
+        chassisModule.setRobotPositionWithVisualNavigation(-1350, 1000);
+
         // end of the program
         fieldNavigation.terminate(); chassisModule.terminate();
     }

@@ -59,7 +59,6 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         for (String target: targets) if (isTargetVisible(target)) {
             processTarget();
             positionLastUpdateTime.reset();
-            // System.out.println("object detected");
         }
     }
 

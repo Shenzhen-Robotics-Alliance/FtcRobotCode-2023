@@ -22,8 +22,8 @@ public class AutoStageChassisModule {
     private final double stableRotatingEncoderVelocity = 200;
     private final double encoderRotationPerRadian = 3900 / (Math.PI*2);
 
-    private final double positionDeviationTolerance = 128;
-    private final double distanceStartDecelerating = 512;
+    private final double positionDeviationTolerance = 60;
+    private final double distanceStartDecelerating = 450;
     private final double minMotioningPower = 0.12;
     private final double stableMotioningPower = 0.35;
     private final double minMotioningEncoderVelocity = 80;
@@ -310,7 +310,7 @@ public class AutoStageChassisModule {
             // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
             System.out.print(xVelocity); System.out.print(" "); System.out.print(yVelocity); System.out.print(" "); System.out.println(rotationCorrecting);
-        } while(distanceLeft > positionDeviationTolerance);
+        } while(distanceLeft > positionDeviationTolerance && fieldNavigation.PositionLastUpdate() < 0.5); // cut the loop if the process is finished or if the navigation signs are out of sight
 
         setRobotMotion(0, 0, 0);
     }
