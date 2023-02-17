@@ -37,10 +37,11 @@ public class Roboseed_Test extends LinearOpMode {
         autoStageChassisModule.testRobtMotion(0.35, 0.35, 0.65);
 
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("leftFront", hardwareDriver.leftFront.getCurrentPosition());
-            telemetry.addData("leftRear", hardwareDriver.leftRear.getCurrentPosition());
-            telemetry.addData("rightFront", hardwareDriver.rightFront.getCurrentPosition());
-            telemetry.addData("rightRear", hardwareDriver.rightRear.getCurrentPosition());
+            final double[] robotPosition = autoStageChassisModule.getEncoderPosition();
+            final double robotRotation = autoStageChassisModule.getEncoderRotation();
+            telemetry.addData("robotXPosition", robotPosition[0]);
+            telemetry.addData("robotYPosition", robotPosition[1]);
+            telemetry.addData("robotRotation", robotRotation);
             telemetry.update();
         }
     }
