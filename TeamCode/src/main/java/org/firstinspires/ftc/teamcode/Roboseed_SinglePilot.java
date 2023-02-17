@@ -187,7 +187,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             System.out.println("saving battery...");
             armControllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
-            activateSlowMotionModeAutomatically(); // turn on slow motion automatically if necessary
         }
 
         // control slow motion automatically
@@ -200,6 +199,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         if (!PreviousSlowMotionModeAutoActivation) { // do not switch on again if slow motion is already on or have been shutdown manually
             chassisModule.setSlowMotionModeActivationSwitch(true);
             PreviousSlowMotionModeAutoActivation = true;
+            System.out.println("activating slow motion mode...");
         }
     }
 
@@ -208,6 +208,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         if (PreviousElevatorActivation.seconds() > 3 && PreviousSlowMotionModeAutoActivation) {
             chassisModule.setSlowMotionModeActivationSwitch(false);
             PreviousSlowMotionModeAutoActivation = false;
+            System.out.println("deactivating slow motion mode...");
         }
     }
 
