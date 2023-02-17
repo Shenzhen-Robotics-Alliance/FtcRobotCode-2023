@@ -70,13 +70,16 @@ public class AutoStageChassisModule {
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
         // set the running parameters for each motors
-        // TODO correct the rotation automatically using IMU
         this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        // get the rotation at the start of the motion
+        double startingRotation = getEncoderRotation();
+
         double distanceXPosition, distanceYPosition, distanceLeft;
+        double rotationDeviationDuringProcess, dynamicalRotationCorrection;
         do {
             // get the distance left in x and y position
             double[] robotCurrentPosition = getEncoderPosition();
@@ -98,10 +101,10 @@ public class AutoStageChassisModule {
                     distanceYPosition
             );
 
-            driver.leftFront.setPower(yVelocity + xVelocity);
-            driver.leftRear.setPower(yVelocity - xVelocity);
-            driver.rightFront.setPower(yVelocity - xVelocity);
-            driver.rightRear.setPower(yVelocity + xVelocity);
+            rotationDeviationDuringProcess = startingRotation - getEncoderRotation();
+            dynamicalRotationCorrection = ChassisModule.linearMap(rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, rotationDeviationDuringProcess);
+
+            setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
 
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
 
@@ -130,10 +133,7 @@ public class AutoStageChassisModule {
                     stableMotioningPower,
                     distanceXPosition);
 
-            driver.leftFront.setPower(xVelocity);
-            driver.leftRear.setPower(-xVelocity);
-            driver.rightFront.setPower(-xVelocity);
-            driver.rightRear.setPower(xVelocity);
+            setRobotMotion(xVelocity, 0, 0);
 
             distanceLeft = Math.abs(distanceXPosition);
 
@@ -162,10 +162,7 @@ public class AutoStageChassisModule {
                     stableMotioningPower,
                     distanceYPosition);
 
-            driver.leftFront.setPower(yVelocity);
-            driver.leftRear.setPower(yVelocity);
-            driver.rightFront.setPower(yVelocity);
-            driver.rightRear.setPower(yVelocity);
+            setRobotMotion(0, yVelocity, 0);
 
             distanceLeft = Math.abs(distanceYPosition);
 
