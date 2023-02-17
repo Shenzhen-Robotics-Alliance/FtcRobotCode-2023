@@ -43,7 +43,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private final ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
     private final ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
-    boolean slowMotionActivated = false; // if the slow-motion mode is activated
+    private boolean PreviousSlowMotionModeAutoActivation = false;
 
     private ArmControllingMethods armControllingMethods;
     private ChassisModule chassisModule;
@@ -139,15 +139,19 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         if (gamepad1.y) {
             armControllingMethods.toHighArmPosition();
+            activateSlowMotionModeAutomatically();
         }
         if (gamepad1.x) {
             armControllingMethods.toMidArmPosition();
+            activateSlowMotionModeAutomatically();
         }
         if (gamepad1.b) {
             armControllingMethods.toLowArmPosition();
+            activateSlowMotionModeAutomatically();
         }
         if (gamepad1.a) {
             armControllingMethods.toGroundArmPosition();
+            deactivateSlowMotionModeAutomatically(); // turn the slow motion mode off when going to ground position
         }
         telemetry.addData("going to pos", 0);
         if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
@@ -160,16 +164,19 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             armControllingMethods.closeClaw();
             Thread.sleep(300);
             armControllingMethods.toMidArmPosition();
+            activateSlowMotionModeAutomatically(); // turn on slow motion automatically if necessary
         }
 
         if (gamepad1.left_stick_y < -0.5 & PreviousElevatorActivation.seconds() > .2) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
             System.out.println("RA");
             armControllingMethods.raiseArm();
             PreviousElevatorActivation.reset();
+            activateSlowMotionModeAutomatically(); // turn on slow motion automatically if necessary
         } else if (gamepad1.left_stick_y > 0.5 & PreviousElevatorActivation.seconds() > .2) {
             System.out.println("LA");
             armControllingMethods.lowerArm();
             PreviousElevatorActivation.reset();
+            activateSlowMotionModeAutomatically(); // turn on slow motion automatically if necessary
         }
 
         if (PreviousElevatorActivation.seconds() > 30 & chassisModule.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
@@ -180,9 +187,28 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             System.out.println("saving battery...");
             armControllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
+            activateSlowMotionModeAutomatically(); // turn on slow motion automatically if necessary
         }
 
+        // control slow motion automatically
+        deactivateSlowMotionModeAutomatically();
         telemetry.update();
+    }
+
+    public void activateSlowMotionModeAutomatically() {
+        // switch automatically to slow motion mode if the arm is activated
+        if (!PreviousSlowMotionModeAutoActivation) { // do not switch on again if slow motion is already on or have been shutdown manually
+            chassisModule.setSlowMotionModeActivationSwitch(true);
+            PreviousSlowMotionModeAutoActivation = true;
+        }
+    }
+
+    public void deactivateSlowMotionModeAutomatically() {
+        // switch slow motion off if the elevator haven't been working for 3 seconds, and is switched to slow motion automatically
+        if (PreviousElevatorActivation.seconds() > 3 && PreviousSlowMotionModeAutoActivation) {
+            chassisModule.setSlowMotionModeActivationSwitch(false);
+            PreviousSlowMotionModeAutoActivation = false;
+        }
     }
 
     private void configureRobot() {

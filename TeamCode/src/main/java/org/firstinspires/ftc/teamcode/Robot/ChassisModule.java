@@ -17,7 +17,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private final HardwareDriver driver;
     private final IMU imu;
 
-    private static boolean slowMotionModeActivationSwitch;
+    private boolean slowMotionModeActivationSwitch;
     private boolean groundNavigatingModeActivationSwitch;
     private boolean yAxleReversedSwitch;
 
@@ -134,6 +134,10 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         System.out.println("chassis module stopped");
     }
 
+    public void setSlowMotionModeActivationSwitch(boolean activated) {
+        this.slowMotionModeActivationSwitch = activated;
+    }
+
     private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {
         double[] correctedMotion = new double[2];
 
@@ -208,7 +212,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
 
         return correctedMotion;
     }
-    private static double linearMap(double value) {
+    private double linearMap(double value) {
         if (slowMotionModeActivationSwitch) { // when slow motion activated
             if (value > 0) return linearMapMethod(0.05, 1, 0, 0.4, value);
             return linearMapMethod(-1, -0.05, -0.4, 0, value); // change the speed range to -0.4~0.4
