@@ -6,20 +6,26 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class AutoStageChassisModule {
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
-    private final boolean useIMUCorrection = true;
+    private final boolean useIMUCorrection = false;
+    private final boolean runWithEncoder = false;
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
 
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.30;
-    private final double stableRotatingPower = 0.95;
+    private final double minRotatingPower = 0.15;
+    private final double stableRotatingPower = 0.45;
+    private final double minRotationEncoderVelocity = 0.05;
+    private final double stableRotatingEncoderVelocity = 0.25;
 
     private final double positionDeviationTolerance = 128;
     private final double distanceStartDecelerating = 512;
-    private final double minMotioningPower = 0.35;
-    private final double stableMotioningPower = 0.85;
+    private final double minMotioningPower = 0.25;
+    private final double stableMotioningPower = 0.45;
+    private final double minMotioningEncoderVelocity = 0.05;
+    private final double stableMotioningEncoderVelocity = 0.25;
+
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -71,10 +77,17 @@ public class AutoStageChassisModule {
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
         // set the running parameters for each motors
-        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        if (runWithEncoder) {
+            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        } else {
+            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
 
         // get the rotation at the start of the motion
         double startingRotation;
@@ -90,32 +103,66 @@ public class AutoStageChassisModule {
             distanceYPosition = targetedYPosition - robotCurrentPosition[1];
 
             // calculate, according to the distance left, using linear mapping, the needed motor power
-            double xVelocity = ChassisModule.linearMap(
-                    positionDeviationTolerance,
-                    distanceStartDecelerating,
-                    minMotioningPower,
-                    stableMotioningPower,
-                    distanceXPosition);
-            double yVelocity = ChassisModule.linearMap(
-                    positionDeviationTolerance,
-                    distanceStartDecelerating,
-                    minMotioningPower,
-                    stableMotioningPower,
-                    distanceYPosition
-            );
+            double xVelocity, yVelocity;
+            if (runWithEncoder) {
+                xVelocity = getMotioningEncoderVelocity(distanceXPosition);
+                yVelocity = getMotioningEncoderVelocity(distanceYPosition);
+            } else {
+                xVelocity = getMotioningPower(distanceXPosition);
+                yVelocity = getMotioningPower(distanceYPosition);
+            }
 
             // correct the rotation using IMU or encoder, depending on the presets
             if (useIMUCorrection) rotationDeviationDuringProcess = startingRotation - getImuYaw();
             else rotationDeviationDuringProcess = startingRotation - getEncoderRotation();
+            if (runWithEncoder) dynamicalRotationCorrection = getRotatingEncoderVelocity(rotationDeviationDuringProcess);
+            else dynamicalRotationCorrection = getRotatingPower(rotationDeviationDuringProcess);
 
-            dynamicalRotationCorrection = ChassisModule.linearMap(rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, rotationDeviationDuringProcess);
-
+            // set the motor power for the robot
             setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
 
+            // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
-
-            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(xVelocity);
+            System.out.print(startingRotation); System.out.print(" "); System.out.println(getEncoderRotation());
         } while(distanceLeft > positionDeviationTolerance);
+
+        setRobotMotion(0, 0, 0);
+    }
+
+    private double getMotioningEncoderVelocity(double encoderDifference) {
+        return ChassisModule.linearMap(
+                positionDeviationTolerance,
+                distanceStartDecelerating,
+                minMotioningEncoderVelocity,
+                stableMotioningEncoderVelocity,
+                encoderDifference);
+    }
+
+    private double getMotioningPower(double encoderDifference) {
+        return ChassisModule.linearMap(
+                positionDeviationTolerance,
+                distanceStartDecelerating,
+                minMotioningPower,
+                stableMotioningPower,
+                encoderDifference);
+    }
+
+    private double getRotatingEncoderVelocity(double rotationDifference) {
+        return ChassisModule.linearMap(
+                rotationDeviationTolerance,
+                rotationDifferenceStartDecelerating,
+                minRotationEncoderVelocity,
+                stableRotatingEncoderVelocity,
+                rotationDifference);
+    }
+
+    private double getRotatingPower(double rotationDifference) {
+        return ChassisModule.linearMap(
+                rotationDeviationTolerance,
+                rotationDifferenceStartDecelerating,
+                minRotatingPower,
+                stableRotatingPower,
+                rotationDifference);
     }
 
     public void setRobotXPosition(double targetedXPosition) {
@@ -145,6 +192,8 @@ public class AutoStageChassisModule {
 
             System.out.print(distanceXPosition); System.out.print(" "); System.out.println(xVelocity);
         } while(distanceLeft > positionDeviationTolerance);
+
+        setRobotMotion(0, 0, 0);
     }
 
     public void setRobotYPosition(double targetedYPosition) {
