@@ -88,10 +88,10 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // check for termination in each step
         if (terminationFlag) return;
 
-        // TODO correct the direction of the robot's motion using the navigate-ground function from manual chassis module
-        
+        // TODO correct the direction of the robot's motion when navigating using visual guidance
+
         // precise navigation to the sleeves using visual guidance
-        chassisModule.setRobotPositionWithVisualNavigation(-1350, 1000);
+        chassisModule.setRobotPositionWithVisualNavigation(-1050, 1260);
 
 
 
