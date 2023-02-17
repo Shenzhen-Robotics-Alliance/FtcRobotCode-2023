@@ -83,8 +83,6 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // check for termination in each step
         if (terminationFlag) return;
 
-        // TODO go to the precise position using visual navigation
-
         // end of the program
         fieldNavigation.terminate(); chassisModule.terminate();
     }

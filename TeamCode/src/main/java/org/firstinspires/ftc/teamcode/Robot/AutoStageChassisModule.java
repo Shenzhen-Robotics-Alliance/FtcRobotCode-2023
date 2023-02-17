@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class AutoStageChassisModule {
+    // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
     private final boolean useIMUCorrection = false;
@@ -12,7 +13,7 @@ public class AutoStageChassisModule {
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
 
-
+    // presets for position correction
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
     private final double minRotatingPower = 0.10;
@@ -29,6 +30,9 @@ public class AutoStageChassisModule {
     private final double stableMotioningEncoderVelocity = 200;
 
     private final double minDifferenceToToleranceRatio = 0.3;
+
+    // constant for visual navigation
+    private final double encoderValuePerVisualNavigationValue = -650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -270,7 +274,65 @@ public class AutoStageChassisModule {
 
     public void setRobotPositionWithVisualNavigation(double targetedXPosition, double targetedYPosition) {
         // move to the targeted position, using visual guidance
-        
+        // get the rotation at the start of the motion
+        double startingRotation;
+        if (useIMUCorrection) startingRotation = getImuYaw();
+        else startingRotation = getEncoderRotation();
+
+        double distanceXPosition, distanceYPosition, distanceLeft;
+        double rotationDeviationDuringProcess, dynamicalRotationCorrection;
+        do {
+            // get the distance left in x and y position
+            double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
+            distanceXPosition = targetedXPosition - robotCurrentPosition[0];
+            distanceYPosition = targetedYPosition - robotCurrentPosition[1];
+
+            // calculate, according to the distance left, using linear mapping and visual navigation, the needed motor power
+            double xVelocity, yVelocity;
+            if (runWithEncoder) {
+                xVelocity = getVisualGuidanceMotioningEncoderVelocity(distanceXPosition);
+                yVelocity = getVisualGuidanceMotioningEncoderVelocity(distanceYPosition);
+            } else {
+                xVelocity = getVisualGuidanceMotioningPower(distanceXPosition);
+                yVelocity = getVisualGuidanceMotioningPower(distanceYPosition);
+            }
+
+            // correct the rotation using IMU or encoder, depending on the presets
+            if (useIMUCorrection) rotationDeviationDuringProcess = startingRotation - getImuYaw();
+            else rotationDeviationDuringProcess = startingRotation - getEncoderRotation();
+            if (runWithEncoder) dynamicalRotationCorrection = getRotatingEncoderVelocity(rotationDeviationDuringProcess);
+            else dynamicalRotationCorrection = getRotatingPower(rotationDeviationDuringProcess);
+
+            // set the motor power for the robot
+            if(rotationCorrecting) setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
+            else setRobotMotion(xVelocity, yVelocity, 0);
+
+            // calculate the distance left, for further judgement on whether to stick with the loop or not
+            distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
+            System.out.print(xVelocity); System.out.print(" "); System.out.print(yVelocity); System.out.print(" "); System.out.println(rotationCorrecting);
+        } while(distanceLeft > positionDeviationTolerance);
+
+        setRobotMotion(0, 0, 0);
+    }
+
+    private double getVisualGuidanceMotioningEncoderVelocity(double visualNavigationDifference) {
+        return ChassisModule.linearMap(
+                positionDeviationTolerance * minDifferenceToToleranceRatio,
+                distanceStartDecelerating,
+                minMotioningEncoderVelocity,
+                stableMotioningEncoderVelocity,
+                visualNavigationDifference * encoderValuePerVisualNavigationValue
+        );
+    }
+
+    private double getVisualGuidanceMotioningPower(double visualNavigationDifference) {
+        return ChassisModule.linearMap(
+                positionDeviationTolerance * minDifferenceToToleranceRatio,
+                distanceStartDecelerating,
+                minMotioningPower,
+                stableMotioningPower,
+                visualNavigationDifference * encoderValuePerVisualNavigationValue
+        );
     }
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
