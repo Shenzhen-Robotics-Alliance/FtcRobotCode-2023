@@ -73,11 +73,15 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
 
         // start of the auto stage scripts
-        // go to the center of the grid (280, 3220), in reference to the red side team
-        /* chassisModule.setRobotPosition(0, 500);
+
+        // go to the center of the grid (280, 500), in reference to the red side team
+        chassisModule.setRobotPosition(0, 500); // avoid friction with the wall
         chassisModule.setRobotPosition(280, 500);
-        chassisModule.setRobotPosition(280, 3220);*/
-        chassisModule.setRobotXPosition(-1000);
+        // check for termination in each step
+        if (terminationFlag) return;
+
+        // go to the storing point of sleeves
+        chassisModule.setRobotPosition(280, 3220);
 
         if (terminationFlag) return; // check for termination in each step
 
