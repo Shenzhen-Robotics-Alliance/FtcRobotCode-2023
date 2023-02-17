@@ -15,16 +15,16 @@ public class AutoStageChassisModule {
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.05;
-    private final double stableRotatingPower = 0.45;
+    private final double minRotatingPower = 0.10;
+    private final double stableRotatingPower = 0.35;
     private final double minRotationEncoderVelocity = 80;
     private final double stableRotatingEncoderVelocity = 200;
     private final double encoderRotationPerRadian = 3900 / (Math.PI*2);
 
     private final double positionDeviationTolerance = 128;
     private final double distanceStartDecelerating = 512;
-    private final double minMotioningPower = 0.05;
-    private final double stableMotioningPower = 0.4;
+    private final double minMotioningPower = 0.12;
+    private final double stableMotioningPower = 0.35;
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 
@@ -114,7 +114,7 @@ public class AutoStageChassisModule {
 
             // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
-            System.out.print(distanceXPosition); System.out.print(" "); System.out.print(distanceYPosition); System.out.print(" "); System.out.println(rotationDeviationDuringProcess);
+            System.out.print(xVelocity); System.out.print(" "); System.out.print(yVelocity); System.out.print(" "); System.out.println(rotationCorrecting);
         } while(distanceLeft > positionDeviationTolerance);
 
         setRobotMotion(0, 0, 0);
