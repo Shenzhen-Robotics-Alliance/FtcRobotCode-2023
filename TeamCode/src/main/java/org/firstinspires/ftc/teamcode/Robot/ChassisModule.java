@@ -81,7 +81,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
                     linearMap(0.05, 1, 0, 1,
                             Math.abs(gamepad.left_stick_x)
                     ), gamepad.left_stick_x); */
-            double rotationalMotion = linearMap(gamepad.left_stick_x) * 0.8;
+            double rotationalMotion = linearMap(gamepad.left_stick_x);
+            if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.6;
 
             boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
             if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
