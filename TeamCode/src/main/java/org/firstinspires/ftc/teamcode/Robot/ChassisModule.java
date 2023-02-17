@@ -17,6 +17,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     private final HardwareDriver driver;
     private final IMU imu;
 
+    private boolean slowMotionModeRequested;
+    private boolean slowMotionModeSuggested;
     private boolean slowMotionModeActivationSwitch;
     private boolean groundNavigatingModeActivationSwitch;
     private boolean yAxleReversedSwitch;
@@ -51,6 +53,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
 
+        this.slowMotionModeRequested = false;
+        this.slowMotionModeSuggested = false;
         this.slowMotionModeActivationSwitch = false;
         this.previousMotionModeButtonActivation = new ElapsedTime();
         this.previousNavigationModeButtonActivation = new ElapsedTime();
@@ -118,8 +122,8 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
             driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
 
-            if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds
-                slowMotionModeActivationSwitch = !slowMotionModeActivationSwitch; // activate or deactivate slow motion
+            if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
+                slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
                 previousMotionModeButtonActivation.reset();
             } if(gamepad.dpad_up & previousNavigationModeButtonActivation.seconds() > 0.5) {
                 groundNavigatingModeActivationSwitch = !groundNavigatingModeActivationSwitch;
@@ -130,12 +134,14 @@ public class ChassisModule implements Runnable { // controls the moving of the r
             } if (gamepad.dpad_right) { // debug the imu by resetting the heading
                 imu.resetYaw();
             }
+
+            slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot
         }
         System.out.println("chassis module stopped");
     }
 
-    public void setSlowMotionModeActivationSwitch(boolean activated) {
-        this.slowMotionModeActivationSwitch = activated;
+    public void setSlowMotionModeActivationSwitch(boolean suggested) {
+        this.slowMotionModeSuggested = suggested;
     }
 
     private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {

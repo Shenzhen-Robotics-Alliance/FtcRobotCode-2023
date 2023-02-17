@@ -22,7 +22,7 @@ public class AutoStageChassisModule {
     private final double stableRotatingEncoderVelocity = 200;
     private final double encoderRotationPerRadian = 3900 / (Math.PI*2);
 
-    private final double positionDeviationTolerance = 60;
+    private final double positionDeviationTolerance = 80;
     private final double distanceStartDecelerating = 450;
     private final double minMotioningPower = 0.12;
     private final double stableMotioningPower = 0.35;

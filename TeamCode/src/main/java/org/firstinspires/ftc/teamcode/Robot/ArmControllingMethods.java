@@ -14,6 +14,8 @@ public class ArmControllingMethods {
 
     private short arm;
 
+    private boolean armStatus; // true for busy, false for free
+
     public ArmControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
         this.telemetry = telemetry;
@@ -46,6 +48,7 @@ public class ArmControllingMethods {
         elevateArm(highPos);
         arm = 3;
         telemetry.addData("going to top_pos", highPos);
+        armStatus = true;
     }
 
     public void toMidArmPosition() {
@@ -54,6 +57,7 @@ public class ArmControllingMethods {
         elevateArm(midPos);
         arm = 2;
         telemetry.addData("going to mid_pos", midPos);
+        armStatus = true;
     }
 
     public void toLowArmPosition() {
@@ -62,6 +66,7 @@ public class ArmControllingMethods {
         elevateArm(lowPos);
         arm = 1;
         telemetry.addData("going to low_pos", lowPos);
+        armStatus = true;
     }
 
     public void toGroundArmPosition() {
@@ -70,6 +75,7 @@ public class ArmControllingMethods {
         elevateArm(gndPos);
         arm = 0;
         telemetry.addData("going to gnd_pos", gndPos);
+        armStatus = false;
     }
 
     public void open_closeClaw() {
@@ -83,6 +89,7 @@ public class ArmControllingMethods {
         claw = true;
         hr.claw.setPosition(.35); // open grabber
         // while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
+        armStatus = false;
     }
 
     public void closeClaw() {
@@ -90,6 +97,7 @@ public class ArmControllingMethods {
         claw = false;
         hr.claw.setPosition(.65); // close grabber
         // while (Math.abs(hr.claw.getPosition() - .65) > .05) Thread.yield();
+        armStatus = true;
     }
 
 
@@ -145,5 +153,10 @@ public class ArmControllingMethods {
 
     public boolean getClaw() {
         return claw;
+    }
+
+    public boolean getArmStatus() {
+        /* true: busy, false: free */
+        return armStatus;
     }
 }
