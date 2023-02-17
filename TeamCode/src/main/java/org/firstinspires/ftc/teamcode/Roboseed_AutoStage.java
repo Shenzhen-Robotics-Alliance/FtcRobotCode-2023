@@ -78,10 +78,12 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // check for termination in each step
         if (terminationFlag) return;
 
-        // go to the storing point of sleeves
-        chassisModule.setRobotPosition(280, 3220);
+        // line up horizontally with the place where the sleeves are stored
+        chassisModule.setRobotPosition(75, 3000);
         // check for termination in each step
         if (terminationFlag) return;
+
+        // TODO go to the precise position using visual navigation
 
         // end of the program
         fieldNavigation.terminate(); chassisModule.terminate();
