@@ -15,19 +15,20 @@ public class AutoStageChassisModule {
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.1;
+    private final double minRotatingPower = 0.05;
     private final double stableRotatingPower = 0.45;
-    private final double minRotationEncoderVelocity = 5;
-    private final double stableRotatingEncoderVelocity = 60;
-    private final double encoderRotationPerRadian = 3900;
+    private final double minRotationEncoderVelocity = 80;
+    private final double stableRotatingEncoderVelocity = 200;
+    private final double encoderRotationPerRadian = 3900 / (Math.PI*2);
 
     private final double positionDeviationTolerance = 128;
     private final double distanceStartDecelerating = 512;
-    private final double minMotioningPower = 0;
+    private final double minMotioningPower = 0.05;
     private final double stableMotioningPower = 0.4;
-    private final double minMotioningEncoderVelocity = 5;
-    private final double stableMotioningEncoderVelocity = 60;
+    private final double minMotioningEncoderVelocity = 80;
+    private final double stableMotioningEncoderVelocity = 200;
 
+    private final double minDifferenceToToleranceRatio = 0.3;
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -121,7 +122,7 @@ public class AutoStageChassisModule {
 
     private double getMotioningEncoderVelocity(double encoderDifference) {
         return ChassisModule.linearMap(
-                positionDeviationTolerance,
+                positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningEncoderVelocity,
                 stableMotioningEncoderVelocity,
@@ -130,7 +131,7 @@ public class AutoStageChassisModule {
 
     private double getMotioningPower(double encoderDifference) {
         return ChassisModule.linearMap(
-                positionDeviationTolerance,
+                positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningPower,
                 stableMotioningPower,
@@ -139,7 +140,7 @@ public class AutoStageChassisModule {
 
     private double getRotatingEncoderVelocity(double rotationDifference) {
         return ChassisModule.linearMap(
-                rotationDeviationTolerance,
+                rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotationEncoderVelocity,
                 stableRotatingEncoderVelocity,
@@ -148,7 +149,7 @@ public class AutoStageChassisModule {
 
     private double getRotatingPower(double rotationDifference) {
         return ChassisModule.linearMap(
-                rotationDeviationTolerance,
+                rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotatingPower,
                 stableRotatingPower,
@@ -248,6 +249,7 @@ public class AutoStageChassisModule {
         encoderRotation = encoderCurrentRotation - encoderStartingRotation;
 
         robotRotation = encoderRotation / encoderRotationPerRadian;
+        robotRotation %= Math.PI * 2;
         return robotRotation;
     }
 
