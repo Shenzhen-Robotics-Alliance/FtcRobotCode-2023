@@ -8,23 +8,25 @@ public class AutoStageChassisModule {
     private final boolean x_y_Reversed = true;
     private final boolean useIMUCorrection = false;
     private final boolean runWithEncoder = false;
+    private final boolean rotationCorrecting = false;
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
 
 
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.15;
+    private final double minRotatingPower = 0.1;
     private final double stableRotatingPower = 0.45;
-    private final double minRotationEncoderVelocity = 0.05;
-    private final double stableRotatingEncoderVelocity = 0.25;
+    private final double minRotationEncoderVelocity = 5;
+    private final double stableRotatingEncoderVelocity = 60;
+    private final double encoderRotationPerRadian = 3900;
 
     private final double positionDeviationTolerance = 128;
     private final double distanceStartDecelerating = 512;
-    private final double minMotioningPower = 0.05;
-    private final double stableMotioningPower = 0.35;
-    private final double minMotioningEncoderVelocity = 0.05;
-    private final double stableMotioningEncoderVelocity = 0.25;
+    private final double minMotioningPower = 0;
+    private final double stableMotioningPower = 0.4;
+    private final double minMotioningEncoderVelocity = 5;
+    private final double stableMotioningEncoderVelocity = 60;
 
 
     private HardwareDriver driver;
@@ -76,19 +78,6 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
-        // set the running parameters for each motors
-        if (runWithEncoder) {
-            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        } else {
-            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        }
-
         // get the rotation at the start of the motion
         double startingRotation;
         if (useIMUCorrection) startingRotation = getImuYaw();
@@ -119,11 +108,12 @@ public class AutoStageChassisModule {
             else dynamicalRotationCorrection = getRotatingPower(rotationDeviationDuringProcess);
 
             // set the motor power for the robot
-            setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
+            if(rotationCorrecting) setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
+            else setRobotMotion(xVelocity, yVelocity, 0);
 
             // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
-            System.out.print(xVelocity); System.out.print(" "); System.out.println(yVelocity);
+            System.out.print(distanceXPosition); System.out.print(" "); System.out.print(distanceYPosition); System.out.print(" "); System.out.println(rotationDeviationDuringProcess);
         } while(distanceLeft > positionDeviationTolerance);
 
         setRobotMotion(0, 0, 0);
@@ -166,12 +156,6 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotXPosition(double targetedXPosition) {
-        // set the running parameters for each motors
-        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
         double distanceXPosition, distanceLeft;
         do {
             // get the distance left in x and y position
@@ -197,12 +181,6 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotYPosition(double targetedYPosition) {
-        // set the running parameters for each motors
-        this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
         double distanceYPosition, distanceLeft;
         do {
             // get the distance left in x and y position
@@ -264,11 +242,13 @@ public class AutoStageChassisModule {
     }
 
     public double getEncoderRotation() {
-        double encoderRotation;
+        double encoderRotation, robotRotation;
         this.encoderCurrentRotation = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.rightRear.getCurrentPosition()*encoderCorrectionFactor;
 
         encoderRotation = encoderCurrentRotation - encoderStartingRotation;
-        return encoderRotation;
+
+        robotRotation = encoderRotation / encoderRotationPerRadian;
+        return robotRotation;
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
@@ -336,10 +316,28 @@ public class AutoStageChassisModule {
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
         // control the Mecanum wheel
-        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        if (runWithEncoder) {
+            driver.leftFront.setVelocity(yAxleMotion + rotationalMotion + xAxleMotion);
+            driver.leftRear.setVelocity(yAxleMotion + rotationalMotion - xAxleMotion);
+            driver.rightFront.setVelocity(yAxleMotion - rotationalMotion - xAxleMotion);
+            driver.rightRear.setVelocity(yAxleMotion - rotationalMotion + xAxleMotion);
+
+            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        } else {
+            // set the running parameters for each motors
+            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+            driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+            driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        }
     }
 
     private void correctEncoderValueUsingIMU() {

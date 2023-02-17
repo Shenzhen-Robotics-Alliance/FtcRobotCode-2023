@@ -64,6 +64,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
+        telemetry.addLine("robotCurrentRotation(Encoder)");
+        telemetry.addLine("robotRotation(IMU)");
+
 
 
         waitForStart();
@@ -101,6 +104,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                     double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
                     String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
                     telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+
+                    double encoderRotation = autoStageChassisModule.getEncoderRotation();
+                    telemetry.addData("robotCurrentRotation(Encoder)", encoderRotation);
+
+                    telemetry.addData("robotRotation(IMU)", autoStageChassisModule.getImuYaw());
 
                     telemetry.update();
                 }
