@@ -11,6 +11,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 public class ComputerVisionFieldNavigation_v2 implements Runnable {
+    // some presets
+    private short xAxlesPositionInArray = 1;
+    private short yAxlesPositionInArray = 0; // reverse x and y axles to fit the robot
+    private short zAxlesPositionInArray = 2;
     private VuforiaCurrentGame vuforiaPOWERPLAY;
     private VuforiaBase.TrackingResults vuforiaResults; // some vuforia instances
     
@@ -66,9 +70,9 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     }
 
     private void processTarget() {
-        robotPosition[0] = vuforiaResults.x;
-        robotPosition[1] = vuforiaResults.y;
-        robotPosition[2] = vuforiaResults.z;
+        robotPosition[xAxlesPositionInArray] = vuforiaResults.x;
+        robotPosition[yAxlesPositionInArray] = vuforiaResults.y;
+        robotPosition[zAxlesPositionInArray] = vuforiaResults.z;
         robotRotation = Math.toRadians(vuforiaResults.zAngle);
     }
 

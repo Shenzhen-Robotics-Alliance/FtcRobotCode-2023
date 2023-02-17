@@ -156,54 +156,6 @@ public class AutoStageChassisModule {
                 rotationDifference);
     }
 
-    public void setRobotXPosition(double targetedXPosition) {
-        double distanceXPosition, distanceLeft;
-        do {
-            // get the distance left in x and y position
-            double[] robotCurrentPosition = getEncoderPosition();
-            distanceXPosition = targetedXPosition - robotCurrentPosition[0];
-
-            // calculate, according to the distance left, using linear mapping, the needed motor power
-            double xVelocity = ChassisModule.linearMap(
-                    positionDeviationTolerance,
-                    distanceStartDecelerating,
-                    minMotioningPower,
-                    stableMotioningPower,
-                    distanceXPosition);
-
-            setRobotMotion(xVelocity, 0, 0);
-
-            distanceLeft = Math.abs(distanceXPosition);
-
-            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(xVelocity);
-        } while(distanceLeft > positionDeviationTolerance);
-
-        setRobotMotion(0, 0, 0);
-    }
-
-    public void setRobotYPosition(double targetedYPosition) {
-        double distanceYPosition, distanceLeft;
-        do {
-            // get the distance left in x and y position
-            double[] robotCurrentPosition = getEncoderPosition();
-            distanceYPosition = targetedYPosition - robotCurrentPosition[0];
-
-            // calculate, according to the distance left, using linear mapping, the needed motor power
-            double yVelocity = ChassisModule.linearMap(
-                    positionDeviationTolerance,
-                    distanceStartDecelerating,
-                    minMotioningPower,
-                    stableMotioningPower,
-                    distanceYPosition);
-
-            setRobotMotion(0, yVelocity, 0);
-
-            distanceLeft = Math.abs(distanceYPosition);
-
-            System.out.print(distanceYPosition); System.out.print(" "); System.out.println(yVelocity);
-        } while(distanceLeft > positionDeviationTolerance);
-    }
-
     public void calibrateEncoder() { calculateStartingEncoderPosition(); }
 
     private void calculateStartingEncoderPosition() {
@@ -314,6 +266,11 @@ public class AutoStageChassisModule {
             System.out.println(counterClockWiseDifference);
         } while (counterClockWiseDifference > Math.toRadians(5) & !isStopRequested);
         setRobotMotion(0, 0, 0);
+    }
+
+    public void setRobotPositionWithVisualNavigation(double targetedXPosition, double targetedYPosition) {
+        // move to the targeted position, using visual guidance
+        
     }
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
