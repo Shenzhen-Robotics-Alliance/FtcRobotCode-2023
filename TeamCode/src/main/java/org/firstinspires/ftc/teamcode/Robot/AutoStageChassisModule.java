@@ -10,7 +10,7 @@ public class AutoStageChassisModule {
     private final boolean x_y_Reversed = true;
     private final boolean useIMUCorrection = true;
     private final boolean runWithEncoder = false;
-    private final boolean rotationCorrecting = false;
+    private final boolean rotationCorrecting = true;
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
 
@@ -30,7 +30,8 @@ public class AutoStageChassisModule {
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 
-    private final double minDifferenceToToleranceRatio = 1.2;
+    private final double minDifferenceToToleranceRatio = 1.6;
+    private final double minRotatingCorrectionPower = 0.05;
 
     // constant for visual navigation
     private final double encoderValuePerVisualNavigationValue = 650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
@@ -124,7 +125,7 @@ public class AutoStageChassisModule {
             deviationAccepted = Math.abs(distanceXPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio
                              && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
 
-            System.out.print(distanceXPosition); System.out.print(" "); System.out.print(xVelocity); System.out.print(" "); System.out.println(dynamicalRotationCorrection);
+            System.out.print(getImuYaw()); System.out.print(" "); System.out.println(imu.getRobotHeading());
         } while(!deviationAccepted && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
@@ -166,6 +167,16 @@ public class AutoStageChassisModule {
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotatingPower,
+                stableRotatingPower,
+                rotationDifference);
+    }
+
+    private double getRotatingCorrectionPower(double rotationDifference) {
+        if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
+        return ChassisModule.linearMap(
+                rotationDeviationTolerance * minDifferenceToToleranceRatio,
+                rotationDifferenceStartDecelerating,
+                minRotatingCorrectionPower,
                 stableRotatingPower,
                 rotationDifference);
     }

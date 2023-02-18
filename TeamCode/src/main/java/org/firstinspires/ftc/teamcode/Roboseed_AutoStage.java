@@ -104,16 +104,15 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // grab the preloaded sleeve
         armControllingMethods.deactivateArm();
         armControllingMethods.closeClaw();
-        sleep(400); // wait until the claw is completely closed
+        sleep(40); // wait until the claw is completely closed
 
         // go to the center of the grid (200, 130), in reference to the red side team
         chassisModule.setRobotPosition(0, 130);
-        armControllingMethods.toGroundArmPosition();
 
         // line up vertically with the place where the sleeves are stored
         chassisModule.setRobotPosition(-800, 130);
-        chassisModule.setRobotPosition(-800, 720);
-        chassisModule.setRobotPosition(-1300, 720);
+        chassisModule.setRobotPosition(-800, 760);
+        chassisModule.setRobotPosition(-1380, 760);
 
         // turn the robot to the goal
         chassisModule.setRobotRotation(0);
@@ -122,17 +121,17 @@ public class Roboseed_AutoStage extends LinearOpMode {
         armControllingMethods.toHighArmPosition();
 
         // go forward a step
-        chassisModule.setRobotPosition(-1300, 860);
+        chassisModule.setRobotPosition(-1380, 840);
 
         // place the preloaded goal
-        sleep(500);
         armControllingMethods.toMidArmPosition();
         armControllingMethods.openClaw();
-        chassisModule.setRobotPosition(-1300, 800); // step back from the goal
 
+        // go to the sleeve stack
+        chassisModule.setRobotPosition(-1380, 760); // step back from the goal
         chassisModule.setRobotRotation(0);
-
-        chassisModule.setRobotPosition(-800, 800);
+        chassisModule.setRobotPosition(-800, 760);
+        /*
 
         // turn the robot to the stick
         chassisModule.setRobotRotation(Math.toRadians(90));
@@ -173,6 +172,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         armControllingMethods.deactivateArm();
         armControllingMethods.openClaw();
         chassisModule.moveRobotWithEncoder(0, -100); // step back from the goal
+        */
 
         // TODO move to parking position according to the driver input to pretend having visual recognizing
     }
