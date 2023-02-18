@@ -42,9 +42,9 @@ public class Roboseed_Test extends LinearOpMode {
         }); terminationListenerThread.start();
 
 
-        autoStageChassisModule.setRobotPositionWithVisualNavigation(-1200, -1000);
+        // autoStageChassisModule.setRobotPositionWithVisualNavigation(-1200, -1000);
 
-        // autoStageChassisModule.testRobotMotion(0.15, 0.15, 0);
+        autoStageChassisModule.setRobotRotation(Math.toRadians(90));
         while (opModeIsActive() && !isStopRequested()) {
             final double[] robotPosition = autoStageChassisModule.getEncoderPosition();
             final double robotRotation = autoStageChassisModule.getEncoderRotation();

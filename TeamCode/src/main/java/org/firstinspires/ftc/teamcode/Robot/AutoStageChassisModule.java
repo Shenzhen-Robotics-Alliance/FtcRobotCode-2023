@@ -8,7 +8,7 @@ public class AutoStageChassisModule {
     // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
-    private final boolean useIMUCorrection = false;
+    private final boolean useIMUCorrection = true;
     private final boolean runWithEncoder = false;
     private final boolean rotationCorrecting = false;
 
@@ -17,16 +17,16 @@ public class AutoStageChassisModule {
     // presets for position correction
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.05;
-    private final double stableRotatingPower = 0.35;
+    private final double minRotatingPower = 0.25;
+    private final double stableRotatingPower = 0.45;
     private final double minRotationEncoderVelocity = 80;
     private final double stableRotatingEncoderVelocity = 200;
     private final double encoderRotationPerRadian = 3900 / (Math.PI*2);
 
     private final double positionDeviationTolerance = 80;
     private final double distanceStartDecelerating = 450;
-    private final double minMotioningPower = 0.15;
-    private final double stableMotioningPower = 0.35;
+    private final double minMotioningPower = 0.3;
+    private final double stableMotioningPower = 0.5;
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 
@@ -34,7 +34,8 @@ public class AutoStageChassisModule {
 
     // constant for visual navigation
     private final double encoderValuePerVisualNavigationValue = 650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
-    private final double waitForNavigationSignTimeLimitation = 1; // the time limit when waiting for navigation sign to show up
+    private final double waitForNavigationSignTimeLimitation = 0.5; // the time limit when waiting for navigation sign to show up
+    private final double rotationalMotionCorrectionFactor = -1;
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -121,16 +122,16 @@ public class AutoStageChassisModule {
 
             // whether the deviation is acceptable
             deviationAccepted = Math.abs(distanceXPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio
-                    && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
+                             && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
 
-            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(distanceYPosition);
+            System.out.print(distanceXPosition); System.out.print(" "); System.out.print(xVelocity); System.out.print(" "); System.out.println(dynamicalRotationCorrection);
         } while(!deviationAccepted && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
     }
 
     private double getMotioningEncoderVelocity(double encoderDifference) {
-        if (encoderDifference < positionDeviationTolerance) return 0; // debug the auto correction
+        if (Math.abs(encoderDifference) < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -140,7 +141,7 @@ public class AutoStageChassisModule {
     }
 
     private double getMotioningPower(double encoderDifference) {
-        if (encoderDifference < positionDeviationTolerance) return 0; // debug the auto correction
+        if (Math.abs(encoderDifference) < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -150,7 +151,7 @@ public class AutoStageChassisModule {
     }
 
     private double getRotatingEncoderVelocity(double rotationDifference) {
-        if (rotationDifference < rotationDeviationTolerance) return 0; // debug the auto correction
+        if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
@@ -160,7 +161,7 @@ public class AutoStageChassisModule {
     }
 
     private double getRotatingPower(double rotationDifference) {
-        if (rotationDifference < rotationDeviationTolerance) return 0; // debug the auto correction
+        if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
@@ -337,7 +338,7 @@ public class AutoStageChassisModule {
     }
 
     private double getVisualGuidanceMotioningEncoderVelocity(double visualNavigationDifference) {
-        if (visualNavigationDifference < positionDeviationTolerance) return 0; // debug the auto correction
+        if (Math.abs(visualNavigationDifference) < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -348,7 +349,7 @@ public class AutoStageChassisModule {
     }
 
     private double getVisualGuidanceMotioningPower(double visualNavigationDifference) {
-        if (visualNavigationDifference < positionDeviationTolerance) return 0; // debug the auto correction
+        if (Math.abs(visualNavigationDifference) < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -359,6 +360,7 @@ public class AutoStageChassisModule {
     }
 
     private void setRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
+        rotationalMotion *= rotationalMotionCorrectionFactor;
         // control the Mecanum wheel
         if (runWithEncoder) {
             driver.leftFront.setVelocity(yAxleMotion + rotationalMotion + xAxleMotion);
