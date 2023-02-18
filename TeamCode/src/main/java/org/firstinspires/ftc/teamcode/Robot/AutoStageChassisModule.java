@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class AutoStageChassisModule {
     // presets for rotation correcting
@@ -273,6 +274,13 @@ public class AutoStageChassisModule {
     public void setRobotPositionWithVisualNavigation(double targetedXPosition, double targetedYPosition) {
         // check for termination
         if (isStopRequested) return;
+
+        // wait for the navigation sign to show up
+        ElapsedTime elapsedTime = new ElapsedTime();
+        elapsedTime.reset();
+        while (elapsedTime.seconds() < 0.5) {
+            if (fieldNavigation.checkNavigationSignsVisibility()) break;
+        }
 
         // move to the targeted position, using visual guidance
         // get the rotation at the start of the motion

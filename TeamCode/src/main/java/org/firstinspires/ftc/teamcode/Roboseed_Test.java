@@ -27,11 +27,11 @@ public class Roboseed_Test extends LinearOpMode {
     HardwareDriver hardwareDriver = new HardwareDriver();
 
     AutoStageChassisModule autoStageChassisModule;
-    ComputerVisionFieldNavigation_v2 fieldNavigation_v2;
+    ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap);
+        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
         this.configureRobot();
         autoStageChassisModule.initRobotChassis();
         waitForStart();
@@ -52,6 +52,7 @@ public class Roboseed_Test extends LinearOpMode {
             telemetry.addData("robotYPosition", robotPosition[1]);
             telemetry.addData("robotRotation", robotRotation);
             telemetry.addData("robotRotationIMU", autoStageChassisModule.getImuYaw());
+            telemetry.addData("RobotPosition(vision):", fieldNavigation.getRobotPosition()[0] + ","  + fieldNavigation.getRobotPosition()[0]);
             telemetry.update();
         }
     }
