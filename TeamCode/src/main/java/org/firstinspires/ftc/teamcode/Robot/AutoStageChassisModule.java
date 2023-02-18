@@ -8,9 +8,9 @@ public class AutoStageChassisModule {
     // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
-    private final boolean useIMUCorrection = true;
+    private final boolean useIMUCorrection = false;
     private final boolean runWithEncoder = false;
-    private final boolean rotationCorrecting = true;
+    private final boolean rotationCorrecting = false;
 
     private double[] dynamicalEncoderCorrectionBias = new double[4]; // the leftFront, leftRear, rightFront and rightRear encoder correction
 
