@@ -61,6 +61,7 @@ public class IMUReader implements Runnable{
         Acceleration gravity = imu.getGravity();
         accelerationBias[0] = gravity.xAccel;
         accelerationBias[1] = gravity.yAccel;
+        position[0] = position[1] = velocity[0] = velocity[1] = 0; // init the variables
         System.out.print("acceleration bias:"); System.out.print(accelerationBias[0]); System.out.print(" "); System.out.println(accelerationBias[1]);
     }
     public void updateIMUStatus() {
@@ -104,22 +105,30 @@ public class IMUReader implements Runnable{
                 throw new RuntimeException(e);
             }
             double dX, dY;
+            dX = dY = 0;
             // update the imu position
             updateIMUStatus();
-            if (Math.abs(getRobotXAcceleration()) > 0.03) {
+            if (Math.abs(getRobotXAcceleration()) > 0.06) {
+                // calculate the current position, using trapezoid secondary integral of acceleration
                 dX = dt.seconds() * velocity[0];
                 velocity[0] += dt.seconds() * getRobotXAcceleration();
                 dX = dt.seconds() * velocity[0];
                 dX /= 2;
-                position[0] += dX;
-            } if(Math.abs(getRobotYAcceleration()) > 0.03) {
+            } else {
+                // assume it's motioning with constant velocity
+                // dX = dt.seconds() * velocity[0];
+            } if(Math.abs(getRobotYAcceleration()) > 0.06) {
                 dY = dt.seconds() * velocity[1];
                 velocity[1] += dt.seconds() * getRobotYAcceleration();
                 dY = dt.seconds() * velocity[1];
                 dY /= 2;
-                position[1] += dY;
-                dt.reset(); // calculate the current position, using trapezoid secondary integral of accelration
+            } else {
+                // dY = dt.seconds() * velocity[1];
             }
+            position[0] += dX;
+            position[1] += dY;
+            dt.reset();
+            System.out.print(getRobotXAcceleration()); System.out.print(" "); System.out.println(getRobotYAcceleration());
         }
     }
 

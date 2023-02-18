@@ -120,6 +120,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             fieldNavigation.terminate();
             chassisModule.terminate();
             autoStageChassisModule.terminate();
+            imuReader.terminate();
             System.exit(0);
         }
         }); terminationListenerThread.start();
