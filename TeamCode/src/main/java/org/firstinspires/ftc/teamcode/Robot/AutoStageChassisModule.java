@@ -119,7 +119,7 @@ public class AutoStageChassisModule {
             // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
             System.out.print(xVelocity); System.out.print(" "); System.out.print(yVelocity); System.out.print(" "); System.out.println(rotationCorrecting);
-        } while(distanceLeft > positionDeviationTolerance);
+        } while(distanceLeft > positionDeviationTolerance && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
     }
@@ -310,7 +310,7 @@ public class AutoStageChassisModule {
             // calculate the distance left, for further judgement on whether to stick with the loop or not
             distanceLeft = Math.sqrt(distanceXPosition*distanceXPosition + distanceYPosition*distanceYPosition);
             System.out.print(xVelocity); System.out.print(" "); System.out.print(yVelocity); System.out.print(" "); System.out.println(rotationCorrecting);
-        } while(distanceLeft > positionDeviationTolerance && fieldNavigation.PositionLastUpdate() < 0.5); // cut the loop if the process is finished or if the navigation signs are out of sight
+        } while(distanceLeft > positionDeviationTolerance && fieldNavigation.PositionLastUpdate() < 0.5 && !isStopRequested); // cut the loop if the process is finished or if the navigation signs are out of sight
 
         setRobotMotion(0, 0, 0);
     }
