@@ -83,17 +83,17 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // check for termination in each step
         if (terminationFlag) return;
 
+        // TODO place the preloaded sleeve
+
         // turn the robot to the stick
         chassisModule.setRobotRotation(Math.toRadians(90));
         // check for termination in each step
         if (terminationFlag) return;
 
-        // TODO correct the direction of the robot's motion when navigating using visual guidance
-
         // precise navigation to the sleeves using visual guidance
-        if (fieldNavigation.checkNavigationSignsVisability())
-            chassisModule.setRobotPositionWithVisualNavigation(-1050, 1260);
-        else chassisModule.setRobotPosition(0, 0);
+        if (fieldNavigation.checkNavigationSignsVisability()) // if the navigation signs are available
+            chassisModule.setRobotPositionWithVisualNavigation(-1050, 1260); // visual guidance to the sleeves
+        else chassisModule.setRobotPosition(0, 0); // other wise, dive to the sleeves using encoders
 
 
 
