@@ -111,30 +111,26 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
         // line up vertically with the place where the sleeves are stored
         chassisModule.setRobotPosition(-800, 130);
-        chassisModule.setRobotPosition(-800, 600);
-
-        if (true) return;
+        chassisModule.setRobotPosition(-800, 750);
+        chassisModule.setRobotPosition(-1250, 750);
 
         // turn the robot to the goal
         chassisModule.setRobotRotation(0);
-
-        if (true) return;
-
-        // go to the goal
-        if (fieldNavigation.checkNavigationSignsVisibility())
-            chassisModule.setRobotPositionWithVisualNavigation(0, 0);
-        else chassisModule.moveRobotWithEncoder(0, 0); // TODO set the positions to make the position line up and stick close with the goal one step away
 
         // raise the arm
         armControllingMethods.toHighArmPosition();
 
         // go forward a step
-        chassisModule.moveRobotWithEncoder(0, 100); // TODO set the position so that the sleeve goes right to the goal
+        chassisModule.setRobotPosition(-1250, 900);
 
         // place the preloaded goal
+        sleep(500);
         armControllingMethods.deactivateArm();
         armControllingMethods.openClaw();
         chassisModule.moveRobotWithEncoder(0, -100); // step back from the goal
+
+        sleep(1000);
+        if (true) return;
 
         // turn the robot to the stick
         chassisModule.setRobotRotation(Math.toRadians(90));

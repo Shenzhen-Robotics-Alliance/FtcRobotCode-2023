@@ -26,7 +26,7 @@ public class AutoStageChassisModule {
     private final double positionDeviationTolerance = 80;
     private final double distanceStartDecelerating = 450;
     private final double minMotioningPower = 0.3;
-    private final double stableMotioningPower = 0.5;
+    private final double stableMotioningPower = 0.6;
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 
@@ -233,13 +233,13 @@ public class AutoStageChassisModule {
         System.out.print("robot facing:");
         System.out.println(currentRotation);
         if (numericalRotationDifference > 0) { // when the target is at the positive(clockwise) direction
-            counterClockWiseDifference = numericalRotationDifference;
-            double targetedToOrigin = fullCircle - targetedRotation;
-            clockWiseDifference = targetedToOrigin + currentRotation;
-        } else {
             clockWiseDifference = -numericalRotationDifference;
             double targetedToOrigin = fullCircle - targetedRotation;
             counterClockWiseDifference = targetedToOrigin + currentRotation;
+        } else {
+            counterClockWiseDifference = numericalRotationDifference;
+            double targetedToOrigin = fullCircle - targetedRotation;
+            clockWiseDifference = targetedToOrigin + currentRotation;
         }
 
         if (clockWiseDifference < counterClockWiseDifference) {
