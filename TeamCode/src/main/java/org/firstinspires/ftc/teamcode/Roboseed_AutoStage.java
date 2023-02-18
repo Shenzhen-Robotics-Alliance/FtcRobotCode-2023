@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
 import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
@@ -27,6 +28,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageChassisModule chassisModule;
+    private ArmControllingMethods armControllingMethods;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,6 +39,8 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
         chassisModule.initRobotChassis();
         elapsedTime.reset();
+
+        armControllingMethods = new ArmControllingMethods(hardwareDriver, telemetry);
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
                 while (!isStopRequested() && opModeIsActive()) Thread.yield();
@@ -73,6 +77,10 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
         // start of the auto stage scripts
 
+        // grab the preloaded sleeve
+        armControllingMethods.deactivateArm();
+        armControllingMethods.closeClaw();
+
         // go to the center of the grid (75, 130), in reference to the red side team
         chassisModule.setRobotPosition(95, 130);
         // check for termination in each step
@@ -83,7 +91,11 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // check for termination in each step
         if (terminationFlag) return;
 
-        // TODO place the preloaded sleeve
+        // place the preloaded sleeve
+        // turn the robot to the goal
+        chassisModule.setRobotRotation(270);
+        chassisModule.setRobotPosition(0, 0);
+
 
         // turn the robot to the stick
         chassisModule.setRobotRotation(Math.toRadians(90));
