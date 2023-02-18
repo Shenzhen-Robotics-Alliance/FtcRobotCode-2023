@@ -106,15 +106,15 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // grab the preloaded sleeve
         armControllingMethods.deactivateArm();
         armControllingMethods.closeClaw();
-        sleep(500); // wait until the claw is completely closed
+        sleep(1500); // wait until the claw is completely closed
 
         // go to the center of the grid (200, 130), in reference to the red side team
-        chassisModule.setRobotPosition(200, 130);
-        // check for termination in each step
+        chassisModule.setRobotPosition(-200, 130);
 
-        // line up horizontally with the place where the sleeves are stored
-        chassisModule.setRobotPosition(200, 1500);
-        // check for termination in each step
+        // line up vertically with the place where the sleeves are stored
+        chassisModule.setRobotPosition(-400, 130);
+        chassisModule.setRobotPosition(-400, 800);
+        chassisModule.setRobotPosition(-800, 800);
 
         if (true) return;
 
