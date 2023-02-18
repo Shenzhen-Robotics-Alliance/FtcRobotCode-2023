@@ -107,12 +107,13 @@ public class Roboseed_AutoStage extends LinearOpMode {
         sleep(400); // wait until the claw is completely closed
 
         // go to the center of the grid (200, 130), in reference to the red side team
-        chassisModule.setRobotPosition(-200, 130);
+        chassisModule.setRobotPosition(0, 130);
+        armControllingMethods.toGroundArmPosition();
 
         // line up vertically with the place where the sleeves are stored
         chassisModule.setRobotPosition(-800, 130);
-        chassisModule.setRobotPosition(-800, 750);
-        chassisModule.setRobotPosition(-1250, 750);
+        chassisModule.setRobotPosition(-800, 720);
+        chassisModule.setRobotPosition(-1300, 720);
 
         // turn the robot to the goal
         chassisModule.setRobotRotation(0);
@@ -121,16 +122,17 @@ public class Roboseed_AutoStage extends LinearOpMode {
         armControllingMethods.toHighArmPosition();
 
         // go forward a step
-        chassisModule.setRobotPosition(-1250, 900);
+        chassisModule.setRobotPosition(-1300, 860);
 
         // place the preloaded goal
         sleep(500);
-        armControllingMethods.deactivateArm();
+        armControllingMethods.toMidArmPosition();
         armControllingMethods.openClaw();
-        chassisModule.moveRobotWithEncoder(0, -100); // step back from the goal
+        chassisModule.setRobotPosition(-1300, 800); // step back from the goal
 
-        sleep(1000);
+        chassisModule.setRobotRotation(0);
         if (true) return;
+        chassisModule.setRobotPosition(-800, 800);
 
         // turn the robot to the stick
         chassisModule.setRobotRotation(Math.toRadians(90));
