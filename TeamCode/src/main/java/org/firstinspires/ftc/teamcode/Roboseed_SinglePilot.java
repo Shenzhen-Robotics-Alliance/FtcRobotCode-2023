@@ -125,7 +125,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         }); terminationListenerThread.start();
 
         waitForStart();
-        sleep(400);
+        sleep(1000);
 
         autoStageChassisModule.calibrateEncoder();
         imuReader.calibrateIMU();

@@ -96,35 +96,30 @@ public class IMUReader implements Runnable{
     public void run() {
         dt.reset();
         // imu.stopAccelerationIntegration();
-        /* while (!terminated) {
+        while (!terminated) {
+            updateIMUStatus();
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            System.out.print(imu.getPosition().x); System.out.print(" "); System.out.println(imu.getPosition().y);
             double dX, dY;
             // update the imu position
             updateIMUStatus();
-            dX = dt.seconds() * velocity[0];
-            dY = dt.seconds() * velocity[1];
-            velocity[0] += dt.seconds() * getRobotXAcceleration();
-            velocity[1] += dt.seconds() * getRobotYAcceleration();
-            dX = dt.seconds() * velocity[0];
-            dY = dt.seconds() * velocity[1];
-            dX /= 2; dY /= 2;
-            position[0] += dX;
-            position[1] += dY;
-            dt.reset(); // calculate the current position, using trapezoid secondary integral of accelration
-        } */
-        while (!terminated) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            if (Math.abs(getRobotXAcceleration()) > 0.03) {
+                dX = dt.seconds() * velocity[0];
+                velocity[0] += dt.seconds() * getRobotXAcceleration();
+                dX = dt.seconds() * velocity[0];
+                dX /= 2;
+                position[0] += dX;
+            } if(Math.abs(getRobotYAcceleration()) > 0.03) {
+                dY = dt.seconds() * velocity[1];
+                velocity[1] += dt.seconds() * getRobotYAcceleration();
+                dY = dt.seconds() * velocity[1];
+                dY /= 2;
+                position[1] += dY;
+                dt.reset(); // calculate the current position, using trapezoid secondary integral of accelration
             }
-            updateIMUStatus();
-            System.out.print(getRobotXAcceleration()); System.out.print(" "); System.out.println(getRobotYAcceleration());
         }
     }
 
