@@ -26,7 +26,7 @@ public class AutoStageChassisModule {
     private final double positionDeviationTolerance = 60;
     private final double distanceStartDecelerating = 350;
     private final double minMotioningPower = 0.3;
-    private final double stableMotioningPower = 0.6;
+    private final double stableMotioningPower = 0.50;
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 

@@ -14,14 +14,14 @@ import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 
 /*
-* the robot starts in the corner of the field.
-* first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
-* the robot moves to position(according to camera) -1022, -782
-*
-* */
+ * the robot starts in the corner of the field.
+ * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
+ * the robot moves to position(according to camera) -1022, -782
+ *
+ * */
 
-@Autonomous(name = "AutoStateProgram_v1.0")
-public class Roboseed_AutoStage extends LinearOpMode {
+@Autonomous(name = "pos1")
+public class pos1 extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
     private boolean terminationFlag;
 
@@ -42,11 +42,11 @@ public class Roboseed_AutoStage extends LinearOpMode {
         armControllingMethods = new ArmControllingMethods(hardwareDriver, telemetry);
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
-                while (!isStopRequested() && opModeIsActive()) Thread.yield();
-                fieldNavigation.terminate();
-                chassisModule.terminate();
-                terminationFlag = true;
-            }
+            while (!isStopRequested() && opModeIsActive()) Thread.yield();
+            fieldNavigation.terminate();
+            chassisModule.terminate();
+            terminationFlag = true;
+        }
         }); terminationListenerThread.start();
 
         Thread robotStatusMonitoringThread = new Thread(() -> {
@@ -73,11 +73,12 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // start of the auto stage scripts
         proceedAutoStageInstructions();
 
-        proceedGoToSector3();
+        // proceedGoToSector3();
 
 
         // end of the program
         chassisModule.terminate();
+        armControllingMethods.deactivateArm();
     }
 
     private void configureRobot() {
