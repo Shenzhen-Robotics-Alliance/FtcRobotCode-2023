@@ -226,13 +226,13 @@ public class AutoStageChassisModule {
         System.out.print("robot facing:");
         System.out.println(currentRotation);
         if (numericalRotationDifference > 0) { // when the target is at the positive(clockwise) direction
-            clockWiseDifference = numericalRotationDifference;
-            double targetedToOrigin = fullCircle - targetedRotation;
-            counterClockWiseDifference = targetedToOrigin + currentRotation;
-        } else {
-            counterClockWiseDifference = -numericalRotationDifference;
+            counterClockWiseDifference = numericalRotationDifference;
             double targetedToOrigin = fullCircle - targetedRotation;
             clockWiseDifference = targetedToOrigin + currentRotation;
+        } else {
+            clockWiseDifference = -numericalRotationDifference;
+            double targetedToOrigin = fullCircle - targetedRotation;
+            counterClockWiseDifference = targetedToOrigin + currentRotation;
         }
 
         System.out.print("counter-wise difference:"); System.out.println(counterClockWiseDifference);
