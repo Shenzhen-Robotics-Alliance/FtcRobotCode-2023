@@ -123,7 +123,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         if (true) return;
 
         // go to the goal
-        if (fieldNavigation.checkNavigationSignsVisability())
+        if (fieldNavigation.checkNavigationSignsVisibility())
             chassisModule.setRobotPositionWithVisualNavigation(0, 0);
         else chassisModule.moveRobotWithEncoder(0, 0); // TODO set the positions to make the position line up and stick close with the goal one step away
 
@@ -142,7 +142,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule.setRobotRotation(Math.toRadians(90));
 
         // precise navigation to the sleeves using visual guidance
-        if (fieldNavigation.checkNavigationSignsVisability()) // if the navigation signs are available
+        if (fieldNavigation.checkNavigationSignsVisibility()) // if the navigation signs are available
             chassisModule.setRobotPositionWithVisualNavigation(-1000, 1500); // visual guidance to the sleeves
         else chassisModule.setRobotPosition(0, 600); // other wise, dive to the sleeves using encoders TODO set this position to make robot very close to the sleeves
 
@@ -163,7 +163,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule.setRobotRotation(270);
 
         // go to the goal
-        if (fieldNavigation.checkNavigationSignsVisability())
+        if (fieldNavigation.checkNavigationSignsVisibility())
             chassisModule.setRobotPositionWithVisualNavigation(0, 0);
         else chassisModule.moveRobotWithEncoder(0, 0); // TODO set the positions to make the position line up and stick close with the goal one step away
 
