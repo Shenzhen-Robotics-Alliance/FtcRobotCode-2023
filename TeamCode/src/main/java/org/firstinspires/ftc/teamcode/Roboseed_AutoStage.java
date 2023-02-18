@@ -115,6 +115,8 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule.setRobotPosition(100, 1500);
         // check for termination in each step
 
+        if (true) return;
+
         // turn the robot to the goal
         chassisModule.setRobotRotation(90);
 

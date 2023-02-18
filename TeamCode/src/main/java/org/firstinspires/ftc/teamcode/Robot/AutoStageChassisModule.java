@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class AutoStageChassisModule {
     // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
-    private final boolean x_y_Reversed = false;
+    private final boolean x_y_Reversed = true;
     private final boolean useIMUCorrection = false;
     private final boolean runWithEncoder = false;
     private final boolean rotationCorrecting = false;
@@ -127,6 +127,7 @@ public class AutoStageChassisModule {
     }
 
     private double getMotioningEncoderVelocity(double encoderDifference) {
+        if (encoderDifference < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -136,6 +137,7 @@ public class AutoStageChassisModule {
     }
 
     private double getMotioningPower(double encoderDifference) {
+        if (encoderDifference < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -145,6 +147,7 @@ public class AutoStageChassisModule {
     }
 
     private double getRotatingEncoderVelocity(double rotationDifference) {
+        if (rotationDifference < rotationDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
@@ -154,6 +157,7 @@ public class AutoStageChassisModule {
     }
 
     private double getRotatingPower(double rotationDifference) {
+        if (rotationDifference < rotationDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
@@ -330,6 +334,7 @@ public class AutoStageChassisModule {
     }
 
     private double getVisualGuidanceMotioningEncoderVelocity(double visualNavigationDifference) {
+        if (visualNavigationDifference < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
@@ -340,6 +345,7 @@ public class AutoStageChassisModule {
     }
 
     private double getVisualGuidanceMotioningPower(double visualNavigationDifference) {
+        if (visualNavigationDifference < positionDeviationTolerance) return 0; // debug the auto correction
         return ChassisModule.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
