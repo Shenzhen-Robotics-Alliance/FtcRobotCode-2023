@@ -76,7 +76,7 @@ public class AutoStageChassisModule {
 
 
     public void initRobotChassis() {
-        imu.calibrateIMUHeading();
+        imu.calibrateIMU();
         this.imuReaderThread = new Thread(() -> {
             while (!isStopRequested) imu.updateIMUStatus();
         });

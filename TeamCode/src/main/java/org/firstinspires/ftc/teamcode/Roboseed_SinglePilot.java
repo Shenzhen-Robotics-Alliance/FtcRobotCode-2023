@@ -61,9 +61,10 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
+        imuReader = new IMUReader(hardwareMap);
+        imuReader.calibrateIMU();
         autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
         // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
-        imuReader = new IMUReader(hardwareMap);
 
         telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
@@ -114,8 +115,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             }
         }); // robotStatusMonitoringThread.start();
 
-        autoStageChassisModule.calibrateEncoder();
-
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
             fieldNavigation.terminate();
@@ -126,6 +125,10 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         }); terminationListenerThread.start();
 
         waitForStart();
+        sleep(400);
+
+        autoStageChassisModule.calibrateEncoder();
+        imuReader.calibrateIMU();
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");

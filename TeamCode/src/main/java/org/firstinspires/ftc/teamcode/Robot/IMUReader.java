@@ -5,16 +5,11 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-
-import java.util.Locale;
 
 public class IMUReader implements Runnable{
     // The IMU sensor object
@@ -26,6 +21,7 @@ public class IMUReader implements Runnable{
     Orientation angles;
     Acceleration gravity;
     double headingCorrectionBias;
+    private double[] accelerationBias = new double[2]; //  to correct the effect of gravity
     private double[] velocity = new double[2];
     private double[] position = new double[2];
     private ElapsedTime dt = new ElapsedTime();
@@ -52,16 +48,20 @@ public class IMUReader implements Runnable{
         imu.initialize(parameters);
 
         // Start the logging of measured acceleration
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        // imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
     }
 
     //----------------------------------------------------------------------------------------------
     // Telemetry Configuration
     //----------------------------------------------------------------------------------------------
 
-    public void calibrateIMUHeading() {
+    public void calibrateIMU() {
         updateIMUStatus();
         headingCorrectionBias = -getRobotHeading();
+        Acceleration gravity = imu.getGravity();
+        accelerationBias[0] = gravity.xAccel;
+        accelerationBias[1] = gravity.yAccel;
+        System.out.print("acceleration bias:"); System.out.print(accelerationBias[0]); System.out.print(" "); System.out.println(accelerationBias[1]);
     }
     public void updateIMUStatus() {
         // Acquiring the angles is relatively expensive; we don't want
@@ -83,17 +83,10 @@ public class IMUReader implements Runnable{
     }
 
     public double getRobotXAcceleration() {
-        return gravity.xAccel;
+        return gravity.xAccel - accelerationBias[0];
     }
     public double getRobotYAcceleration() {
-        return gravity.yAccel;
-    }
-    public double getRobotZAcceleration() {
-        return getRobotZAcceleration(false);
-    }
-    public double getRobotZAcceleration(boolean Calibrate) {
-        if (Calibrate) return gravity.zAccel - 9.8;
-        return gravity.zAccel;
+        return gravity.yAccel - accelerationBias[1];
     }
     public String getGravitation() {
         return gravity.toString();
@@ -102,9 +95,13 @@ public class IMUReader implements Runnable{
     @Override
     public void run() {
         dt.reset();
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 100);
         // imu.stopAccelerationIntegration();
-        /*while (!terminated) {
+        /* while (!terminated) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             System.out.print(imu.getPosition().x); System.out.print(" "); System.out.println(imu.getPosition().y);
             double dX, dY;
             // update the imu position
@@ -122,11 +119,12 @@ public class IMUReader implements Runnable{
         } */
         while (!terminated) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            System.out.print(imu.getPosition().x); System.out.print(" "); System.out.println(imu.getPosition().y);
+            updateIMUStatus();
+            System.out.print(getRobotXAcceleration()); System.out.print(" "); System.out.println(getRobotYAcceleration());
         }
     }
 
