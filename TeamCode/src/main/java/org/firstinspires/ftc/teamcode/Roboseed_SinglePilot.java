@@ -68,13 +68,16 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
         telemetry.addLine("robotCurrentRotation(Encoder)");
-        telemetry.addLine("robotRotation(IMU)");
+        telemetry.addLine("robotCurrentPosition(IMU)");
 
         Thread chassisThread = new Thread(chassisModule);
         chassisThread.start(); // start an independent thread to run chassis module
 
         Thread navigationThread = new Thread(fieldNavigation);
         navigationThread.start();
+
+        Thread imuReaderThread = new Thread(imuReader);
+        imuReaderThread.start();
 
         // computerVisionAUX.test(); // run the test
 
@@ -105,8 +108,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
                     double encoderRotation = autoStageChassisModule.getEncoderRotation();
                     telemetry.addData("robotCurrentRotation(Encoder)", encoderRotation);
-
-                    telemetry.addData("robotRotation(IMU)", autoStageChassisModule.getImuYaw());
 
                     telemetry.update();
                 }
@@ -142,8 +143,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
 
         double[] IMUPosition = imuReader.getIMUPosition();
-        String IMUPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-        telemetry.addData("robotCurrentPosition(Encoder)", IMUPositionString);
+        String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
+        telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString);
 
         telemetry.update();
         

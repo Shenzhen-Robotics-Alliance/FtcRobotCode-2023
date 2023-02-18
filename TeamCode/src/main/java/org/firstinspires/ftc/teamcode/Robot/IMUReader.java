@@ -102,7 +102,10 @@ public class IMUReader implements Runnable{
     @Override
     public void run() {
         dt.reset();
-        while (!terminated) {
+        // imu.startAccelerationIntegration(new Position(), new Velocity(), 100);
+        imu.stopAccelerationIntegration();
+        /*while (!terminated) {
+            System.out.print(imu.getPosition().x); System.out.print(" "); System.out.println(imu.getPosition().y);
             double dX, dY;
             // update the imu position
             updateIMUStatus();
@@ -116,6 +119,9 @@ public class IMUReader implements Runnable{
             position[0] += dX;
             position[1] += dY;
             dt.reset(); // calculate the current position, using trapezoid secondary integral of accelration
+        } */
+        while (!terminated) {
+            System.out.print(imu.getPosition().x); System.out.print(" "); System.out.println(imu.getPosition().y);
         }
     }
 
