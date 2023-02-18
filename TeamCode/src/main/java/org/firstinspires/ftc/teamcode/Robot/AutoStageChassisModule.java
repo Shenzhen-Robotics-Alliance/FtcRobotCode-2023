@@ -30,7 +30,7 @@ public class AutoStageChassisModule {
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 
-    private final double minDifferenceToToleranceRatio = 1.6;
+    private final double minDifferenceToToleranceRatio = 1.2;
 
     // constant for visual navigation
     private final double encoderValuePerVisualNavigationValue = 650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
@@ -120,9 +120,11 @@ public class AutoStageChassisModule {
             else setRobotMotion(xVelocity, yVelocity, 0);
 
             // whether the deviation is acceptable
-            deviationAccepted = distanceXPosition < positionDeviationTolerance*minDifferenceToToleranceRatio && distanceYPosition < positionDeviationTolerance*minDifferenceToToleranceRatio;
-            System.out.print(xVelocity); System.out.print(" "); System.out.print(yVelocity); System.out.print(" "); System.out.println(rotationCorrecting);
-        } while(deviationAccepted && !isStopRequested);
+            deviationAccepted = Math.abs(distanceXPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio
+                    && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
+
+            System.out.print(distanceXPosition); System.out.print(" "); System.out.println(distanceYPosition);
+        } while(!deviationAccepted && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
     }
