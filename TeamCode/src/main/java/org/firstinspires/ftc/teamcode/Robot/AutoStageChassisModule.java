@@ -25,8 +25,8 @@ public class AutoStageChassisModule {
 
     private final double positionDeviationTolerance = 80;
     private final double distanceStartDecelerating = 450;
-    private final double minMotioningPower = 0.12;
-    private final double stableMotioningPower = 0.35;
+    private final double minMotioningPower = 0.20;
+    private final double stableMotioningPower = 0.45;
     private final double minMotioningEncoderVelocity = 80;
     private final double stableMotioningEncoderVelocity = 200;
 
@@ -34,6 +34,7 @@ public class AutoStageChassisModule {
 
     // constant for visual navigation
     private final double encoderValuePerVisualNavigationValue = 650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
+    private final double waitForNavigationSignTimeLimitation = 1; // the time limit when waiting for navigation sign to show up
 
     private HardwareDriver driver;
     private final IMUReader imu;
@@ -279,9 +280,12 @@ public class AutoStageChassisModule {
         // wait for the navigation sign to show up
         ElapsedTime elapsedTime = new ElapsedTime();
         elapsedTime.reset();
-        while (elapsedTime.seconds() < 0.5) {
+        // while (elapsedTime.seconds() < waitForNavigationSignTimeLimitation) {
+        while (elapsedTime.seconds() < 10) {
+            Thread.yield();
             if (fieldNavigation.checkNavigationSignsVisibility()) break;
         }
+        System.out.println("navigation sign detected");
 
         // move to the targeted position, using visual guidance
         // get the rotation at the start of the motion
@@ -390,7 +394,7 @@ public class AutoStageChassisModule {
         fieldNavigation.terminate();
     }
 
-    public void testRobtMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
+    public void testRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
         setRobotMotion(xAxleMotion, yAxleMotion, rotationalMotion);
     }
 }

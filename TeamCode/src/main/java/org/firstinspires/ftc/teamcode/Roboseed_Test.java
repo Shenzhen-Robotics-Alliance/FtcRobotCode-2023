@@ -5,11 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
@@ -31,6 +29,7 @@ public class Roboseed_Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
         autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
         this.configureRobot();
         autoStageChassisModule.initRobotChassis();
@@ -45,6 +44,7 @@ public class Roboseed_Test extends LinearOpMode {
 
         autoStageChassisModule.setRobotPositionWithVisualNavigation(-1200, -1000);
 
+        // autoStageChassisModule.testRobotMotion(0.15, 0.15, 0);
         while (opModeIsActive() && !isStopRequested()) {
             final double[] robotPosition = autoStageChassisModule.getEncoderPosition();
             final double robotRotation = autoStageChassisModule.getEncoderRotation();
