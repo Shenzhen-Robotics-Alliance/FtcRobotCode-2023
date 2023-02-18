@@ -32,7 +32,7 @@ public class AutoStageChassisModule {
     private final double minDifferenceToToleranceRatio = 0.3;
 
     // constant for visual navigation
-    private final double encoderValuePerVisualNavigationValue = -650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
+    private final double encoderValuePerVisualNavigationValue = 650 / 400; // during the test, visual module coordinate increase by 400, encoder increase by -650
 
     private HardwareDriver driver;
     private final IMUReader imu;

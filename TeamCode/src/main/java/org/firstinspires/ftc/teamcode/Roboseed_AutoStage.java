@@ -91,7 +91,9 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // TODO correct the direction of the robot's motion when navigating using visual guidance
 
         // precise navigation to the sleeves using visual guidance
-        chassisModule.setRobotPositionWithVisualNavigation(-1050, 1260);
+        if (fieldNavigation.checkNavigationSignsVisability())
+            chassisModule.setRobotPositionWithVisualNavigation(-1050, 1260);
+        else chassisModule.setRobotPosition(0, 0);
 
 
 

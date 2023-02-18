@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.Robot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
@@ -12,9 +11,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 public class ComputerVisionFieldNavigation_v2 implements Runnable {
     // some presets
-    private short xAxlesPositionInArray = 1;
-    private short yAxlesPositionInArray = 0; // reverse x and y axles to fit the robot
-    private short zAxlesPositionInArray = 2;
+    private final short xAxisPositionInArray = 0;
+    private final short yAxisPositionInArray = 1; // do not reverse x and y axles to fit the robot, as the robot will turn 90 degree
+    private final short zAxisPositionInArray = 2;
+    private final double xAxisPositionCorrectionFactor = -1; // reverse x axis to match the field
+    private final double yAxlesPositionCorrectionFactor = 1;
+    private final double zAxlesPositionCorrectionFactor = 1;
     private VuforiaCurrentGame vuforiaPOWERPLAY;
     private VuforiaBase.TrackingResults vuforiaResults; // some vuforia instances
     
@@ -69,9 +71,9 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     }
 
     private void processTarget() {
-        robotPosition[xAxlesPositionInArray] = vuforiaResults.x;
-        robotPosition[yAxlesPositionInArray] = vuforiaResults.y;
-        robotPosition[zAxlesPositionInArray] = vuforiaResults.z;
+        robotPosition[xAxisPositionInArray] = vuforiaResults.x * xAxisPositionCorrectionFactor;
+        robotPosition[yAxisPositionInArray] = vuforiaResults.y * yAxlesPositionCorrectionFactor;
+        robotPosition[zAxisPositionInArray] = vuforiaResults.z * zAxlesPositionCorrectionFactor;
         robotRotation = Math.toRadians(vuforiaResults.zAngle);
     }
 
@@ -88,6 +90,12 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     public double[] getRobotPosition() { return robotPosition; } // return the position of the robot, in mm
     public double getRobotRotation() { return robotRotation; } // return the rotation of the robot, in radian
     public double PositionLastUpdate() { return positionLastUpdateTime.seconds(); } // so that you can know how accurate the results are
+    public boolean checkNavigationSignsVisability() {
+        // check if any navigation sign is available
+        final String[] targets = {"Red Audience Wall", "Red Rear Wall", "Blue Audience Wall", "Blue Rear Wall"};
+        for (String target: targets) if (isTargetVisible(target)) return true; // run the check through all navigation signs
+        return false;
+    }
 
     public void pause() { paused = true; }
     public void resume() { paused = false;}
