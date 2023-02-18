@@ -59,8 +59,8 @@ public class AutoStageChassisModule {
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
+        if (fieldNavigation == null) fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap); System.out.println("init field navigation");
         this.fieldNavigation = fieldNavigation;
-        if (fieldNavigation == null) this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap); System.out.println("init field navigation");
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
 
