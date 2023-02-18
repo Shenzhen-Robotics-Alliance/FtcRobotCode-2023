@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class AutoStageChassisModule {
     // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
-    private final boolean x_y_Reversed = true;
+    private final boolean x_y_Reversed = false;
     private final boolean useIMUCorrection = false;
     private final boolean runWithEncoder = false;
     private final boolean rotationCorrecting = false;

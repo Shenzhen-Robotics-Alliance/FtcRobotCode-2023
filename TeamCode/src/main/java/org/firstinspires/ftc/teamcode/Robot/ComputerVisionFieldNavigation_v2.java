@@ -12,11 +12,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 public class ComputerVisionFieldNavigation_v2 implements Runnable {
     // some presets
     // TODO make these following presets a list, containing the preset for each navigation sign
-    private final short xAxisPositionInArray = 0;
-    private final short yAxisPositionInArray = 1; // do not reverse x and y axles to fit the robot, as the robot will turn 90 degree
+    private final short xAxisPositionInArray = 1;
+    private final short yAxisPositionInArray = 0; // reverse x and y axles to fit the robot, as the robot will turn 90 degree when facing navigation sign
     private final short zAxisPositionInArray = 2;
-    private final double xAxisPositionCorrectionFactor = -1; // reverse x axis to match the field
-    private final double yAxlesPositionCorrectionFactor = 1;
+    private final double xAxisPositionCorrectionFactor = 1;
+    private final double yAxlesPositionCorrectionFactor = -1; // reverse y axis to match the field
     private final double zAxlesPositionCorrectionFactor = 1;
     private VuforiaCurrentGame vuforiaPOWERPLAY;
     private VuforiaBase.TrackingResults vuforiaResults; // some vuforia instances
