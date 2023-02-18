@@ -67,11 +67,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.addLine("robotCurrentRotation(Encoder)");
         telemetry.addLine("robotRotation(IMU)");
 
-
-
-        waitForStart();
-
-
         Thread chassisThread = new Thread(chassisModule);
         chassisThread.start(); // start an independent thread to run chassis module
 
@@ -116,6 +111,17 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         }); // robotStatusMonitoringThread.start();
 
         autoStageChassisModule.calibrateEncoder();
+
+        Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
+            while (!isStopRequested() && opModeIsActive()) Thread.yield();
+            fieldNavigation.terminate();
+            chassisModule.terminate();
+            autoStageChassisModule.terminate();
+            System.exit(0);
+        }
+        }); terminationListenerThread.start();
+
+        waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
