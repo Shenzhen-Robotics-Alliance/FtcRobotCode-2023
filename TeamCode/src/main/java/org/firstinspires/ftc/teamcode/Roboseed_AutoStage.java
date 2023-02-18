@@ -73,7 +73,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         terminationListenerThread.start();
         robotStatusMonitoringThread.start();
 
-        
+
         // start of the auto stage scripts
         proceedAutoStageInstructions();
 
@@ -110,15 +110,17 @@ public class Roboseed_AutoStage extends LinearOpMode {
         armControllingMethods.closeClaw();
 
         // go to the center of the grid (75, 130), in reference to the red side team
-        chassisModule.setRobotPosition(95, 130);
+        chassisModule.setRobotPosition(100, 130);
         // check for termination in each step
 
         // line up horizontally with the place where the sleeves are stored
-        chassisModule.setRobotPosition(95, 1500);
+        chassisModule.setRobotPosition(100, 1500);
         // check for termination in each step
 
         // turn the robot to the goal
         chassisModule.setRobotRotation(270);
+
+        if (true) return;
 
         // go to the goal
         if (fieldNavigation.checkNavigationSignsVisability())
@@ -141,8 +143,8 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
         // precise navigation to the sleeves using visual guidance
         if (fieldNavigation.checkNavigationSignsVisability()) // if the navigation signs are available
-            chassisModule.setRobotPositionWithVisualNavigation(-1050, 1260); // visual guidance to the sleeves
-        else chassisModule.setRobotPosition(0, 0); // other wise, dive to the sleeves using encoders TODO set this position to make robot very close to the sleeves
+            chassisModule.setRobotPositionWithVisualNavigation(-1000, 1500); // visual guidance to the sleeves
+        else chassisModule.setRobotPosition(0, 600); // other wise, dive to the sleeves using encoders TODO set this position to make robot very close to the sleeves
 
         // raise the arms
         armControllingMethods.openClaw();

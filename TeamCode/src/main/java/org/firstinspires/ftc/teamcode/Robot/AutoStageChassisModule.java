@@ -16,7 +16,7 @@ public class AutoStageChassisModule {
     // presets for position correction
     private final double rotationDeviationTolerance = Math.toRadians(5);
     private final double rotationDifferenceStartDecelerating = Math.toRadians(45);
-    private final double minRotatingPower = 0.10;
+    private final double minRotatingPower = 0.05;
     private final double stableRotatingPower = 0.35;
     private final double minRotationEncoderVelocity = 80;
     private final double stableRotatingEncoderVelocity = 200;
@@ -235,7 +235,7 @@ public class AutoStageChassisModule {
             clockWiseDifference = targetedToOrigin + currentRotation;
         }
 
-        System.out.println(numericalRotationDifference);
+        System.out.print("counter-wise difference:"); System.out.println(counterClockWiseDifference);
 
         if (clockWiseDifference < counterClockWiseDifference) {
             rotateClockWise(clockWiseDifference);
@@ -254,12 +254,9 @@ public class AutoStageChassisModule {
             if (targetedRotation > currentRotation) clockWiseDifference = targetedRotation - currentRotation;
             else clockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of clockwise difference
 
-            double rotatingSpeed = ChassisModule.linearMap(
-                    rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, clockWiseDifference
-            ); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
+            double rotatingSpeed = getRotatingPower(clockWiseDifference); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
-            System.out.print("clockwise difference: ");
-            System.out.println(clockWiseDifference);
+            System.out.print("targeted:"); System.out.print(targetedRotation); System.out.print(" actual:"); System.out.println(currentRotation);
         } while (clockWiseDifference > Math.toRadians(5) & !isStopRequested);
         setRobotMotion(0, 0, 0);
     }
@@ -274,9 +271,7 @@ public class AutoStageChassisModule {
             if (targetedRotation < currentRotation) counterClockWiseDifference = targetedRotation - currentRotation;
             else counterClockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of counter-clockwise difference
 
-            double rotatingSpeed = ChassisModule.linearMap(
-                    rotationDeviationTolerance, rotationDifferenceStartDecelerating, minRotatingPower, stableRotatingPower, counterClockWiseDifference
-                    ) *-1;
+            double rotatingSpeed = getRotatingPower(counterClockWiseDifference) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
             System.out.print("counter-clockwise difference: ");
             System.out.println(counterClockWiseDifference);

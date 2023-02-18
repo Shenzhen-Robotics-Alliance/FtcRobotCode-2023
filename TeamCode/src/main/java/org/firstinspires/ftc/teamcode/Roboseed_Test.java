@@ -34,7 +34,14 @@ public class Roboseed_Test extends LinearOpMode {
         autoStageChassisModule.initRobotChassis();
         waitForStart();
 
-        autoStageChassisModule.testRobtMotion(0, 0, 0.2);
+        Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
+            while (!isStopRequested() && opModeIsActive()) Thread.yield();
+            autoStageChassisModule.terminate();
+        }
+        }); terminationListenerThread.start();
+
+
+        autoStageChassisModule.setRobotRotation(Math.toRadians(90));
 
         while (opModeIsActive() && !isStopRequested()) {
             final double[] robotPosition = autoStageChassisModule.getEncoderPosition();

@@ -23,6 +23,7 @@ public class IMUReader {
     Orientation angles;
     Acceleration gravity;
     double headingCorrectionBias;
+    final double imuHeadingCorrectionFactor = 1;
 
 
     public IMUReader(HardwareMap hardwareMap) {
@@ -65,7 +66,6 @@ public class IMUReader {
     }
 
     public double getRobotHeading() {
-        final double imuHeadingCorrectionFactor = -1;
         return angles.firstAngle * imuHeadingCorrectionFactor + headingCorrectionBias;
     }
     public double getRobotRoll() {
