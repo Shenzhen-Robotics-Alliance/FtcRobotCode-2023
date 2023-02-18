@@ -78,6 +78,14 @@ public class ArmControllingMethods {
         armStatus = false;
     }
 
+    public void toLoadingArmPosition() {
+        // go to the arm position to load the sleeves
+        int loadingPos = 360; // TODO set this value precisely
+        elevateArm(loadingPos);
+        arm = 1;
+        armStatus = true;
+    }
+
     public void open_closeClaw() {
         System.out.println("open_close");
         if(claw) {closeClaw(); return;}

@@ -83,6 +83,9 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotPosition(double targetedXPosition, double targetedYPosition) {
+        // check for termination
+        if (isStopRequested) return;
+
         // get the rotation at the start of the motion
         double startingRotation;
         if (useIMUCorrection) startingRotation = getImuYaw();
@@ -210,6 +213,9 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotRotation(double targetedRotation) { // rote the robot to targeted spot, in radian
+        // check for termination
+        if (isStopRequested) return;
+
         final double fullCircle = 2 * Math.PI;
         double currentRotation = imu.getRobotHeading();
         if (currentRotation < 0) currentRotation = fullCircle + currentRotation;
@@ -239,6 +245,9 @@ public class AutoStageChassisModule {
     }
 
     private void rotateClockWise(double targetedRotation) {
+        // check for termination
+        if (isStopRequested) return;
+
         double clockWiseDifference ;
         do {
             double currentRotation = imu.getRobotHeading();
@@ -256,6 +265,9 @@ public class AutoStageChassisModule {
     }
 
     private void rotateCounterClockWise(double targetedRotation) {
+        // check for termination
+        if (isStopRequested) return;
+
         double counterClockWiseDifference ;
         do {
             double currentRotation = imu.getRobotHeading();
@@ -273,6 +285,9 @@ public class AutoStageChassisModule {
     }
 
     public void setRobotPositionWithVisualNavigation(double targetedXPosition, double targetedYPosition) {
+        // check for termination
+        if (isStopRequested) return;
+
         // move to the targeted position, using visual guidance
         // get the rotation at the start of the motion
         double startingRotation;
@@ -362,6 +377,9 @@ public class AutoStageChassisModule {
     }
 
     private void correctEncoderValueUsingIMU() {
+        // check for termination
+        if (isStopRequested) return;
+
         // TODO write this method to correct the encoder with IMu, which is far more accurate
         // calculate the difference between the actual encoder value and the expected ones using the IMU, which is more accurate
         imu.updateIMUStatus();

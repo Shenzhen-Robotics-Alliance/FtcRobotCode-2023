@@ -91,6 +91,7 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     public double getRobotRotation() { return robotRotation; } // return the rotation of the robot, in radian
     public double PositionLastUpdate() { return positionLastUpdateTime.seconds(); } // so that you can know how accurate the results are
     public boolean checkNavigationSignsVisability() {
+        if (terminated) return false; // do not execute if the program is already put to stop
         // check if any navigation sign is available
         final String[] targets = {"Red Audience Wall", "Red Rear Wall", "Blue Audience Wall", "Blue Rear Wall"};
         for (String target: targets) if (isTargetVisible(target)) return true; // run the check through all navigation signs
