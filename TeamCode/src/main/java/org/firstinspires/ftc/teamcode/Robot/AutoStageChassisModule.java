@@ -38,6 +38,7 @@ public class AutoStageChassisModule {
     private final IMUReader imu;
     private Thread imuReaderThread;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
+    private Thread fieldNavigationThread;
 
 
     private double encoderStartingRotation;
@@ -52,19 +53,13 @@ public class AutoStageChassisModule {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
+        this.fieldNavigationThread = new Thread(fieldNavigation);
     }
     public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = fieldNavigation;
-
-        System.out.print("power:");
-        System.out.println(ChassisModule.linearMap(
-                positionDeviationTolerance,
-                distanceStartDecelerating,
-                minMotioningPower,
-                stableMotioningPower,
-                2000));
+        this.fieldNavigationThread = new Thread(fieldNavigation);
     }
 
     public void initRobotChassis() {
@@ -74,6 +69,7 @@ public class AutoStageChassisModule {
         });
         imuReaderThread.start();
         this.calibrateEncoder();
+        fieldNavigationThread.start();
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
@@ -235,8 +231,6 @@ public class AutoStageChassisModule {
             counterClockWiseDifference = targetedToOrigin + currentRotation;
         }
 
-        System.out.print("counter-wise difference:"); System.out.println(counterClockWiseDifference);
-
         if (clockWiseDifference < counterClockWiseDifference) {
             rotateClockWise(clockWiseDifference);
         } else {
@@ -256,7 +250,6 @@ public class AutoStageChassisModule {
 
             double rotatingSpeed = getRotatingPower(clockWiseDifference); // set the speed of rotation depending on the distance left, start to slow down when the difference is smaller than 90deg
             setRobotMotion(0, 0, rotatingSpeed);
-            System.out.print("targeted:"); System.out.print(targetedRotation); System.out.print(" actual:"); System.out.println(currentRotation);
         } while (clockWiseDifference > Math.toRadians(5) & !isStopRequested);
         setRobotMotion(0, 0, 0);
     }
@@ -273,8 +266,6 @@ public class AutoStageChassisModule {
 
             double rotatingSpeed = getRotatingPower(counterClockWiseDifference) *-1;
             setRobotMotion(0, 0, rotatingSpeed);
-            System.out.print("counter-clockwise difference: ");
-            System.out.println(counterClockWiseDifference);
         } while (counterClockWiseDifference > Math.toRadians(5) & !isStopRequested);
         setRobotMotion(0, 0, 0);
     }
@@ -387,6 +378,7 @@ public class AutoStageChassisModule {
     public void terminate() {
         isStopRequested = true;
         setRobotMotion(0, 0, 0);
+        fieldNavigation.terminate();
     }
 
     public void testRobtMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
