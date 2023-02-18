@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Robot;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -15,18 +16,23 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
 import java.util.Locale;
 
-public class IMUReader {
+public class IMUReader implements Runnable{
     // The IMU sensor object
     BNO055IMU imu;
+    private boolean terminated;
+    private boolean paused;
 
     // State used for updating telemetry
     Orientation angles;
     Acceleration gravity;
     double headingCorrectionBias;
+    private double[] velocity = new double[2];
+    private double[] position = new double[2];
+    private ElapsedTime dt = new ElapsedTime();
     final double imuHeadingCorrectionFactor = 1;
 
 
-    public IMUReader(HardwareMap hardwareMap) {
+    public IMUReader(HardwareMap hardwareMap){
 
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -91,5 +97,41 @@ public class IMUReader {
     }
     public String getGravitation() {
         return gravity.toString();
+    }
+
+    @Override
+    public void run() {
+        dt.reset();
+        while (!terminated) {
+            double dX, dY;
+            // update the imu position
+            updateIMUStatus();
+            dX = dt.seconds() * velocity[0];
+            dY = dt.seconds() * velocity[1];
+            velocity[0] += dt.seconds() * getRobotXAcceleration();
+            velocity[1] += dt.seconds() * getRobotYAcceleration();
+            dX = dt.seconds() * velocity[0];
+            dY = dt.seconds() * velocity[1];
+            dX /= 2; dY /= 2;
+            position[0] += dX;
+            position[1] += dY;
+            dt.reset(); // calculate the current position, using trapezoid secondary integral of accelration
+        }
+    }
+
+    public double[] getIMUPosition() {
+        return position;
+    }
+
+    public void terminate() {
+        this.terminated = true;
+    }
+
+    public void pause() {
+        this.paused = true;
+    }
+
+    public void resume() {
+        this.paused = false;
     }
 }

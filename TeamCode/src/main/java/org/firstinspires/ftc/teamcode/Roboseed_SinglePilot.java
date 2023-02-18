@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
+import org.firstinspires.ftc.teamcode.Robot.IMUReader;
 
 /**
  * This opmode explains how you follow multiple trajectories in succession, asynchronously. This
@@ -50,6 +51,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     private AutoStageChassisModule autoStageChassisModule;
+    private IMUReader imuReader;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -59,8 +61,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
-        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
+        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
         // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
+        imuReader = new IMUReader(hardwareMap);
 
         telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
@@ -137,6 +140,10 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
         String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
         telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+
+        double[] IMUPosition = imuReader.getIMUPosition();
+        String IMUPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+        telemetry.addData("robotCurrentPosition(Encoder)", IMUPositionString);
 
         telemetry.update();
         

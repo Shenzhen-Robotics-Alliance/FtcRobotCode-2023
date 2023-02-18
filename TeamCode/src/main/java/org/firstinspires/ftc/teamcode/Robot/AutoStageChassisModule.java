@@ -67,6 +67,14 @@ public class AutoStageChassisModule {
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
 
+    public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation, IMUReader imu) {
+        this.driver = driver;
+        this.imu = imu;
+        this.fieldNavigation = fieldNavigation;
+        this.fieldNavigationThread = new Thread(fieldNavigation);
+    }
+
+
     public void initRobotChassis() {
         imu.calibrateIMUHeading();
         this.imuReaderThread = new Thread(() -> {
@@ -126,6 +134,54 @@ public class AutoStageChassisModule {
                              && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
 
             System.out.print(getImuYaw()); System.out.print(" "); System.out.println(imu.getRobotHeading());
+        } while(!deviationAccepted && !isStopRequested);
+
+        setRobotMotion(0, 0, 0);
+    }
+
+    public void setRobotPositionUsingIMU(double targetedXPosition, double targetedYPosition) {
+        // check for termination
+        if (isStopRequested) return;
+
+        // get the rotation at the start of the motion
+        double startingRotation;
+        if (useIMUCorrection) startingRotation = getImuYaw();
+        else startingRotation = getEncoderRotation();
+
+        double distanceXPosition, distanceYPosition;
+        double rotationDeviationDuringProcess, dynamicalRotationCorrection;
+        boolean deviationAccepted;
+        do {
+            // get the distance left in x and y position
+            double[] robotCurrentPosition = imu.getIMUPosition();
+            distanceXPosition = targetedXPosition - robotCurrentPosition[0];
+            distanceYPosition = targetedYPosition - robotCurrentPosition[1];
+
+            // calculate, according to the distance left, using linear mapping, the needed motor power
+            double xVelocity, yVelocity;
+            if (runWithEncoder) {
+                xVelocity = getMotioningEncoderVelocity(distanceXPosition);
+                yVelocity = getMotioningEncoderVelocity(distanceYPosition);
+            } else {
+                xVelocity = getMotioningPower(distanceXPosition);
+                yVelocity = getMotioningPower(distanceYPosition);
+            }
+
+            // correct the rotation using IMU or encoder, depending on the presets
+            if (useIMUCorrection) rotationDeviationDuringProcess = startingRotation - getImuYaw();
+            else rotationDeviationDuringProcess = startingRotation - getEncoderRotation();
+            if (runWithEncoder) dynamicalRotationCorrection = getRotatingEncoderVelocity(rotationDeviationDuringProcess);
+            else dynamicalRotationCorrection = getRotatingPower(rotationDeviationDuringProcess);
+
+            // set the motor power for the robot
+            if(rotationCorrecting) setRobotMotion(xVelocity, yVelocity, dynamicalRotationCorrection);
+            else setRobotMotion(xVelocity, yVelocity, 0);
+
+            // whether the deviation is acceptable
+            deviationAccepted = Math.abs(distanceXPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio
+                    && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
+
+            System.out.print(getEncoderPosition()); System.out.print(" "); System.out.println(imu.getIMUPosition());
         } while(!deviationAccepted && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
