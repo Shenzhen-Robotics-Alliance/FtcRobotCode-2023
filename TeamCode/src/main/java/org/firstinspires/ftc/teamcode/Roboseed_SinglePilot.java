@@ -1,3 +1,14 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: Roboseed_SinglePilot.java
+ *
+ * tele-operation program with one pilot
+ * TODO add dual pilot control mode
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;

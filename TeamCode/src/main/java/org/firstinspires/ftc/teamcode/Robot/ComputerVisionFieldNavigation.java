@@ -1,3 +1,15 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: ComputerVisionFieldNavigation.java
+ *
+ * the program that senses the position of the robot during auto stage
+ * this program is deprecated, please use ComputerVisionFieldNavigation_v2.java
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * @Deprecated this program is no longer suggested, please use ComputerVisionFieldNavigation_v2.java
+ * */
 package org.firstinspires.ftc.teamcode.Robot;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
@@ -22,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Deprecated
 public class ComputerVisionFieldNavigation {
     private static final String VUFORIA_KEY = "AUrp8E//////AAABmR9EFFA6dECthZSIH4YjVNY8QqiA+WhfTqkO4koNt+QYbXrW9k3nqcvIL16tY13jQdTckP3BXh9+vKLJHQjATt6uffiXKfKUM3k+q3ZcB5g8v8+FT1WKJaOIf+vgOl84gghjBgira8FLQwuOB62wzkJRpoMKSNoyunOqG3PR7ttCl0izt9VRfaJy/2CmqLkXNj//tjcRj1xRqf3Xpo9omrSQcC8qQIRapKCcFUWyc+86WzQD2uVRwBAicmIs6yAHvUqMh/Xj0waomLYgvZ4CTDhgX2srIEgnLmlzxxIy2bggLV7vxnFILfe3wzLh1HYuQ0mHV9YF8ShgxXEbCrQDmUwripCsh3IST2Oxk/ZyVGZD";
 

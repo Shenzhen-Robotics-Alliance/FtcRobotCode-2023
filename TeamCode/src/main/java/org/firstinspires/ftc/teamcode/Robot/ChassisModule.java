@@ -1,3 +1,13 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: ChassisModule.java
+ *
+ * the program that controls the moving of the robot in manual stage
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
 package org.firstinspires.ftc.teamcode.Robot;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;

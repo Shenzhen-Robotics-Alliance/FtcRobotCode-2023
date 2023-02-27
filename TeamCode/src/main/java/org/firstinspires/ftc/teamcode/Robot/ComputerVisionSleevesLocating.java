@@ -1,3 +1,13 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: ComputerVisionSleevesLocating.java
+ *
+ * the program that senses the position of the sleeves during auto stage
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;

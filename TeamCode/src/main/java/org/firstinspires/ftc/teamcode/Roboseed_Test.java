@@ -1,3 +1,14 @@
+/*
+* Copyright © 2023 SCCSC-Robotics-Club
+* FileName: Roboseed_Test.java
+*
+* an autonomous program to run some tests of the robot
+*
+* @Author 四只爱写代码の猫
+* @Date 2023.2.27
+* @Version v0.1.0
+* @Deprecated this program is for test only
+* */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -16,10 +27,10 @@ import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
  * the robot starts in the corner of the field.
  * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
  * the robot moves to position(according to camera) -1022, -782
- *
  * */
 
 @Autonomous(name = "robot test runner")
+@Deprecated
 public class Roboseed_Test extends LinearOpMode {
     ElapsedTime elapsedTime = new ElapsedTime();
     HardwareDriver hardwareDriver = new HardwareDriver();

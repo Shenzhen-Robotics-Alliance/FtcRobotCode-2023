@@ -1,3 +1,14 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: IMUReader.java
+ *
+ * connects to the imu module and analyze the received data
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
+
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;

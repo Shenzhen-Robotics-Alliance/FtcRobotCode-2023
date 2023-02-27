@@ -1,3 +1,13 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: ComputerVisionAUX.java
+ *
+ * the program that does all the work with computer vision systems in manual stage to support the pilot
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;

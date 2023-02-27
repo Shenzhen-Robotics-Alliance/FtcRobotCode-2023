@@ -1,3 +1,15 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: pos2.java
+ *
+ * auto stage program
+ * the robot moves to position 2 by the end
+ * the pilot selects the position manually to temporarily replace signal sleeves
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -12,13 +24,6 @@ import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
 import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
-
-/*
- * the robot starts in the corner of the field.
- * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
- * the robot moves to position(according to camera) -1022, -782
- *
- * */
 
 @Autonomous(name = "pos2")
 public class pos2 extends LinearOpMode {

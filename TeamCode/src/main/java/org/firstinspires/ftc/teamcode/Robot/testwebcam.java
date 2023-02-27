@@ -1,3 +1,14 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: testwebcam.java
+ *
+ * test the data recieved from the webcam to look through problems in computer vision modules
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * @Deprecated this program is for test only
+ * */
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -10,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 @TeleOp(name = "testwebcamera (Blocks to Java)")
+@Deprecated
 public class testwebcam extends LinearOpMode {
 
     private VuforiaCurrentGame vuforiaPOWERPLAY;

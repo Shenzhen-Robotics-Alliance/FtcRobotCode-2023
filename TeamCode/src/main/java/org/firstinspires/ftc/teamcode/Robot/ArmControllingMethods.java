@@ -1,3 +1,13 @@
+/*
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: ArmControllingMethods.java
+ *
+ * the program that controls the elevation of the arm and operations of the claw
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ * */
 package org.firstinspires.ftc.teamcode.Robot;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
