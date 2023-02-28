@@ -2,7 +2,7 @@
  * Copyright © 2023 SCCSC-Robotics-Club
  * FileName: testwebcam.java
  *
- * test the data recieved from the webcam to look through problems in computer vision modules
+ * test the data received from the webcam to look through problems in computer vision modules
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27

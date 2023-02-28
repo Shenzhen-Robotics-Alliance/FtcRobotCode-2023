@@ -9,6 +9,7 @@
  * @Date 2023.2.27
  * @Version v0.1.0
  * */
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -28,42 +29,31 @@ import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
 import org.firstinspires.ftc.teamcode.Robot.IMUReader;
 
-/**
- * This opmode explains how you follow multiple trajectories in succession, asynchronously. This
- * allows you to run your own logic beside the drive.update() command. This enables one to run
- * their own loops in the background such as a PID controller for a lift. We can also continuously
- * write our pose to PoseStorage.
- * <p>
- * The use of a State enum and a currentState field constitutes a "finite state machine."
- * You should understand the basics of what a state machine is prior to reading this opmode. A good
- * explanation can be found here:
- * https://www.youtube.com/watch?v=Pu7PMN5NGkQ (A finite state machine introduction tailored to FTC)
- * or here:
- * https://gm0.org/en/stable/docs/software/finite-state-machines.html (gm0's article on FSM's)
- * <p>
- * You can expand upon the FSM concept and take advantage of command based programming, subsystems,
- * state charts (for cyclical and strongly enforced states), etc. There is still a lot to do
- * to supercharge your code. This can be much cleaner by abstracting many of these things. This
- * opmode only serves as an initial starting point.
- */
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
-//@Disabled //updated with some functions to all mode, intake
 public class Roboseed_SinglePilot extends LinearOpMode {
+    /* the interface that connects the robot's hardware */
     private final HardwareDriver hardwareDriver = new HardwareDriver();
 
-    //Key Delay settings
-    private final ElapsedTime PreviousElevatorActivation = new ElapsedTime(); // the time elapsed after the last time the arm is elevated
-    private final ElapsedTime PreviousClawActivation = new ElapsedTime(); // the time elapsed after the last time the claw is moved
+    /* variables that record the time after pressing a button, so that the button is not activated over and over */
+    private final ElapsedTime PreviousElevatorActivation = new ElapsedTime();
+    private final ElapsedTime PreviousClawActivation = new ElapsedTime();
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
     private boolean PreviousSlowMotionModeAutoActivation = false;
 
+    /* connect to the modules */
     private ArmControllingMethods armControllingMethods;
     private ChassisModule chassisModule;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-
     private AutoStageChassisModule autoStageChassisModule;
     private IMUReader imuReader;
 
+    /*
+    * the main entry of the robot's program during manual stage
+    *
+    * @param Nah
+    * @return Nah
+    * @throws InterruptedException: when the operation mode is interrupted by the system
+    * */
     @Override
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
@@ -148,6 +138,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         } chassisModule.terminate(); fieldNavigation.terminate(); autoStageChassisModule.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
+    /*
+     * the periodic function that is called in every each loop of the program
+     *
+     * @param Nah
+     * @return Nah
+     * @throws InterruptedException: when the operation mode is interrupted by the system
+     * */
     private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
         String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
