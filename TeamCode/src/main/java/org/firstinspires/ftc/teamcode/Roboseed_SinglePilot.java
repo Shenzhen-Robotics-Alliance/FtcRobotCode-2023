@@ -214,6 +214,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.update();
     }
 
+    /*
+     * the function that to set up the robot's hardware
+     *
+     * @param Nah
+     * @return Nah
+     * @throws Nah
+     * */
     private void configureRobot() {
         hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
         hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");

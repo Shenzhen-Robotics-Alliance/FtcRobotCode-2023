@@ -15,17 +15,33 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class ArmControllingMethods {
-
+    /* connects to the hardware */
     private HardwareDriver hr;
 
+    /* the port to send messages back to the console */
     private Telemetry telemetry;
 
+    /* whether the claw is opened */
     private boolean claw;
 
+    /* the position code for the arm
+    *  -1: the arm is relaxed
+    *   0: the arm is attached to the ground to capture sleeves
+    *   1: the arm is at the position matching the lowest tower
+    *   2: the arm is at the position matching the middle tower
+    *   3: the arm is at the position matching the highest tower
+    * */
     private short arm;
 
-    private boolean armStatus; // true for busy, false for free
+    /* the status of the arm
+    *   true: the arm is busy and in use
+    *   false: the arm is free, no operation is proceeding
+    * */
+    private boolean armStatus;
 
+    /*
+     * 
+     * */
     public ArmControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
         this.telemetry = telemetry;

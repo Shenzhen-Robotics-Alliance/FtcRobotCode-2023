@@ -26,7 +26,6 @@ import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
 import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
 
-
 @Autonomous(name = "AutoStateProgram_v1.0")
 public class Roboseed_AutoStage extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
@@ -37,6 +36,13 @@ public class Roboseed_AutoStage extends LinearOpMode {
     private AutoStageChassisModule chassisModule;
     private ArmControllingMethods armControllingMethods;
 
+    /*
+     * the main entry of the robot's program during auto stage
+     *
+     * @param Nah
+     * @return Nah
+     * @throws InterruptedException: when the operation mode is interrupted by the system
+     * */
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
@@ -87,6 +93,13 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule.terminate();
     }
 
+    /*
+     * the function that to set up the robot's hardware
+     *
+     * @param Nah
+     * @return Nah
+     * @throws Nah
+     * */
     private void configureRobot() {
         hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
         hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
@@ -109,6 +122,17 @@ public class Roboseed_AutoStage extends LinearOpMode {
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
+    /*
+     * the instruction given to the robot to make it score
+     *  1. the robot grabs the signal sleeves, go to the center of the field
+     *  2. the robot moves to the targeted towers, lifts its arm , move a step forward and score goal
+     *  3. the robot release its arm, move to the center of the current grid
+     *  4. the robot moves, according to the instructions that pilots selected manually in the beginning, to the parking sector that the signal sleeves pointed
+     *
+     * @param Nah
+     * @return Nah
+     * @throws InterruptedException
+     * */
     private void proceedAutoStageInstructions() throws InterruptedException {
         // grab the preloaded sleeve
         armControllingMethods.closeClaw();
@@ -117,7 +141,7 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // go to the center of the grid (200, 130), in reference to the red side team
         chassisModule.setRobotPosition(0, 100);
 
-        // line up vertically with the place where the sleeves are stored
+        // line up vertically with the place where the targets
         chassisModule.setRobotPosition(-800, 100);
         chassisModule.setRobotPosition(-800, 780);
         chassisModule.setRobotPosition(-1340, 780);
@@ -192,16 +216,17 @@ public class Roboseed_AutoStage extends LinearOpMode {
         // TODO move to parking position according to the driver input to pretend having visual recognizing
     }
 
+    /*
+     * go to sector 1, 2 or 3 if the pilot asks to
+     * */
     private void proceedGoToSector1() {
         chassisModule.setRobotRotation(0);
         chassisModule.setRobotPosition(-800, 780);
     }
-
     private void proceedGoToSector2() {
         chassisModule.setRobotRotation(0);
         chassisModule.setRobotPosition(-50, 780);
     }
-
     private void proceedGoToSector3() {
         chassisModule.setRobotRotation(0);
         chassisModule.setRobotPosition(700, 780);
