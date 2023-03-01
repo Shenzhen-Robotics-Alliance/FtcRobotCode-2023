@@ -183,14 +183,24 @@ public class ArmControllingMethods {
 
     /*
      * move the arm to the targeted position
+     * when the arm is almost there, reverse the motors and decelerate to avoid damage to the structer
+     * exit the function when the arm is close enough to the objective
      *
      * @param int position: the targeted position, ranged 0-1000, 0 is when the arm hits the robot badly, 1000 is when the arm flips around and damage the structer
      * @return Nah
      * @throws Nah
      * */
     private void elevateArm(int position) {
+        /* the direction that the arm is going
+        *   true when the arm is going up
+        *   false when the arm is going down
+        * */
         boolean isDecline = position < hr.lift_left.getCurrentPosition();
 
+        /* set the power of the motor
+        *   20% when it's going down, in considerate of the impulse of gravitation
+        *   40% when it's going up
+        *  */
         if (isDecline) {
             double armDeclineSpeed = 0.2;
             hr.lift_left.setPower(armDeclineSpeed);
@@ -199,14 +209,21 @@ public class ArmControllingMethods {
             double armInclineSpeed = 0.4;
             hr.lift_left.setPower(armInclineSpeed);
             hr.lift_right.setPower(armInclineSpeed);
-        } // set the power of the motor
+        }
 
+        /*
+        * set the targeted position of the motors
+        * set the running mode
+        * */
         hr.lift_left.setTargetPosition(position);
         hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setTargetPosition(position);
-        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // move the motor to position
+        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        if (!isDecline) { // if the arm isn't declining, move to the position directly
+        /* if the arm isn't declining
+         *  move to the position directly, as gravity will slow the arm down
+         */
+        if (!isDecline) {
             while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is completed
             return;
         }
