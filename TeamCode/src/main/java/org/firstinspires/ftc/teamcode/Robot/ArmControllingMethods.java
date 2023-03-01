@@ -40,7 +40,12 @@ public class ArmControllingMethods {
     private boolean armStatus;
 
     /*
-     * 
+     * construct function of arm controlling methods
+     * declare the hardware map and telemetry port, open the claw and relax the arm
+     *
+     * @param HardwareDrive hr: the connection to the robot's hardware, Telemetry telemetry the port to remote console
+     * @return Nah
+     * @throws Nah
      * */
     public ArmControllingMethods(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
