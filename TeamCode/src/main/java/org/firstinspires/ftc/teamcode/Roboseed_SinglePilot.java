@@ -1,15 +1,3 @@
-/*
- * Copyright © 2023 SCCSC-Robotics-Club
- * FileName: Roboseed_SinglePilot.java
- *
- * tele-operation program with one pilot
- * TODO add dual pilot control mode
- *
- * @Author 四只爱写代码の猫
- * @Date 2023.2.27
- * @Version v0.1.0
- * */
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -27,6 +15,17 @@ import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
 
+/**
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: Roboseed_SinglePilot.java
+ *
+ * tele-operation program with one pilot
+ * TODO add dual pilot control mode
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ */
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 public class Roboseed_SinglePilot extends LinearOpMode {
     /* the interface that connects the robot's hardware */
@@ -46,13 +45,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private AutoStageRobotChassis autoStageRobotChassis;
     private IMUReader imuReader;
 
-    /*
+    /**
     * the main entry of the robot's program during manual stage
     *
-    * @param Nah
-    * @return Nah
     * @throws InterruptedException: when the operation mode is interrupted by the system
-    * */
+    */
     @Override
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
@@ -136,13 +133,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         } robotChassis.terminate(); fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
-    /*
+    /**
      * the periodic function that is called in every each loop of the program
      *
-     * @param Nah
-     * @return Nah
      * @throws InterruptedException: when the operation mode is interrupted by the system
-     * */
+     */
     private void runLoop(Arm arm, RobotChassis robotChassis) throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
         String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
@@ -212,13 +207,9 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.update();
     }
 
-    /*
+    /**
      * the function that to set up the robot's hardware
-     *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+     */
     private void configureRobot() {
         hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
         hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");

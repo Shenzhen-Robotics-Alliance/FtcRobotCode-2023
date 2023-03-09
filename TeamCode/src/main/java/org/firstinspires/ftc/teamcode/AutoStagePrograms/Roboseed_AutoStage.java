@@ -1,16 +1,3 @@
-/*
- * Copyright © 2023 SCCSC-Robotics-Club
- * FileName: Roboseed_AutoStage.java
- *
- * program for auto stage, not completed
- * the robot starts in the corner of the field.
- * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
- * the robot moves to position(according to camera) -1022, -782
- *
- * @Author 四只爱写代码の猫
- * @Date 2023.2.27
- * @Version v0.1.0
- * */
 package org.firstinspires.ftc.teamcode.AutoStagePrograms;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -26,6 +13,19 @@ import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 
+/**
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: Roboseed_AutoStage.java
+ *
+ * program for auto stage, not completed
+ * the robot starts in the corner of the field.
+ * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
+ * the robot moves to position(according to camera) -1022, -782
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ */
 @Autonomous(name = "AutoStateProgram_v1.0")
 public class Roboseed_AutoStage extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
@@ -36,13 +36,11 @@ public class Roboseed_AutoStage extends LinearOpMode {
     private AutoStageRobotChassis chassisModule;
     private Arm arm;
 
-    /*
+    /**
      * the main entry of the robot's program during auto stage
      *
-     * @param Nah
-     * @return Nah
      * @throws InterruptedException: when the operation mode is interrupted by the system
-     * */
+     */
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
@@ -93,13 +91,9 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule.terminate();
     }
 
-    /*
+    /**
      * the function that to set up the robot's hardware
-     *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+     */
     private void configureRobot() {
         hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
         hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
