@@ -8,13 +8,15 @@
  * @Date 2023.2.27
  * @Version v0.1.0
  * */
-package org.firstinspires.ftc.teamcode.Robot;
+package org.firstinspires.ftc.teamcode.RobotModules;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class AutoStageChassisModule {
+import org.firstinspires.ftc.teamcode.HardwareDriver;
+
+public class AutoStageRobotChassis {
     // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
@@ -63,13 +65,13 @@ public class AutoStageChassisModule {
     private boolean isStopRequested = false;
 
 
-    public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap) {
+    public AutoStageRobotChassis(HardwareDriver driver, HardwareMap hardwareMap) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
-    public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
+    public AutoStageRobotChassis(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
         this.driver = driver;
         this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         if (fieldNavigation == null) fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap); System.out.println("init field navigation");
@@ -77,7 +79,7 @@ public class AutoStageChassisModule {
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
 
-    public AutoStageChassisModule(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation, IMUReader imu) {
+    public AutoStageRobotChassis(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation, IMUReader imu) {
         this.driver = driver;
         this.imu = imu;
         this.fieldNavigation = fieldNavigation;
@@ -199,7 +201,7 @@ public class AutoStageChassisModule {
 
     private double getMotioningEncoderVelocity(double encoderDifference) {
         if (Math.abs(encoderDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningEncoderVelocity,
@@ -209,7 +211,7 @@ public class AutoStageChassisModule {
 
     private double getMotioningPower(double encoderDifference) {
         if (Math.abs(encoderDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningPower,
@@ -219,7 +221,7 @@ public class AutoStageChassisModule {
 
     private double getRotatingEncoderVelocity(double rotationDifference) {
         if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotationEncoderVelocity,
@@ -229,7 +231,7 @@ public class AutoStageChassisModule {
 
     private double getRotatingPower(double rotationDifference) {
         if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotatingPower,
@@ -239,7 +241,7 @@ public class AutoStageChassisModule {
 
     private double getRotatingCorrectionPower(double rotationDifference) {
         if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotatingCorrectionPower,
@@ -416,7 +418,7 @@ public class AutoStageChassisModule {
 
     private double getVisualGuidanceMotioningEncoderVelocity(double visualNavigationDifference) {
         if (Math.abs(visualNavigationDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningEncoderVelocity,
@@ -427,7 +429,7 @@ public class AutoStageChassisModule {
 
     private double getVisualGuidanceMotioningPower(double visualNavigationDifference) {
         if (Math.abs(visualNavigationDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return ChassisModule.linearMap(
+        return RobotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningPower,

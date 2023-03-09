@@ -10,7 +10,7 @@
  * @Version v0.1.0
  * @Deprecated this program is no longer suggested, please use ComputerVisionFieldNavigation_v2.java
  * */
-package org.firstinspires.ftc.teamcode.Robot;
+package org.firstinspires.ftc.teamcode.RobotModules;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;

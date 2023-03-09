@@ -9,7 +9,7 @@
  * @Version Unknown
  * */
 
-package org.firstinspires.ftc.teamcode.Robot;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;

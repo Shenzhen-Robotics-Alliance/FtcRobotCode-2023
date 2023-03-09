@@ -8,7 +8,7 @@
  * @Date 2023.2.27
  * @Version v0.1.0
  * */
-package org.firstinspires.ftc.teamcode.Robot;
+package org.firstinspires.ftc.teamcode.RobotModules;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
 
@@ -21,8 +21,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.HardwareDriver;
 
-public class ChassisModule implements Runnable { // controls the moving of the robot
+public class RobotChassis implements Runnable { // controls the moving of the robot
     private final Gamepad gamepad;
     private final HardwareDriver driver;
     private final IMU imu;
@@ -48,7 +49,7 @@ public class ChassisModule implements Runnable { // controls the moving of the r
     * dpad right button: reset IMU YAW direction
     * */
 
-    public ChassisModule(Gamepad gamepad, HardwareDriver driver, IMU imu) {
+    public RobotChassis(Gamepad gamepad, HardwareDriver driver, IMU imu) {
         this.gamepad = gamepad;
         this.driver = driver;
         this.imu = imu;

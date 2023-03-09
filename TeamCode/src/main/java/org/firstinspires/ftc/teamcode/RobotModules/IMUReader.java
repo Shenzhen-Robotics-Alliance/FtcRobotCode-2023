@@ -9,7 +9,7 @@
  * @Version v0.1.0
  * */
 
-package org.firstinspires.ftc.teamcode.Robot;
+package org.firstinspires.ftc.teamcode.RobotModules;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;

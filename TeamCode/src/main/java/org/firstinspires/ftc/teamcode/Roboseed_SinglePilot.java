@@ -21,13 +21,11 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.checkerframework.checker.units.qual.A;
-import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
-import org.firstinspires.ftc.teamcode.Robot.ChassisModule;
-import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
-import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
-import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
-import org.firstinspires.ftc.teamcode.Robot.IMUReader;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
+import org.firstinspires.ftc.teamcode.RobotModules.Arm;
+import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
 
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 public class Roboseed_SinglePilot extends LinearOpMode {
@@ -41,10 +39,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private boolean PreviousSlowMotionModeAutoActivation = false;
 
     /* connect to the modules */
-    private ArmControllingMethods armControllingMethods;
-    private ChassisModule chassisModule;
+
+    private Arm arm;
+    private RobotChassis robotChassis;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-    private AutoStageChassisModule autoStageChassisModule;
+    private AutoStageRobotChassis autoStageRobotChassis;
     private IMUReader imuReader;
 
     /*
@@ -58,13 +57,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
 
-        armControllingMethods = new ArmControllingMethods(hardwareDriver, telemetry);
-        chassisModule = new ChassisModule(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
+        arm = new Arm(hardwareDriver, telemetry);
+        robotChassis = new RobotChassis(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
         imuReader = new IMUReader(hardwareMap);
         imuReader.calibrateIMU();
-        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
+        autoStageRobotChassis = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
         // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
 
         telemetry.addLine("robotCurrentPosition(Camera)");
@@ -72,7 +71,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.addLine("robotCurrentRotation(Encoder)");
         telemetry.addLine("robotCurrentPosition(IMU)");
 
-        Thread chassisThread = new Thread(chassisModule);
+        Thread chassisThread = new Thread(robotChassis);
         chassisThread.start(); // start an independent thread to run chassis module
 
         Thread navigationThread = new Thread(fieldNavigation);
@@ -104,11 +103,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
                     String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
                     telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
 
-                    double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
+                    double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
                     String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
                     telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
 
-                    double encoderRotation = autoStageChassisModule.getEncoderRotation();
+                    double encoderRotation = autoStageRobotChassis.getEncoderRotation();
                     telemetry.addData("robotCurrentRotation(Encoder)", encoderRotation);
 
                     telemetry.update();
@@ -119,23 +118,22 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
             fieldNavigation.terminate();
-            chassisModule.terminate();
-            autoStageChassisModule.terminate();
+            robotChassis.terminate();
+            autoStageRobotChassis.terminate();
             imuReader.terminate();
-            System.exit(0);
         }
         }); terminationListenerThread.start();
 
         waitForStart();
         sleep(1000);
 
-        autoStageChassisModule.calibrateEncoder();
+        autoStageRobotChassis.calibrateEncoder();
         imuReader.calibrateIMU();
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
-            runLoop(armControllingMethods, chassisModule);
-        } chassisModule.terminate(); fieldNavigation.terminate(); autoStageChassisModule.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
+            runLoop(arm, robotChassis);
+        } robotChassis.terminate(); fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
     /*
@@ -145,12 +143,12 @@ public class Roboseed_SinglePilot extends LinearOpMode {
      * @return Nah
      * @throws InterruptedException: when the operation mode is interrupted by the system
      * */
-    private void runLoop(ArmControllingMethods armControllingMethods, ChassisModule chassisModule) throws InterruptedException {
+    private void runLoop(Arm arm, RobotChassis robotChassis) throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
         String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
         telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
 
-        double[] encoderPosition = autoStageChassisModule.getEncoderPosition();
+        double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
         String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
         telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
 
@@ -160,57 +158,57 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         telemetry.update();
         
-        if (gamepad1.right_bumper) armControllingMethods.closeClaw();
-        else if (gamepad1.left_bumper) armControllingMethods.openClaw();
+        if (gamepad1.right_bumper) arm.closeClaw();
+        else if (gamepad1.left_bumper) arm.openClaw();
 
         if (gamepad1.y) {
-            armControllingMethods.toHighArmPosition();
+            arm.toHighArmPosition();
         }
         if (gamepad1.x) {
-            armControllingMethods.toMidArmPosition();
+            arm.toMidArmPosition();
         }
         if (gamepad1.b) {
-            armControllingMethods.toLowArmPosition();
+            arm.toLowArmPosition();
         }
         if (gamepad1.a) {
-            armControllingMethods.toGroundArmPosition();
+            arm.toGroundArmPosition();
         }
         telemetry.addData("going to pos", 0);
         if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
             PreviousGrepActivation.reset();
-            armControllingMethods.openClaw();
-            armControllingMethods.deactivateArm();
-            chassisModule.pause();
+            arm.openClaw();
+            arm.deactivateArm();
+            robotChassis.pause();
             // TODO aim the target automatically using computer vision
-            chassisModule.resume();
-            armControllingMethods.closeClaw();
+            robotChassis.resume();
+            arm.closeClaw();
             Thread.sleep(300);
-            armControllingMethods.toMidArmPosition();
+            arm.toMidArmPosition();
         }
 
         if (gamepad1.left_stick_y < -0.8 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
             System.out.println("RA");
-            armControllingMethods.raiseArm();
+            arm.raiseArm();
             PreviousElevatorActivation.reset();
         } else if (gamepad1.left_stick_y > 0.8 & PreviousElevatorActivation.seconds() > .3) {
             System.out.println("LA");
-            armControllingMethods.lowerArm();
+            arm.lowerArm();
             PreviousElevatorActivation.reset();
         }
 
-        if (PreviousElevatorActivation.seconds() > 30 & chassisModule.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
             hardwareDriver.lift_left.setPower(0);
             hardwareDriver.lift_left.setPower(0);
             System.exit(0);
-        } if (PreviousElevatorActivation.seconds() > 5 & armControllingMethods.getClaw()) {
+        } if (PreviousElevatorActivation.seconds() > 5 & arm.getClaw()) {
             System.out.println("saving battery...");
-            armControllingMethods.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+            arm.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
         }
 
         // control slow motion automatically
-        if (armControllingMethods.getArmStatus()) chassisModule.setSlowMotionModeActivationSwitch(true);
-        else chassisModule.setSlowMotionModeActivationSwitch(false);
+        if (arm.getArmStatus()) robotChassis.setSlowMotionModeActivationSwitch(true);
+        else robotChassis.setSlowMotionModeActivationSwitch(false);
         telemetry.update();
     }
 

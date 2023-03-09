@@ -8,13 +8,14 @@
  * @Date 2023.2.27
  * @Version v0.1.0
  * */
-package org.firstinspires.ftc.teamcode.Robot;
+package org.firstinspires.ftc.teamcode.RobotModules;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.HardwareDriver;
 
-public class ArmControllingMethods {
+public class Arm {
     /* connects to the hardware */
     private HardwareDriver hr;
 
@@ -48,7 +49,7 @@ public class ArmControllingMethods {
      * @return Nah
      * @throws Nah
      * */
-    public ArmControllingMethods(HardwareDriver hr, Telemetry telemetry) {
+    public Arm(HardwareDriver hr, Telemetry telemetry) {
         this.hr = hr;
         this.telemetry = telemetry;
         this.claw = false;
@@ -228,15 +229,17 @@ public class ArmControllingMethods {
             return;
         }
 
-        // if the arm is declining, deceleration precess is necessary
+        /* if the arm is declining
+         * deceleration precess is necessary
+         */
         while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
-        //slow the motor down
+        /* slow the motor down */
         hr.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hr.lift_right.setVelocity(0);
         hr.lift_left.setVelocity(0);
         while (Math.abs(hr.lift_left.getVelocity()) < 10) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
-        // set the desired position
+        /* set the desired position */
         hr.lift_left.setTargetPosition(position);
         hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hr.lift_right.setTargetPosition(position);
@@ -244,10 +247,10 @@ public class ArmControllingMethods {
     }
 
     public void deactivateArm() {
-        /*if (
+        /* if (
                 arm == -1 |
                 (!claw) // if the claw is set to be closed
-        ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort*/
+        ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort */
         while (arm > 0) lowerArm(); // put the arm down step by step
         openClaw();
         hr.lift_left.setPower(0);

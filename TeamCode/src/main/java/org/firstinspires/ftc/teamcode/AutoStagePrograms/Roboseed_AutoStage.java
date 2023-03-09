@@ -1,16 +1,17 @@
 /*
  * Copyright © 2023 SCCSC-Robotics-Club
- * FileName: pos1.java
+ * FileName: Roboseed_AutoStage.java
  *
- * auto stage program
- * the robot moves to position 1 by the end
- * the pilot selects the position manually to temporarily replace signal sleeves
+ * program for auto stage, not completed
+ * the robot starts in the corner of the field.
+ * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
+ * the robot moves to position(according to camera) -1022, -782
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
  * @Version v0.1.0
  * */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.AutoStagePrograms;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -20,38 +21,45 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
-import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
-import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
-import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
+import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModules.Arm;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 
-@Autonomous(name = "pos3")
-public class pos3 extends LinearOpMode {
+@Autonomous(name = "AutoStateProgram_v1.0")
+public class Roboseed_AutoStage extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
     private boolean terminationFlag;
 
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-    private AutoStageChassisModule chassisModule;
-    private ArmControllingMethods armControllingMethods;
+    private AutoStageRobotChassis chassisModule;
+    private Arm arm;
 
+    /*
+     * the main entry of the robot's program during auto stage
+     *
+     * @param Nah
+     * @return Nah
+     * @throws InterruptedException: when the operation mode is interrupted by the system
+     * */
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
-        chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
+        chassisModule = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation);
         chassisModule.initRobotChassis();
         elapsedTime.reset();
 
-        armControllingMethods = new ArmControllingMethods(hardwareDriver, telemetry);
+        arm = new Arm(hardwareDriver, telemetry);
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
-            while (!isStopRequested() && opModeIsActive()) Thread.yield();
-            fieldNavigation.terminate();
-            chassisModule.terminate();
-            terminationFlag = true;
-        }
+                while (!isStopRequested() && opModeIsActive()) Thread.yield();
+                fieldNavigation.terminate();
+                chassisModule.terminate();
+                terminationFlag = true;
+            }
         }); terminationListenerThread.start();
 
         Thread robotStatusMonitoringThread = new Thread(() -> {
@@ -83,9 +91,15 @@ public class pos3 extends LinearOpMode {
 
         // end of the program
         chassisModule.terminate();
-        armControllingMethods.deactivateArm();
     }
 
+    /*
+     * the function that to set up the robot's hardware
+     *
+     * @param Nah
+     * @return Nah
+     * @throws Nah
+     * */
     private void configureRobot() {
         hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
         hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
@@ -108,15 +122,26 @@ public class pos3 extends LinearOpMode {
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
+    /*
+     * the instruction given to the robot to make it score
+     *  1. the robot grabs the signal sleeves, go to the center of the field
+     *  2. the robot moves to the targeted towers, lifts its arm , move a step forward and score goal
+     *  3. the robot release its arm, move to the center of the current grid
+     *  4. the robot moves, according to the instructions that pilots selected manually in the beginning, to the parking sector that the signal sleeves pointed
+     *
+     * @param Nah
+     * @return Nah
+     * @throws InterruptedException
+     * */
     private void proceedAutoStageInstructions() throws InterruptedException {
         // grab the preloaded sleeve
-        armControllingMethods.closeClaw();
+        arm.closeClaw();
         Thread.sleep(1000);
 
         // go to the center of the grid (200, 130), in reference to the red side team
         chassisModule.setRobotPosition(0, 100);
 
-        // line up vertically with the place where the sleeves are stored
+        // line up vertically with the place where the targets
         chassisModule.setRobotPosition(-800, 100);
         chassisModule.setRobotPosition(-800, 780);
         chassisModule.setRobotPosition(-1340, 780);
@@ -125,14 +150,14 @@ public class pos3 extends LinearOpMode {
         chassisModule.setRobotRotation(0);
 
         // raise the arm
-        armControllingMethods.toHighArmPosition();
+        arm.toHighArmPosition();
 
         // go forward a step
         chassisModule.setRobotPosition(-1340, 860);
 
         // place the preloaded goal
-        armControllingMethods.toMidArmPosition();
-        armControllingMethods.openClaw();
+        arm.toMidArmPosition();
+        arm.openClaw();
 
         // go to the sleeve stack
         chassisModule.setRobotPosition(-1340, 780); // step back from the goal
@@ -141,8 +166,8 @@ public class pos3 extends LinearOpMode {
 
         // drop tHE arm
         sleep(200);
-        armControllingMethods.toMidArmPosition();
-        armControllingMethods.deactivateArm();
+        arm.toMidArmPosition();
+        arm.deactivateArm();
 
         /* sleep(2000);
 
@@ -191,16 +216,17 @@ public class pos3 extends LinearOpMode {
         // TODO move to parking position according to the driver input to pretend having visual recognizing
     }
 
+    /*
+     * go to sector 1, 2 or 3 if the pilot asks to
+     * */
     private void proceedGoToSector1() {
         chassisModule.setRobotRotation(0);
         chassisModule.setRobotPosition(-800, 780);
     }
-
     private void proceedGoToSector2() {
         chassisModule.setRobotRotation(0);
         chassisModule.setRobotPosition(-50, 780);
     }
-
     private void proceedGoToSector3() {
         chassisModule.setRobotRotation(0);
         chassisModule.setRobotPosition(700, 780);

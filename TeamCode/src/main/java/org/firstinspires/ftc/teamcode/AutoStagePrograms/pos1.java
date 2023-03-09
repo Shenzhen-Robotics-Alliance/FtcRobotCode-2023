@@ -1,16 +1,16 @@
 /*
  * Copyright © 2023 SCCSC-Robotics-Club
- * FileName: pos2.java
+ * FileName: pos1.java
  *
  * auto stage program
- * the robot moves to position 2 by the end
+ * the robot moves to position 1 by the end
  * the pilot selects the position manually to temporarily replace signal sleeves
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
  * @Version v0.1.0
  * */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.AutoStagePrograms;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -20,31 +20,31 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Robot.ArmControllingMethods;
-import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
-import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
-import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
+import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModules.Arm;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 
-@Autonomous(name = "pos2")
-public class pos2 extends LinearOpMode {
+@Autonomous(name = "pos1")
+public class pos1 extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
     private boolean terminationFlag;
 
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-    private AutoStageChassisModule chassisModule;
-    private ArmControllingMethods armControllingMethods;
+    private AutoStageRobotChassis chassisModule;
+    private Arm arm;
 
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
-        chassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
+        chassisModule = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation);
         chassisModule.initRobotChassis();
         elapsedTime.reset();
 
-        armControllingMethods = new ArmControllingMethods(hardwareDriver, telemetry);
+        arm = new Arm(hardwareDriver, telemetry);
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
@@ -78,13 +78,12 @@ public class pos2 extends LinearOpMode {
         // start of the auto stage scripts
         proceedAutoStageInstructions();
 
-        proceedGoToSector2();
+        // proceedGoToSector3();
 
 
         // end of the program
         chassisModule.terminate();
-        armControllingMethods.deactivateArm();
-
+        arm.deactivateArm();
     }
 
     private void configureRobot() {
@@ -111,7 +110,7 @@ public class pos2 extends LinearOpMode {
 
     private void proceedAutoStageInstructions() throws InterruptedException {
         // grab the preloaded sleeve
-        armControllingMethods.closeClaw();
+        arm.closeClaw();
         Thread.sleep(1000);
 
         // go to the center of the grid (200, 130), in reference to the red side team
@@ -126,14 +125,14 @@ public class pos2 extends LinearOpMode {
         chassisModule.setRobotRotation(0);
 
         // raise the arm
-        armControllingMethods.toHighArmPosition();
+        arm.toHighArmPosition();
 
         // go forward a step
         chassisModule.setRobotPosition(-1340, 860);
 
         // place the preloaded goal
-        armControllingMethods.toMidArmPosition();
-        armControllingMethods.openClaw();
+        arm.toMidArmPosition();
+        arm.openClaw();
 
         // go to the sleeve stack
         chassisModule.setRobotPosition(-1340, 780); // step back from the goal
@@ -142,8 +141,8 @@ public class pos2 extends LinearOpMode {
 
         // drop tHE arm
         sleep(200);
-        armControllingMethods.toMidArmPosition();
-        armControllingMethods.deactivateArm();
+        arm.toMidArmPosition();
+        arm.deactivateArm();
 
         /* sleep(2000);
 

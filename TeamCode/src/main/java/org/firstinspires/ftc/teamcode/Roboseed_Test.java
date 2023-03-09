@@ -19,9 +19,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Robot.AutoStageChassisModule;
-import org.firstinspires.ftc.teamcode.Robot.ComputerVisionFieldNavigation_v2;
-import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 
 /*
  * the robot starts in the corner of the field.
@@ -29,42 +28,22 @@ import org.firstinspires.ftc.teamcode.Robot.HardwareDriver;
  * the robot moves to position(according to camera) -1022, -782
  * */
 
-@Autonomous(name = "robot test runner")
-@Deprecated
+@Autonomous(name = "robot_test_runner")
 public class Roboseed_Test extends LinearOpMode {
     ElapsedTime elapsedTime = new ElapsedTime();
     HardwareDriver hardwareDriver = new HardwareDriver();
 
-    AutoStageChassisModule autoStageChassisModule;
+    AutoStageRobotChassis autoStageRobotChassis;
     ComputerVisionFieldNavigation_v2 fieldNavigation;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
-        autoStageChassisModule = new AutoStageChassisModule(hardwareDriver, hardwareMap, fieldNavigation);
-        this.configureRobot();
-        autoStageChassisModule.initRobotChassis();
+        DcMotorEx test_encoder = hardwareMap.get(DcMotorEx.class, "test encoder");
         waitForStart();
-
-        Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
-            while (!isStopRequested() && opModeIsActive()) Thread.yield();
-            autoStageChassisModule.terminate();
-        }
-        }); terminationListenerThread.start();
-
-
-        // autoStageChassisModule.setRobotPositionWithVisualNavigation(-1200, -1000);
-
-        autoStageChassisModule.setRobotRotation(Math.toRadians(90));
+        telemetry.addLine("encoderValue");
         while (opModeIsActive() && !isStopRequested()) {
-            final double[] robotPosition = autoStageChassisModule.getEncoderPosition();
-            final double robotRotation = autoStageChassisModule.getEncoderRotation();
-            telemetry.addData("robotXPosition", robotPosition[0]);
-            telemetry.addData("robotYPosition", robotPosition[1]);
-            telemetry.addData("robotRotation", robotRotation);
-            telemetry.addData("robotRotationIMU", autoStageChassisModule.getImuYaw());
-            telemetry.addData("RobotPosition(vision):", fieldNavigation.getRobotPosition()[0] + ","  + fieldNavigation.getRobotPosition()[0]);
-            telemetry.update();
+            /* test the encoder */
+            telemetry.addData("encoderValue", test_encoder.getCurrentPosition());
         }
     }
 
