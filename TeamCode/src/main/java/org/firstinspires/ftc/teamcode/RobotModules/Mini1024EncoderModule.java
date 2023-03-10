@@ -73,7 +73,7 @@ public class Mini1024EncoderModule implements RobotModule {
         double encoder2CurrentPosition = encoder2.getCurrentPosition();
         double encoder3CurrentPosition = encoder3.getCurrentPosition();
 
-        /* calculate the change in each of these variables */
+        /* calculate the change in each of these positions */
         double encoder1PositionDifference = encoder1CurrentPosition - encoder1Position;
         double encoder2PositionDifference = encoder2CurrentPosition - encoder2Position;
         double encoder3PositionDifference = encoder3CurrentPosition - encoder3Position;
@@ -85,6 +85,26 @@ public class Mini1024EncoderModule implements RobotModule {
 
         /** velocity */
         /* calculate the current velocity */
+        double encoder1CurrentVelocity = encoder1PositionDifference / dt.seconds();
+        double encoder2CurrentVelocity = encoder2PositionDifference / dt.seconds();
+        double encoder3CurrentVelocity = encoder3PositionDifference / dt.seconds();
+
+        /* calculate the chang in velocities */
+        double encoder1VelocityDifference = encoder1CurrentVelocity - encoder1Velocity;
+        double encoder2VelocityDifference = encoder2CurrentVelocity - encoder2Velocity;
+        double encoder3VelocityDifference = encoder3CurrentVelocity - encoder3Velocity;
+
+        /* the older version of the velocities are used, refresh them */
+        encoder1Velocity = encoder1CurrentVelocity;
+        encoder2Velocity = encoder2CurrentVelocity;
+        encoder3Velocity = encoder3CurrentVelocity;
+
+
+        /** acceleration */
+        /* calculate the acceleration */
+        encoder1Acceleration = encoder1VelocityDifference / dt.seconds();
+        encoder2Acceleration = encoder2VelocityDifference / dt.seconds();
+        encoder3Acceleration = encoder3VelocityDifference / dt.seconds();
 
 
         /** reset the timer */
@@ -110,8 +130,7 @@ public class Mini1024EncoderModule implements RobotModule {
                 encoder3StartingPosition = startingPosition;
             }
             default: {
-                IndexOutOfBoundsException indexOutOfBoundsException = new IndexOutOfBoundsException();
-                throw indexOutOfBoundsException;
+                throw new IndexOutOfBoundsException();
             }
         }
     }
