@@ -1,0 +1,6 @@
+maybe we can use two computer mouse to navigate in auto stage, they can calculate the instance velocity of two parts of the robot and determine the rotation and transformation
+and control the robot during
+
+so i tested it using my laptop, and it's perfectly fucking working
+
+so let's wait and see
