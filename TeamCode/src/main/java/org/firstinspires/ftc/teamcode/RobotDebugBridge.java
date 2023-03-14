@@ -56,9 +56,10 @@ public class RobotDebugBridge {
     /**
      * set the console messages of a selected module to be visible or not
      *
-     * @param
+     * @param module the selected module
+     * @param visibility set the console messages of the module to be visible or not
      */
-    public void setRobotModuleConsoleMessageVisibility(RobotModule module, ) {
+    public void setRobotModuleConsoleMessageVisibility(RobotModule module, boolean visibility) {
         for (RobotModule i: robotModules) {
             // TODO find the targeted module and change it's visibility
             // TODO add a variable(haven't decided where to defined though) that represents the visibility of all the modules
