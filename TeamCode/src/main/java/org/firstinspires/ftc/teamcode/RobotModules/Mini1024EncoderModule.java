@@ -15,9 +15,9 @@ import org.firstinspires.ftc.teamcode.RobotModule;
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
- * @Version v0.1.0
+ * @Version v0.0.2
 */
-public class Mini1024EncoderModule implements RobotModule {
+public class Mini1024EncoderModule extends RobotModule {
     /** the operable instance of the three encoders */
     private DcMotorEx encoder1, encoder2, encoder3;
 
@@ -33,6 +33,16 @@ public class Mini1024EncoderModule implements RobotModule {
 
     /** the difference in time between two adjacent periods */
     private ElapsedTime dt = new ElapsedTime();
+
+    /**
+     * construct method of robot module
+     * sets the name of the module (the init function
+     *
+     * @param moduleName the name of the module, must be unique as it is used as an identifier
+     */
+    public Mini1024EncoderModule(String moduleName) {
+        super(moduleName);
+    }
 
     /**
      * initialize the encoders

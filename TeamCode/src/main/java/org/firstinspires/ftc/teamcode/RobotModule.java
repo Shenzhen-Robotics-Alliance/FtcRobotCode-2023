@@ -14,30 +14,40 @@ import java.util.HashMap;
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.3.9
- * @Version v0.1.0
+ * @Version v0.0.2
 */
-public interface RobotModule {
+public abstract class RobotModule {
     /**
      * the name of the module
      * this variable is used to identify the module, it must be unique
      * override this variable
      */
-    final String moduleName = null;
+    final String moduleName;
+
+    /**
+     * construct method of robot module
+     * sets the name of the module (the init function
+     *
+     * @param moduleName the name of the module, must be unique as it is used as an identifier
+     */
+    public RobotModule(String moduleName) {
+        this.moduleName = moduleName;
+    }
 
     /**
      * the method called when initializing the robot
-     * this is a default method, overwrite it!
+     * this is an abstract method, overwrite it!
      *
      * @param dependentModules: all the modules needed for this module
      * @param dependentInstances: the instance needed for this module
      */
-    default void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) {}
+    public abstract void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances);
 
     /**
      * the method called in every loop
-     * this is a default method, overwrite it!
+     * this is an abstract method, overwrite it with the code of each moduels!
      */
-    default void periodic() {}
+    public abstract void periodic();
 
     /**
      * the messages that the module wants to print in the present period
@@ -52,7 +62,7 @@ public interface RobotModule {
      *
      * @return the messages that this module want to print
      */
-    default List<String> getDebugConsoleMessages() {
+    public List<String> getDebugConsoleMessages() {
         /* process the message */
         List<String> processedConsoleMessages = new ArrayList<>();
         for(String message: consoleMessages) {
@@ -73,7 +83,7 @@ public interface RobotModule {
      *
      * @return the messages that this module want to print
      */
-    default List<String> getTelemetryMessages() {
+    public List<String> getTelemetryMessages() {
         return consoleMessages;
     }
 
@@ -82,7 +92,9 @@ public interface RobotModule {
      *
      * @return the name of the module, in String, used to identify the module
      */
-
+    public String getModuleName() {
+        return this.moduleName;
+    }
 
     /**
      * magic method to that turns the object to string
@@ -91,8 +103,8 @@ public interface RobotModule {
      * @return a message including the name and running status
      */
     @Override
-    default String toString() {
-        return "<--Robot module, name: " + moduleName + ", status: running without error-->";
+    public String toString() {
+        return "<--Robot module, name: " + getModuleName() + ", status: running without error-->";
     }
 }
 

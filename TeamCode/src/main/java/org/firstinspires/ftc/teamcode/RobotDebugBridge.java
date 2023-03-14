@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.3.13
- * @Version v0.0.1
+ * @Version v0.0.2
  */
 public class RobotDebugBridge {
     /** the telemetry console that connects to the driver station panel */
