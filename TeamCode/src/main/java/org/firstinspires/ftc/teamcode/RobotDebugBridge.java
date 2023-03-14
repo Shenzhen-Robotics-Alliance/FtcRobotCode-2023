@@ -60,7 +60,8 @@ public class RobotDebugBridge {
      */
     public void setRobotModuleConsoleMessageVisibility(RobotModule module, ) {
         for (RobotModule i: robotModules) {
-            this.toString()
+            // TODO find the targeted module and change it's visibility
+            // TODO add a variable(haven't decided where to defined though) that represents the visibility of all the modules
         }
     }
 
