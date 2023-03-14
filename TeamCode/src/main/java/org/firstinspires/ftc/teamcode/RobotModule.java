@@ -19,9 +19,10 @@ import java.util.HashMap;
 public interface RobotModule {
     /**
      * the name of the module
+     * this variable is used to identify the module, it must be unique
+     * override this variable
      */
-    String moduleName = null;
-
+    final String moduleName = null;
 
     /**
      * the method called when initializing the robot
@@ -74,6 +75,24 @@ public interface RobotModule {
      */
     default List<String> getTelemetryMessages() {
         return consoleMessages;
+    }
+
+    /**
+     * returns the name of the module
+     *
+     * @return the name of the module, in String, used to identify the module
+     */
+
+
+    /**
+     * magic method to that turns the object to string
+     * called when a robot module is turned to string
+     *
+     * @return a message including the name and running status
+     */
+    @Override
+    default String toString() {
+        return "<--Robot module, name: " + moduleName + ", status: running without error-->";
     }
 }
 
