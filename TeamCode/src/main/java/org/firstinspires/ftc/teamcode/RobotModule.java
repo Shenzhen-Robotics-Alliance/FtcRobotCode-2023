@@ -75,7 +75,7 @@ public abstract class RobotModule {
      * the keys for the telemetry
      */
     List<String> telemetryMessagesKeys = new ArrayList<>();
-    // TODO write a map to store all the telemetry messages' data
+    Map<String, RobotModule> telemetryMessages = new HashMap<String, RobotModule>();
 
     /**
      * get the messages that the module needs to print on the console
