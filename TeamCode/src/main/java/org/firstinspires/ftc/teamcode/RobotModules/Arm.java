@@ -58,6 +58,9 @@ public class Arm extends RobotModule {
     private final ElapsedTime PreviousClawActivation = new ElapsedTime();
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
 
+    /** the chassis module of robot */
+    private RobotChassis robotChassis;
+
     /**
      * construct function of arm controlling methods
      * set the module's name to be "Arm"
@@ -71,13 +74,17 @@ public class Arm extends RobotModule {
      * initialize the arm module
      * given all the instances that connects to the robot's hardware
      *
-     * @param dependentModules null should be passed as this module is not using any other modules as dependencies
-     * @param dependentInstances this module need the following instances(pass them in the form of hashmap):
+     * @param dependentModules this module needs the following modules(pass them in the form of hashmap):
+     *                         "robotChassis" : RobotChassis, the module that controls the chassis of the robot
+     * @param dependentInstances this module needs the following instances(pass them in the form of hashmap):
      *                           "hardwareDriver" : HardwareDriver, the driver that connects to the hardware, gained from super class "LinearOpMode"
      *                           "initialControllerPad" : com.qualcomm.robotcore.hardware.Gamepad, the default game pad used to control the robot
      */
     @Override
     public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) {
+        /* get the dependent modules from the param */
+        this.robotChassis = (RobotChassis) dependentModules.get("robotChassis");
+
         /* get the instances from the param */
         this.hardwareDriver = (HardwareDriver) dependentInstances.get("hardwareDriver");
         this.gamepad = (Gamepad) dependentInstances.get("initialControllerPad");
@@ -87,6 +94,20 @@ public class Arm extends RobotModule {
         this.claw = false;
         deactivateArm();
         this.armStatusCode = -1;
+    }
+
+    @Override
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
+        switch (instanceName) {
+            case "hardwareDriver" : {
+                this.hardwareDriver = (HardwareDriver) newerInstance;
+                break;
+            }
+            case "initialControllerPad" : {
+                this.gamepad = (Gamepad) newerInstance;
+            }
+            default: throw new NullPointerException("attempting to update a none-exist instance");
+        }
     }
 
     @Override

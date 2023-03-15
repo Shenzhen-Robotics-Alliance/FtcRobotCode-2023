@@ -45,11 +45,14 @@ public abstract class RobotModule {
 
     /**
      * update the an instance that is needed in the module to a newer one
+     * TODO throw the exception of calling to a none exist item in hash map
      *
      * @param instanceName the name of instance that needs to be replaced
      * @param newerInstance the newer instance that
+     *
+     * @throws NullPointerException when attempting to update a none-exist instance
      */
-    public abstract void updateDependentInstances(String instanceName, Object newerInstance) throws Inde;
+    public abstract void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException;
 
     /**
      * the method called in every loop

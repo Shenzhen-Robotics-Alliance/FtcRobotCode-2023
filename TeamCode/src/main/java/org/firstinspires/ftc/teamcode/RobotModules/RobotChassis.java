@@ -1,13 +1,3 @@
-/*
- * Copyright © 2023 SCCSC-Robotics-Club
- * FileName: ChassisModule.java
- *
- * the program that controls the moving of the robot in manual stage
- *
- * @Author 四只爱写代码の猫
- * @Date 2023.2.27
- * @Version v0.1.0
- * */
 package org.firstinspires.ftc.teamcode.RobotModules;
 
 import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
@@ -26,10 +16,21 @@ import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
 
+/**
+ * Copyright © 2023 SCCSC-Robotics-Club
+ * FileName: ChassisModule.java
+ *
+ * the program that controls the moving of the robot in manual stage
+ * TODO improve readability by adding explanations ot the code; add implements to the methods from super class RobotModule
+ *
+ * @Author 四只爱写代码の猫
+ * @Date 2023.2.27
+ * @Version v0.1.0
+ */
 public class RobotChassis extends RobotModule { // controls the moving of the robot
-    private final Gamepad gamepad;
-    private final HardwareDriver driver;
-    private final IMU imu;
+    private Gamepad gamepad;
+    private HardwareDriver driver;
+    private IMU imu;
 
     private boolean slowMotionModeRequested;
     private boolean slowMotionModeSuggested;
@@ -84,7 +85,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     }
 
     @Override
-    public void updateDependentInstances(String instanceName, Object newerInstance) throws Inde {
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
 
     }
 
