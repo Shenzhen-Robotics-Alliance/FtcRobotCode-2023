@@ -13,6 +13,8 @@ import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 
+import java.util.HashMap;
+
 /**
  * Copyright © 2023 SCCSC-Robotics-Club
  * FileName: Roboseed_AutoStage.java
@@ -50,7 +52,12 @@ public class Roboseed_AutoStage extends LinearOpMode {
         chassisModule.initRobotChassis();
         elapsedTime.reset();
 
-        arm = new Arm(hardwareDriver, telemetry);
+        /* pass the hardware ports to the arm module, TODO write this method for all the modules */
+        HashMap armModuleDependentModules = null;
+        HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
+        armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
+        arm = new Arm();
+        arm.init(armModuleDependentModules, armModuleDependentInstances);
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
                 while (!isStopRequested() && opModeIsActive()) Thread.yield();

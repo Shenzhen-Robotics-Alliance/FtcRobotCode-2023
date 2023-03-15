@@ -21,25 +21,29 @@ import java.util.HashMap;
  * Copyright © 2023 SCCSC-Robotics-Club
  * FileName: Roboseed_SinglePilot.java
  *
- * tele-operation program with one pilot
+ * tele-operation program for two pilots to control
+ * support single pilot still, but enable dual pilot mode if the second gamepad asks to plug in
+ * TODO fit the program with the robot modules plugin
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
  * @Version v0.1.0
  */
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
-public class Roboseed_SinglePilot extends LinearOpMode {
-    /* the interface that connects the robot's hardware */
+public class Roboseed_DualPilot extends LinearOpMode {
+    /** the interface that connects the robot's hardware */
     private final HardwareDriver hardwareDriver = new HardwareDriver();
 
-    /* variables that record the time after pressing a button, so that the button is not activated over and over */
+    /** variables that record the time after pressing a button, so that the button is not activated over and over */
     private final ElapsedTime PreviousElevatorActivation = new ElapsedTime();
     private final ElapsedTime PreviousClawActivation = new ElapsedTime();
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
     private boolean PreviousSlowMotionModeAutoActivation = false;
 
-    /* connect to the modules */
+    /** whether dual-piloting mode is activated or not */
+    private boolean dualPilotActivated;
 
+    /** connect to the robot modules */
     private Arm arm;
     private RobotChassis robotChassis;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
@@ -47,12 +51,13 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     private IMUReader imuReader;
 
     /**
-    * the main entry of the robot's program during manual stage
-    *
-    * @throws InterruptedException: when the operation mode is interrupted by the system
-    */
+     * the main entry of the robot's program during manual stage
+     *
+     * @throws InterruptedException: when the operation mode is interrupted by the system
+     */
     @Override
     public void runOpMode() throws InterruptedException {
+        /* configure the ports for all the hardware's */
         this.configureRobot();
 
         /* pass the hardware ports to the arm module */
@@ -72,10 +77,12 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         autoStageRobotChassis = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
         // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
 
-        telemetry.addLine("robotCurrentPosition(Camera)");
+        /* telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
         telemetry.addLine("robotCurrentRotation(Encoder)");
-        telemetry.addLine("robotCurrentPosition(IMU)");
+        telemetry.addLine("robotCurrentPosition(IMU)"); */
+
+
 
         Thread chassisThread = new Thread(robotChassis);
         chassisThread.start(); // start an independent thread to run chassis module
@@ -138,7 +145,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
-            runLoop(arm, robotChassis);
+            runLoop();
         } robotChassis.terminate(); fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
@@ -147,21 +154,105 @@ public class Roboseed_SinglePilot extends LinearOpMode {
      *
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
-    private void runLoop(Arm arm, RobotChassis robotChassis) throws InterruptedException {
+    private void runLoop() throws InterruptedException {
+        if (dualPilotActivated) runUsingDualPilotMode();
+        else runUsingSinglePilotMode();;
+    }
+
+    /**
+     * run the current period with dual pilots
+     *
+     * @throws InterruptedException: when the operation mode is interrupted by the system
+     */
+    private void runUsingDualPilotMode() throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
         String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
-        telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
+        /* telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString); */
 
         double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
         String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-        telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
+        /* telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString); */
 
         double[] IMUPosition = imuReader.getIMUPosition();
         String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
-        telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString);
+        /* telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString); */
 
         telemetry.update();
-        
+
+        if (gamepad1.right_bumper) arm.closeClaw();
+        else if (gamepad1.left_bumper) arm.openClaw();
+
+        if (gamepad1.y) {
+            arm.toHighArmPosition();
+        }
+        if (gamepad1.x) {
+            arm.toMidArmPosition();
+        }
+        if (gamepad1.b) {
+            arm.toLowArmPosition();
+        }
+        if (gamepad1.a) {
+            arm.toGroundArmPosition();
+        }
+        telemetry.addData("going to pos", 0);
+        if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
+            PreviousGrepActivation.reset();
+            arm.openClaw();
+            arm.deactivateArm();
+            robotChassis.pause();
+            // TODO aim the target automatically using computer vision
+            robotChassis.resume();
+            arm.closeClaw();
+            Thread.sleep(300);
+            arm.toMidArmPosition();
+        }
+
+        if (gamepad1.left_stick_y < -0.8 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
+            System.out.println("RA");
+            arm.raiseArm();
+            PreviousElevatorActivation.reset();
+        } else if (gamepad1.left_stick_y > 0.8 & PreviousElevatorActivation.seconds() > .3) {
+            System.out.println("LA");
+            arm.lowerArm();
+            PreviousElevatorActivation.reset();
+        }
+
+        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+            hardwareDriver.lift_left.setPower(0);
+            hardwareDriver.lift_left.setPower(0);
+            System.exit(0);
+        } if (PreviousElevatorActivation.seconds() > 5 & arm.getClaw()) {
+            System.out.println("saving battery...");
+            arm.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+            PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
+        }
+
+        // control slow motion automatically
+        if (arm.getArmStatus()) robotChassis.setSlowMotionModeActivationSwitch(true);
+        else robotChassis.setSlowMotionModeActivationSwitch(false);
+        telemetry.update();
+    }
+
+    /**
+     * run the current period only using single pilot mode
+     *
+     * @throws InterruptedException: when the operation mode is interrupted by the system
+     */
+    private void runUsingSinglePilotMode() throws InterruptedException {
+        double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
+        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+        /* telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString); */
+
+        double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
+        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+        /* telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString); */
+
+        double[] IMUPosition = imuReader.getIMUPosition();
+        String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
+        /* telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString); */
+
+        telemetry.update();
+
         if (gamepad1.right_bumper) arm.closeClaw();
         else if (gamepad1.left_bumper) arm.openClaw();
 

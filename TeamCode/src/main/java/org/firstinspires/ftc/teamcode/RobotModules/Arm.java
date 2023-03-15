@@ -14,56 +14,79 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModule;
 
-public class Arm {
-    /* connects to the hardware */
-    private HardwareDriver hr;
+import java.util.HashMap;
 
-    /* the port to send messages back to the console */
-    private Telemetry telemetry;
+public class Arm extends RobotModule {
+    /** highest position of the arm */
+    private final int highPos = 700;
+    /** midpoint position of the arm */
+    private final int midPos = 450;
+    /** lower position of the arm */
+    private final int lowPos = 280;
+    /** loading position of the arm */
+    private final int gndPos = 45;
 
-    /* whether the claw is opened */
+    /** connects to the hardware */
+    private HardwareDriver hardwareDriver;
+
+    /** whether the claw is opened */
     private boolean claw;
 
-    /* the position code for the arm
+    /** the position code for the arm
     *  -1: the arm is relaxed
-    *   0: the arm is attached to the ground to capture sleeves
-    *   1: the arm is at the position matching the lowest tower
-    *   2: the arm is at the position matching the middle tower
-    *   3: the arm is at the position matching the highest tower
-    * */
+    *   0: the arm is attached to the ground to capture sleeves,
+    *   1: the arm is at the position matching the lowest tower,
+    *   2: the arm is at the position matching the middle tower,
+    *   3: the arm is at the position matching the highest tower,
+    */
     private short arm;
 
-    /* the status of the arm
+    /** the status of the arm
     *   true: the arm is busy and in use
     *   false: the arm is free, no operation is proceeding
-    * */
+    */
     private boolean armStatus;
 
-    /*
+    /**
      * construct function of arm controlling methods
-     * declare the hardware map and telemetry port, open the claw and relax the arm
+     * set the module's name to be "Arm"
      *
-     * @param HardwareDrive hr: the connection to the robot's hardware
-     * @param Telemetry telemetry: the port to remote console
-     * @return Nah
-     * @throws Nah
-     * */
-    public Arm(HardwareDriver hr, Telemetry telemetry) {
-        this.hr = hr;
-        this.telemetry = telemetry;
-        this.claw = false;
-        hr.claw.setPosition(0.6);
-        deactivateArm();
+     */
+    public Arm() {
+        super("Arm");
     }
 
-    /*
-     * move the arm down into the following lower level
+    /**
+     * initialize the arm module
+     * given all the instances that connects to the robot's hardware
      *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+     * @param dependentModules null should be passed as this module is not using any other modules as dependencies
+     * @param dependentInstances this module need the following instances(pass them in the form of hashmap):
+     *                           "hardwareDriver" : HardwareDriver, the driver that connects to the hardware, gained from super class "LinearOpMode"
+     */
+    @Override
+    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) {
+        /* get the hardware driver from the param */
+        this.hardwareDriver = (HardwareDriver) dependentInstances.get("hardwareDriver");
+
+
+        /* set the robot's arm to be the default status */
+        hardwareDriver.claw.setPosition(0.6);
+        this.claw = false;
+        deactivateArm();
+        this.arm = -1;
+    }
+
+    @Override
+    public void periodic() {
+
+    }
+
+    /**
+     * move the arm down into the following lower level
+     */
     public void lowerArm() {
         System.out.println(arm);
         switch (arm) {
@@ -74,13 +97,9 @@ public class Arm {
         }
     }
 
-    /*
+    /**
      * move the arm up into the higher neighboured level
-     *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+     */
     public void raiseArm() {
         switch (arm) {
             case -1: case 0: toLowArmPosition(); break;
@@ -89,54 +108,42 @@ public class Arm {
         }
     }
 
-    /*
-     * set the arm to match the higher, middle and lowest tower
-     *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+    /**
+     * set the arm to match the higher tower
+     */
     public void toHighArmPosition() {
-        /* highest position of the arm */
-        int highPos = 700;
         elevateArm(highPos);
         arm = 3;
-        telemetry.addData("going to top_pos", highPos);
         armStatus = true;
     }
+    /**
+     * set the arm to match the higher, middle and lowest tower
+     */
     public void toMidArmPosition() {
-        /* midpoint position of the arm */
-        int midPos = 450;
         elevateArm(midPos);
         arm = 2;
-        telemetry.addData("going to mid_pos", midPos);
         armStatus = true;
     }
+    /**
+     * set the arm to match the higher, middle and lowest tower
+     */
     public void toLowArmPosition() {
-        /* lower position of the arm */
-        int lowPos = 280;
         elevateArm(lowPos);
         arm = 1;
-        telemetry.addData("going to low_pos", lowPos);
         armStatus = true;
     }
+
     public void toGroundArmPosition() {
-        /* loading position of the arm */
-        int gndPos = 45;
         elevateArm(gndPos);
         arm = 0;
-        telemetry.addData("going to gnd_pos", gndPos);
         armStatus = false;
     }
 
-    /*
+    /**
      * move the lowest position of the arm to load sleeves
      *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
      * @Deprecated this method is longer suggested, use deactivateArm() instead
-     * */
+     */
     @Deprecated
     public void toLoadingArmPosition() {
         // go to the arm position to load the sleeves
@@ -146,57 +153,50 @@ public class Arm {
         armStatus = true;
     }
 
-    /*
+    /**
      * if the claw is opened, close it
      * if the claw is closed, open it
-     *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+     */
     public void open_closeClaw() {
         System.out.println("open_close");
         if(claw) {closeClaw(); return;}
         openClaw();
     }
 
-    /*
-     * open and close the claw
-     *
-     * @param Nah
-     * @return Nah
-     * @throws Nah
-     * */
+    /**
+     * open the claw of the arm by setting the position of the servo driving it
+     */
     public void openClaw() {
         System.out.println("opening");
         claw = true;
-        hr.claw.setPosition(.35); // open grabber
+        hardwareDriver.claw.setPosition(.35); // open grabber
         // while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
         armStatus = false;
     }
+    /**
+     * close the claw of the arm by setting the position of the servo driving it
+     */
     public void closeClaw() {
         System.out.println("closing");
         claw = false;
-        hr.claw.setPosition(.65); // close grabber
+        hardwareDriver.claw.setPosition(.65); // close grabber
         // while (Math.abs(hr.claw.getPosition() - .65) > .05) Thread.yield();
         armStatus = true;
     }
 
-    /*
+    /**
      * move the arm to the targeted position
      * when the arm is almost there, reverse the motors and decelerate to avoid damage to the structer
      * exit the function when the arm is close enough to the objective
      *
-     * @param int position: the targeted position, ranged 0-1000, 0 is when the arm hits the robot badly, 1000 is when the arm flips around and damage the structer
-     * @return Nah
-     * @throws Nah
-     * */
+     * @param position: the targeted position, ranged 0-1000, 0 is when the arm hits the robot badly, 1000 is when the arm flips around and damage the structer
+     */
     private void elevateArm(int position) {
-        /* the direction that the arm is going
+        /** the direction that the arm is going
         *   true when the arm is going up
         *   false when the arm is going down
-        * */
-        boolean isDecline = position < hr.lift_left.getCurrentPosition();
+        */
+        boolean isDecline = position < hardwareDriver.lift_left.getCurrentPosition();
 
         /* set the power of the motor
         *   20% when it's going down, in considerate of the impulse of gravitation
@@ -204,46 +204,46 @@ public class Arm {
         *  */
         if (isDecline) {
             double armDeclineSpeed = 0.2;
-            hr.lift_left.setPower(armDeclineSpeed);
-            hr.lift_right.setPower(armDeclineSpeed);
+            hardwareDriver.lift_left.setPower(armDeclineSpeed);
+            hardwareDriver.lift_right.setPower(armDeclineSpeed);
         } else {
             double armInclineSpeed = 0.4;
-            hr.lift_left.setPower(armInclineSpeed);
-            hr.lift_right.setPower(armInclineSpeed);
+            hardwareDriver.lift_left.setPower(armInclineSpeed);
+            hardwareDriver.lift_right.setPower(armInclineSpeed);
         }
 
         /*
         * set the targeted position of the motors
         * set the running mode
         * */
-        hr.lift_left.setTargetPosition(position);
-        hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hr.lift_right.setTargetPosition(position);
-        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_left.setTargetPosition(position);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_right.setTargetPosition(position);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         /* if the arm isn't declining
          *  move to the position directly, as gravity will slow the arm down
          */
         if (!isDecline) {
-            while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is completed
+            while (Math.abs(hardwareDriver.lift_left.getCurrentPosition()-position) > 5 | Math.abs(hardwareDriver.lift_right.getCurrentPosition()-position) > 5) Thread.yield(); // wait until the movement is completed
             return;
         }
 
         /* if the arm is declining
          * deceleration precess is necessary
          */
-        while (Math.abs(hr.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hr.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
+        while (Math.abs(hardwareDriver.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hardwareDriver.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
         /* slow the motor down */
-        hr.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        hr.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        hr.lift_right.setVelocity(0);
-        hr.lift_left.setVelocity(0);
-        while (Math.abs(hr.lift_left.getVelocity()) < 10) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.lift_right.setVelocity(0);
+        hardwareDriver.lift_left.setVelocity(0);
+        while (Math.abs(hardwareDriver.lift_left.getVelocity()) < 10) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
         /* set the desired position */
-        hr.lift_left.setTargetPosition(position);
-        hr.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hr.lift_right.setTargetPosition(position);
-        hr.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // make the motor stick in the position
+        hardwareDriver.lift_left.setTargetPosition(position);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_right.setTargetPosition(position);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // make the motor stick in the position
     }
 
     public void deactivateArm() {
@@ -253,8 +253,8 @@ public class Arm {
         ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort */
         while (arm > 0) lowerArm(); // put the arm down step by step
         openClaw();
-        hr.lift_left.setPower(0);
-        hr.lift_right.setPower(0);
+        hardwareDriver.lift_left.setPower(0);
+        hardwareDriver.lift_right.setPower(0);
         arm = -1;
     }
 
