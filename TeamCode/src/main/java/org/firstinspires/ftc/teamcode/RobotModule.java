@@ -14,7 +14,7 @@ import java.util.HashMap;
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.3.9
- * @Version v0.0.2
+ * @Version v0.0.3
 */
 public abstract class RobotModule {
     /**
@@ -22,7 +22,7 @@ public abstract class RobotModule {
      * this variable is used to identify the module, it must be unique
      * override this variable
      */
-    final String moduleName;
+    private final String moduleName;
 
     /**
      * construct method of robot module
@@ -44,10 +44,20 @@ public abstract class RobotModule {
     public abstract void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances);
 
     /**
-     * the method called in every loop
-     * this is an abstract method, overwrite it with the code of each moduels!
+     * update the an instance that is needed in the module to a newer one
+     *
+     * @param instanceName the name of instance that needs to be replaced
+     * @param newerInstance the newer instance that
      */
-    public abstract void periodic();
+    public abstract void updateDependentInstances(String instanceName, Object newerInstance) throws Inde;
+
+    /**
+     * the method called in every loop
+     * this is an abstract method, overwrite it with the code of each module!
+     *
+     * @throws InterruptedException if the program is interrupted by the system
+     */
+    public abstract void periodic() throws InterruptedException;
 
     /**
      * the messages that the module wants to print in the present period

@@ -34,11 +34,8 @@ public class Roboseed_DualPilot extends LinearOpMode {
     /** the interface that connects the robot's hardware */
     private final HardwareDriver hardwareDriver = new HardwareDriver();
 
-    /** variables that record the time after pressing a button, so that the button is not activated over and over */
-    private final ElapsedTime PreviousElevatorActivation = new ElapsedTime();
-    private final ElapsedTime PreviousClawActivation = new ElapsedTime();
-    private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
-    private boolean PreviousSlowMotionModeAutoActivation = false;
+    /** whether the program will switch to slow motion mode automatically when using the arm */
+    private final boolean PreviousSlowMotionModeAutoActivation = false;
 
     /** whether dual-piloting mode is activated or not */
     private boolean dualPilotActivated;
@@ -155,155 +152,19 @@ public class Roboseed_DualPilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop() throws InterruptedException {
-        if (dualPilotActivated) runUsingDualPilotMode();
-        else runUsingSinglePilotMode();;
-    }
-
-    /**
-     * run the current period with dual pilots
-     *
-     * @throws InterruptedException: when the operation mode is interrupted by the system
-     */
-    private void runUsingDualPilotMode() throws InterruptedException {
+        gamepad1 = null;
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
-        /* telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString); */
+        /* String cameraPositionString = robotCurrentPosition[0] + " " + robotCurrentPosition[1] + " " + String.valueOf(robotCurrentPosition[2]);
+         * telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString); */
 
         double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
-        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-        /* telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString); */
+        /* String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+         * telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString); */
 
         double[] IMUPosition = imuReader.getIMUPosition();
-        String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
-        /* telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString); */
+        /* String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
+         * telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString); */
 
-        telemetry.update();
-
-        if (gamepad1.right_bumper) arm.closeClaw();
-        else if (gamepad1.left_bumper) arm.openClaw();
-
-        if (gamepad1.y) {
-            arm.toHighArmPosition();
-        }
-        if (gamepad1.x) {
-            arm.toMidArmPosition();
-        }
-        if (gamepad1.b) {
-            arm.toLowArmPosition();
-        }
-        if (gamepad1.a) {
-            arm.toGroundArmPosition();
-        }
-        telemetry.addData("going to pos", 0);
-        if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
-            PreviousGrepActivation.reset();
-            arm.openClaw();
-            arm.deactivateArm();
-            robotChassis.pause();
-            // TODO aim the target automatically using computer vision
-            robotChassis.resume();
-            arm.closeClaw();
-            Thread.sleep(300);
-            arm.toMidArmPosition();
-        }
-
-        if (gamepad1.left_stick_y < -0.8 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
-            System.out.println("RA");
-            arm.raiseArm();
-            PreviousElevatorActivation.reset();
-        } else if (gamepad1.left_stick_y > 0.8 & PreviousElevatorActivation.seconds() > .3) {
-            System.out.println("LA");
-            arm.lowerArm();
-            PreviousElevatorActivation.reset();
-        }
-
-        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
-            hardwareDriver.lift_left.setPower(0);
-            hardwareDriver.lift_left.setPower(0);
-            System.exit(0);
-        } if (PreviousElevatorActivation.seconds() > 5 & arm.getClaw()) {
-            System.out.println("saving battery...");
-            arm.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
-            PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
-        }
-
-        // control slow motion automatically
-        if (arm.getArmStatus()) robotChassis.setSlowMotionModeActivationSwitch(true);
-        else robotChassis.setSlowMotionModeActivationSwitch(false);
-        telemetry.update();
-    }
-
-    /**
-     * run the current period only using single pilot mode
-     *
-     * @throws InterruptedException: when the operation mode is interrupted by the system
-     */
-    private void runUsingSinglePilotMode() throws InterruptedException {
-        double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
-        /* telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString); */
-
-        double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
-        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-        /* telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString); */
-
-        double[] IMUPosition = imuReader.getIMUPosition();
-        String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
-        /* telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString); */
-
-        telemetry.update();
-
-        if (gamepad1.right_bumper) arm.closeClaw();
-        else if (gamepad1.left_bumper) arm.openClaw();
-
-        if (gamepad1.y) {
-            arm.toHighArmPosition();
-        }
-        if (gamepad1.x) {
-            arm.toMidArmPosition();
-        }
-        if (gamepad1.b) {
-            arm.toLowArmPosition();
-        }
-        if (gamepad1.a) {
-            arm.toGroundArmPosition();
-        }
-        telemetry.addData("going to pos", 0);
-        if (gamepad1.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
-            PreviousGrepActivation.reset();
-            arm.openClaw();
-            arm.deactivateArm();
-            robotChassis.pause();
-            // TODO aim the target automatically using computer vision
-            robotChassis.resume();
-            arm.closeClaw();
-            Thread.sleep(300);
-            arm.toMidArmPosition();
-        }
-
-        if (gamepad1.left_stick_y < -0.8 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
-            System.out.println("RA");
-            arm.raiseArm();
-            PreviousElevatorActivation.reset();
-        } else if (gamepad1.left_stick_y > 0.8 & PreviousElevatorActivation.seconds() > .3) {
-            System.out.println("LA");
-            arm.lowerArm();
-            PreviousElevatorActivation.reset();
-        }
-
-        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
-            hardwareDriver.lift_left.setPower(0);
-            hardwareDriver.lift_left.setPower(0);
-            System.exit(0);
-        } if (PreviousElevatorActivation.seconds() > 5 & arm.getClaw()) {
-            System.out.println("saving battery...");
-            arm.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
-            PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
-        }
-
-        // control slow motion automatically
-        if (arm.getArmStatus()) robotChassis.setSlowMotionModeActivationSwitch(true);
-        else robotChassis.setSlowMotionModeActivationSwitch(false);
         telemetry.update();
     }
 

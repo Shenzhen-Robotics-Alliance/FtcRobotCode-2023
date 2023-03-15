@@ -22,8 +22,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModule;
 
-public class RobotChassis implements Runnable { // controls the moving of the robot
+import java.util.HashMap;
+
+public class RobotChassis extends RobotModule { // controls the moving of the robot
     private final Gamepad gamepad;
     private final HardwareDriver driver;
     private final IMU imu;
@@ -76,80 +79,82 @@ public class RobotChassis implements Runnable { // controls the moving of the ro
     }
 
     @Override
-    public void run() {
+    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) {
+
+    }
+
+    @Override
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws Inde {
+
+    }
+
+    @Override
+    public void periodic() throws InterruptedException {
         YawPitchRollAngles orientation;
         AngularVelocity angularVelocity;
         double facing;
         double velocityYAW;
         double[] correctedMotion;
 
-        while (true) {
-            while (paused) Thread.yield();
-            if (terminated) break;
-            double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
-            double xAxleMotion = linearMap(gamepad.right_stick_x);
-            /* double rotationalMotion = Math.copySign(
-                    linearMap(0.05, 1, 0, 1,
-                            Math.abs(gamepad.left_stick_x)
-                    ), gamepad.left_stick_x); */
-            double rotationalMotion = linearMap(gamepad.left_stick_x);
-            if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.6;
+        double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
+        double xAxleMotion = linearMap(gamepad.right_stick_x);
+        /* double rotationalMotion = Math.copySign(
+            linearMap(0.05, 1, 0, 1,
+                    Math.abs(gamepad.left_stick_x)
+            ), gamepad.left_stick_x); */
+        double rotationalMotion = linearMap(gamepad.left_stick_x);
+        if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.6;
 
-            boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
-            if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
-                // get the rotation and angular velocity of the robot from imu
-                orientation = imu.getRobotYawPitchRollAngles();
-                angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
+        boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
+        if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
+            // get the rotation and angular velocity of the robot from imu
+            orientation = imu.getRobotYawPitchRollAngles();
+            angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
 
-                // get the facing, and the angular velocity in YAW axle, of the robot
-                facing = orientation.getYaw(AngleUnit.RADIANS);
-                velocityYAW = angularVelocity.zRotationRate;
+            // get the facing, and the angular velocity in YAW axle, of the robot
+            facing = orientation.getYaw(AngleUnit.RADIANS);
+            velocityYAW = angularVelocity.zRotationRate;
 
+            // correct xAxelMotion and yAxelMotion using the IMU
+            correctedMotion = navigateGround(xAxleMotion, yAxleMotion, -facing);
+            xAxleMotion = correctedMotion[0];
+            yAxleMotion = correctedMotion[1];
+        } else if (yAxleReversedSwitch) yAxleMotion *= -1;
 
-                // correct xAxelMotion and yAxelMotion using the IMU
-                correctedMotion = navigateGround(xAxleMotion, yAxleMotion, -facing);
-                xAxleMotion = correctedMotion[0];
-                yAxleMotion = correctedMotion[1];
-            } else if (yAxleReversedSwitch) yAxleMotion *= -1;
+        if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
+        /* yAxleMotion = Range.clip(yAxleMotion, -1, 1);
+         * xAxleMotion = Range.clip(xAxleMotion, -1, 1);
+         * rotationalMotion = Range.clip(rotationalMotion, -1, 1);
+         * yAxleMotion *= -1;
+         * xAxleMotion *= -1;
+         * rotationalMotion *= -1; // flip the axles, to replace ground navigation mode temporarily
 
-            if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
-
-//            yAxleMotion = Range.clip(yAxleMotion, -1, 1);
-//            xAxleMotion = Range.clip(xAxleMotion, -1, 1);
-//            rotationalMotion = Range.clip(rotationalMotion, -1, 1);
-
-            /* yAxleMotion *= -1;
-            xAxleMotion *= -1;
-            rotationalMotion *= -1; // flip the axles, to replace ground navigation mode temporarily */
-
-            /* System.out.print(xAxleMotion); System.out.print("  ");
-            System.out.print(yAxleMotion); System.out.print("  ");
-            System.out.print(rotationalMotion); System.out.print("  ");
-            System.out.println(); */
+         * System.out.print(xAxleMotion); System.out.print("  ");
+         * System.out.print(yAxleMotion); System.out.print("  ");
+         * System.out.print(rotationalMotion); System.out.print("  ");
+         * System.out.println(); */
 
 
-            // control the Mecanum wheel
-            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-            driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-            driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-            driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        // control the Mecanum wheel
+        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
 
-            if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
-                slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
-                previousMotionModeButtonActivation.reset();
-            } if(gamepad.dpad_up & previousNavigationModeButtonActivation.seconds() > 0.5) {
-                groundNavigatingModeActivationSwitch = !groundNavigatingModeActivationSwitch;
-                previousNavigationModeButtonActivation.reset();
-            } if(gamepad.dpad_left & previousYAxleReverseSwitchActivation.seconds() > 0.5) {
-                yAxleReversedSwitch = !yAxleReversedSwitch;
-                previousYAxleReverseSwitchActivation.reset();
-            } if (gamepad.dpad_right) { // debug the imu by resetting the heading
-                imu.resetYaw();
-            }
-
-            slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot
+        if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
+            slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
+            previousMotionModeButtonActivation.reset();
+        } if(gamepad.dpad_up & previousNavigationModeButtonActivation.seconds() > 0.5) {
+            groundNavigatingModeActivationSwitch = !groundNavigatingModeActivationSwitch;
+            previousNavigationModeButtonActivation.reset();
+        } if(gamepad.dpad_left & previousYAxleReverseSwitchActivation.seconds() > 0.5) {
+            yAxleReversedSwitch = !yAxleReversedSwitch;
+            previousYAxleReverseSwitchActivation.reset();
+        } if (gamepad.dpad_right) { // debug the imu by resetting the heading
+            imu.resetYaw();
         }
-        System.out.println("chassis module stopped");
+
+        slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot
     }
 
     public void setSlowMotionModeActivationSwitch(boolean suggested) {

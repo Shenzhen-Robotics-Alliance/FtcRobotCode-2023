@@ -211,7 +211,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         }
 
         // control slow motion automatically
-        if (arm.getArmStatus()) robotChassis.setSlowMotionModeActivationSwitch(true);
+        if (arm.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
         else robotChassis.setSlowMotionModeActivationSwitch(false);
         telemetry.update();
     }
