@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.RobotModule;
  * the module that reads the angular position, velocity and acceleration of the encoders
  *
  * @Author 四只爱写代码の猫
- * @Date 2023.2.27
- * @Version v0.0.2
+ * @Date 2023.3.16
+ * @Version v0.0.3
 */
 public class Mini1024EncoderModule extends RobotModule {
     /** the operable instance of the three encoders */
@@ -53,10 +53,10 @@ public class Mini1024EncoderModule extends RobotModule {
      *                          the instance of the three encoders
      */
     @Override
-    public void init(
+    public void init (
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances
-    ) {
+    ) throws NullPointerException{
         /* get the three encoders from the args */
         encoder1 = (DcMotorEx) dependentInstances.get("encoder-1-instance");
         encoder2 = (DcMotorEx) dependentInstances.get("encoder-2-instance");
@@ -69,6 +69,15 @@ public class Mini1024EncoderModule extends RobotModule {
         calibrateEncoder(1);
         calibrateEncoder(2);
         calibrateEncoder(3);
+    }
+
+    /**
+     * @Deprecated the encoders should not be changed after initialization
+     */
+    @Override
+    @Deprecated
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
+        throw new NullPointerException("cannot modify the encoders once the initialization is over");
     }
 
     /**

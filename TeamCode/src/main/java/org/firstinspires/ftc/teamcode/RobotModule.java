@@ -38,10 +38,11 @@ public abstract class RobotModule {
      * the method called when initializing the robot
      * this is an abstract method, overwrite it!
      *
-     * @param dependentModules: all the modules needed for this module
-     * @param dependentInstances: the instance needed for this module
+     * @param dependentModules all the modules needed for this module
+     * @param dependentInstances the instance needed for this module
+     * @throws NullPointerException if a none-exist module or instance key is given in the hashmaps
      */
-    public abstract void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances);
+    public abstract void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException;
 
     /**
      * update the an instance that is needed in the module to a newer one

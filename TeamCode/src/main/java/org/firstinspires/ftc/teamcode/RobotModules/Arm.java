@@ -78,15 +78,37 @@ public class Arm extends RobotModule {
      *                         "robotChassis" : RobotChassis, the module that controls the chassis of the robot
      * @param dependentInstances this module needs the following instances(pass them in the form of hashmap):
      *                           "hardwareDriver" : HardwareDriver, the driver that connects to the hardware, gained from super class "LinearOpMode"
-     *                           "initialControllerPad" : com.qualcomm.robotcore.hardware.Gamepad, the default game pad used to control the robot
+     *                           "initialControllerPad" : com.qualcomm.robotcore.hardware.Gamepad, the default game pad used to control the robot's arm
      */
     @Override
-    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) {
+    public void init(
+            HashMap<String, RobotModule> dependentModules,
+            HashMap<String, Object> dependentInstances
+    ) throws NullPointerException {
+        /* throw out an error if the dependent module is given an empty map */
+        if (dependentModules.isEmpty()) throw new NullPointerException(
+                "an empty map of dependent modules given to this module, which requires at least one modular dependencies"
+        );
+
+        /* throw out an error if the dependentInstances is given an empty map */
+        if (dependentInstances.isEmpty()) throw new NullPointerException(
+                "an empty map of dependent instances given to this module, which requires at least one instant dependencies"
+        );
+
         /* get the dependent modules from the param */
+        if (! dependentModules.containsKey("robotChassis")) throw new NullPointerException(
+                "dependent module not given: " + "robotChassis"
+        );
         this.robotChassis = (RobotChassis) dependentModules.get("robotChassis");
 
         /* get the instances from the param */
+        if (! dependentInstances.containsKey("hardwareDriver")) throw new NullPointerException(
+                "dependent instance not given: " + "hardwareDriver"
+        );
         this.hardwareDriver = (HardwareDriver) dependentInstances.get("hardwareDriver");
+        if (! dependentInstances.containsKey("initialControllerPad")) throw new NullPointerException(
+                "dependent instance not given: " + "initialControllerPad"
+        );
         this.gamepad = (Gamepad) dependentInstances.get("initialControllerPad");
 
         /* set the robot's arm to be the default status */
@@ -131,9 +153,7 @@ public class Arm extends RobotModule {
             PreviousGrepActivation.reset();
             this.openClaw();
             this.deactivateArm();
-            robotChassis.pause();
             // TODO aim the target automatically using computer vision
-            robotChassis.resume();
             this.closeClaw();
             Thread.sleep(300);
             this.toMidArmPosition();

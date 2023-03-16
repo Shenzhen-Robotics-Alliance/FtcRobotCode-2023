@@ -28,41 +28,91 @@ import java.util.HashMap;
  * @Version v0.1.0
  */
 public class RobotChassis extends RobotModule { // controls the moving of the robot
+    /** the rotation of the control hub, in reference to the chassis, see https://ftc-docs.firstinspires.org/programming_resources/imu/imu.html */
+    final double xRotation = 0;
+    final double yRotation = 145.64;
+    final double zRotation = 0;
+
+    /**
+     * the controlling pad used to control the robot's movements.
+     * dpad upper button: switch on/off field-navigation mode,
+     * dpad lower button: switch on/off slow motion mode,
+     * dpad left button: switch reverse y axle,
+     * dpad right button: reset IMU YAW direction,
+     * */
     private Gamepad gamepad;
+    /** connects to the robot's hardware */
     private HardwareDriver driver;
+    /** the robot's imu for navigation */
     private IMU imu;
 
+    /** whether the pilot asked for slow motion mode */
     private boolean slowMotionModeRequested;
+    /** whether the program suggests slow motion mode */
     private boolean slowMotionModeSuggested;
+    /** determines whether the slow motion mode is activated eventually */
     private boolean slowMotionModeActivationSwitch;
+    /** whether to correct the robot's motion in reference to the pilot's directions */
     private boolean groundNavigatingModeActivationSwitch;
+    /** whether to reverse the y axis of the controller, according to the preference of the pilot */
     private boolean yAxleReversedSwitch;
 
+    /** the times elapsed after the last time these mode buttons are pressed
+     * so that it does not shift between the modes in one press */
     private final ElapsedTime previousMotionModeButtonActivation;
     private final ElapsedTime previousNavigationModeButtonActivation;
     private final ElapsedTime previousYAxleReverseSwitchActivation;
     private final ElapsedTime lastMovement;
 
-    private boolean paused;
-    private boolean terminated;
+    /**
+     *
+     */
+    public RobotChassis() {
+        super("RobotChassis");
+        this.previousMotionModeButtonActivation = new ElapsedTime();
+        this.previousNavigationModeButtonActivation = new ElapsedTime();
+        this.previousYAxleReverseSwitchActivation = new ElapsedTime();
+        this.lastMovement = new ElapsedTime();
+    }
 
-    /*
-    * dpad upper button: switch on/off field-navigation mode
-    * dpad lower button: switch on/off slow motion mode
-    * dpad left button: switch reverse y axle
-    * dpad right button: reset IMU YAW direction
-    * */
+    /**
+     * initialize the chassis of the robot
+     *
+     * @param dependentModules: null should be given as this module does not depend on any other modules
+     * @param dependentInstances: the instance needed by the robot's chassis
+     *                          "initialControllerPad": Gamepad, the default game pad used to control the robot's chassis
+     *                          "hardwareDriver" : HardwareDriver, the connection to the robot's hardware
+     *                          "imu" : IMU, the connection to the built-in imu of the robot's board
+     */
+    @Override
+    public void init(
+            HashMap<String, RobotModule> dependentModules,
+            HashMap<String, Object> dependentInstances
+    ) throws NullPointerException {
+        /* throw out an error if the dependentInstances is given an empty map */
+        if (dependentInstances.isEmpty()) throw new NullPointerException(
+                "an empty map of dependent instances given to this module, which requires at least one instant dependencies"
+        );
 
-    public RobotChassis(Gamepad gamepad, HardwareDriver driver, IMU imu) {
-        this.gamepad = gamepad;
-        this.driver = driver;
-        this.imu = imu;
 
-        // the rotation of the control hub, in reference to the chassis, see https://ftc-docs.firstinspires.org/programming_resources/imu/imu.html
-        final double xRotation = 0;
-        final double yRotation = 145.64;
-        final double zRotation = 0;
-        // init the imu
+        /* get the instances from the param */
+        if (! dependentInstances.containsKey("initialControllerPad")) throw new NullPointerException(
+                "dependent instance not given: " + "initialControllerPad"
+        );
+        this.gamepad = (Gamepad) dependentInstances.get("initialControllerPad");
+
+        if (! dependentInstances.containsKey("hardwareDriver")) throw new NullPointerException(
+                "dependent instance not given: " + "hardwareDriver"
+        );
+        this.driver = (HardwareDriver) dependentInstances.get("hardwareDriver");
+
+        if (! dependentInstances.containsKey("imu")) throw new NullPointerException(
+                "dependent instance not given: " + "imu"
+        );
+        this.imu = (IMU) dependentInstances.get("imu");
+
+
+        /* calibrate the imu */
         Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
@@ -71,17 +121,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         this.slowMotionModeRequested = false;
         this.slowMotionModeSuggested = false;
         this.slowMotionModeActivationSwitch = false;
-        this.previousMotionModeButtonActivation = new ElapsedTime();
-        this.previousNavigationModeButtonActivation = new ElapsedTime();
-        this.previousYAxleReverseSwitchActivation = new ElapsedTime();
-        this.lastMovement = new ElapsedTime();
-        this.paused = false;
-        this.terminated = false;
-    }
-
-    @Override
-    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) {
-
     }
 
     @Override
@@ -257,16 +296,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
                 linearMapMethod(fromFloor, fromCeiling, toFloor, toCeiling, magnitude),
                 magnitude
         );
-    }
-    public void pause() {
-        this.paused = true;
-    }
-    public void resume() {
-        this.paused = false;
-    }
-
-    public void terminate() {
-        terminated = true;
     }
 
     public double getLastMovementTime() {

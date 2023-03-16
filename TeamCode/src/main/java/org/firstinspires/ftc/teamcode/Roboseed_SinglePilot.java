@@ -55,6 +55,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         this.configureRobot();
 
+
         /* pass the hardware ports to the arm module */
         HashMap armModuleDependentModules = null;
         HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
@@ -64,7 +65,11 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
 
         /* TODO write the above to pass the dependencies and ports all the modules */
+        HashMap<String, RobotModule> robotChassisDependentModules = new HashMap<>();
+        HashMap<String, Object> robotChassisDependentInstances = new HashMap<>();
         robotChassis = new RobotChassis(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
+
+
         fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
         imuReader = new IMUReader(hardwareMap);
