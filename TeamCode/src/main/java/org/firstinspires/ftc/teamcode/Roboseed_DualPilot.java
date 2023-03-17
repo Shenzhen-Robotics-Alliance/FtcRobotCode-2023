@@ -64,11 +64,19 @@ public class Roboseed_DualPilot extends LinearOpMode {
         arm = new Arm();
         arm.init(armModuleDependentModules, armModuleDependentInstances);
 
+        /** pass the hardware ports to the robot chassis */
+        HashMap<String, RobotModule> robotChassisDependentModules = null;
+        HashMap<String, Object> robotChassisDependentInstances = new HashMap<>();
+        /* give the first pilot's controller pad as the initial controller pad for robot's movement to the chassis module */
+        robotChassisDependentInstances.put("initialControllerPad", gamepad1);
+        /* give the connection to the hardware to the module */
+        robotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
+        /* give the back up imu module of the extension hub to the chassis module*/
+        robotChassisDependentInstances.put("imu", hardwareMap.get(IMU.class, "imu2"));
+        robotChassis = new RobotChassis();
+        robotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
 
         /* TODO write the above to pass the dependencies and ports all the modules */
-        robotChassis = new RobotChassis(gamepad1, hardwareDriver, hardwareMap.get(IMU.class, "imu2")); // back up imu module from extension hub
-        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
-
         imuReader = new IMUReader(hardwareMap);
         imuReader.calibrateIMU();
         autoStageRobotChassis = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
@@ -78,11 +86,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
         telemetry.addLine("robotCurrentPosition(Encoder)");
         telemetry.addLine("robotCurrentRotation(Encoder)");
         telemetry.addLine("robotCurrentPosition(IMU)"); */
-
-
-
-        Thread chassisThread = new Thread(robotChassis);
-        chassisThread.start(); // start an independent thread to run chassis module
 
         Thread navigationThread = new Thread(fieldNavigation);
         navigationThread.start();
@@ -128,7 +131,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
             fieldNavigation.terminate();
-            robotChassis.terminate();
             autoStageRobotChassis.terminate();
             imuReader.terminate();
         }
@@ -143,7 +145,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop();
-        } robotChassis.terminate(); fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
+        } fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
     /**
@@ -152,18 +154,15 @@ public class Roboseed_DualPilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop() throws InterruptedException {
-        gamepad1 = null;
-        double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-        /* String cameraPositionString = robotCurrentPosition[0] + " " + robotCurrentPosition[1] + " " + String.valueOf(robotCurrentPosition[2]);
-         * telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString); */
+        /** switch to dual pilot mode if the second pilot asks to take over */
+        if (gamepad2.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad2);
 
-        double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
-        /* String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-         * telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString); */
+        /** switch back to single pilot mode if the first pilot asks to take over the arms */
+        if (gamepad1.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad1);
 
-        double[] IMUPosition = imuReader.getIMUPosition();
-        /* String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
-         * telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString); */
+        /** calls the periodic function of the modules TODO put the modules in a map and go through tem to run per */
+        robotChassis.periodic();
+        arm.periodic();
 
         telemetry.update();
     }

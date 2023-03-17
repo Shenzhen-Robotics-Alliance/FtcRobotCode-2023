@@ -118,6 +118,15 @@ public class Arm extends RobotModule {
         this.armStatusCode = -1;
     }
 
+    /**
+     * update the hardware port or controller pad of the arm function
+     *
+     * @param instanceName the name of instance to update
+     *                     "hardwareDriver" : the connection to the robot's hardware,
+     *                     "controllerPad" : the game pad used to control the robot
+     * @param newerInstance the newer instance to replace the older one
+     * @throws NullPointerException if an none-exist instance is selected
+     */
     @Override
     public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
         switch (instanceName) {
@@ -125,7 +134,7 @@ public class Arm extends RobotModule {
                 this.hardwareDriver = (HardwareDriver) newerInstance;
                 break;
             }
-            case "initialControllerPad" : {
+            case "controllerPad" : {
                 this.gamepad = (Gamepad) newerInstance;
             }
             default: throw new NullPointerException("attempting to update a none-exist instance");

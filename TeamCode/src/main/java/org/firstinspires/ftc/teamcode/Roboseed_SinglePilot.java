@@ -157,18 +157,16 @@ public class Roboseed_SinglePilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop(Arm arm, RobotChassis robotChassis) throws InterruptedException {
-        if (gamepad2.)
-
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-        String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
+        String cameraPositionString = robotCurrentPosition[0] + " " + robotCurrentPosition[1] + " " + String.valueOf(robotCurrentPosition[2]);
         telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
 
         double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
-        String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
+        String encoderPositionString = encoderPosition[0] + "," + encoderPosition[1];
         telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
 
         double[] IMUPosition = imuReader.getIMUPosition();
-        String IMUPositionString = String.valueOf(IMUPosition[0]) + "," + String.valueOf(IMUPosition[1]);
+        String IMUPositionString = IMUPosition[0] + "," + IMUPosition[1];
         telemetry.addData("robotCurrentPosition(IMU)", IMUPositionString);
 
         telemetry.update();
