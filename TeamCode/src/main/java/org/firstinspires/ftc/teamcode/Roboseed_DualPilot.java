@@ -23,7 +23,7 @@ import java.util.HashMap;
  *
  * tele-operation program for two pilots to control
  * support single pilot still, but enable dual pilot mode if the second gamepad asks to plug in
- * TODO fit the program with the robot modules plugin
+ * TODO fit the program with the robot modules plugin (first priority)
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
