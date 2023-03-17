@@ -24,6 +24,7 @@ import java.util.HashMap;
  * tele-operation program for two pilots to control
  * support single pilot still, but enable dual pilot mode if the second gamepad asks to plug in
  * TODO fit the program with the robot modules plugin (first priority)
+ * TODO write "RobotPositionCalculator.java" and navigate with the encoders(to sense the chang in position) and imu (to sense the current direction and know where the robot is moving towards)
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
@@ -157,17 +158,17 @@ public class Roboseed_DualPilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop() throws InterruptedException {
-        /** switch to dual pilot mode if the second pilot asks to take over */
-        if (gamepad2.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad2);
-
-        /** switch back to single pilot mode if the first pilot asks to take over the arms */
-        if (gamepad1.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad1);
-
         /** calls the periodic function of the modules TODO put the modules in a map and go through tem to run per */
         robotChassis.periodic();
         arm.periodic();
 
         telemetry.update();
+
+        /** switch to dual pilot mode if the second pilot asks to take over */
+        if (gamepad2.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad2);
+
+        /** switch back to single pilot mode if the first pilot asks to take over the arms */
+        if (gamepad1.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad1);
     }
 
     /**
