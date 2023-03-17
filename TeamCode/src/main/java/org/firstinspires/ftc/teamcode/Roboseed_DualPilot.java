@@ -162,13 +162,26 @@ public class Roboseed_DualPilot extends LinearOpMode {
         robotChassis.periodic();
         arm.periodic();
 
+
+        /** switch between the two control modes if asked to */
+        /* switch to dual pilot mode if the second pilot asks to take over */
+        if (gamepad2.left_bumper && gamepad2.right_bumper) {
+            /* update the controller pad of arm module */
+            arm.updateDependentInstances("controllerPad", gamepad2);
+            /* shake the game pad to remind the pilots */
+            gamepad2.rumble(500);
+        }
+
+        /* switch back to single pilot mode if the first pilot asks to take over the arms */
+        if (gamepad1.left_bumper && gamepad1.right_bumper) {
+            /* update the controller pad of arm module */
+            arm.updateDependentInstances("controllerPad", gamepad1);
+            /* shake the game pad to remind the pilots */
+            gamepad1.rumble(500);
+        }
+
+
         telemetry.update();
-
-        /** switch to dual pilot mode if the second pilot asks to take over */
-        if (gamepad2.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad2);
-
-        /** switch back to single pilot mode if the first pilot asks to take over the arms */
-        if (gamepad1.left_bumper && gamepad2.right_bumper) arm.updateDependentInstances("controllerPad", gamepad1);
     }
 
     /**
