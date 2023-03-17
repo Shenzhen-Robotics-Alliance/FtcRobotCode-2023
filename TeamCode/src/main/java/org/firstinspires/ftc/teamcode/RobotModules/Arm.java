@@ -136,6 +136,7 @@ public class Arm extends RobotModule {
             }
             case "controllerPad" : {
                 this.gamepad = (Gamepad) newerInstance;
+                break;
             }
             default: throw new NullPointerException("attempting to update a none-exist instance");
         }

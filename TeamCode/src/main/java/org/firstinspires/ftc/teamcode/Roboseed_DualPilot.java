@@ -29,7 +29,7 @@ import java.util.HashMap;
  * @Date 2023.2.27
  * @Version v0.1.0
  */
-@TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
+@TeleOp(name = "ManualControlMode_v2.0_DualPilot")
 public class Roboseed_DualPilot extends LinearOpMode {
     /** the interface that connects the robot's hardware */
     private final HardwareDriver hardwareDriver = new HardwareDriver();
@@ -57,13 +57,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
         /* configure the ports for all the hardware's */
         this.configureRobot();
 
-        /* pass the hardware ports to the arm module */
-        HashMap armModuleDependentModules = null;
-        HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
-        armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
-        arm = new Arm();
-        arm.init(armModuleDependentModules, armModuleDependentInstances);
-
         /** pass the hardware ports to the robot chassis */
         HashMap<String, RobotModule> robotChassisDependentModules = null;
         HashMap<String, Object> robotChassisDependentInstances = new HashMap<>();
@@ -75,6 +68,16 @@ public class Roboseed_DualPilot extends LinearOpMode {
         robotChassisDependentInstances.put("imu", hardwareMap.get(IMU.class, "imu2"));
         robotChassis = new RobotChassis();
         robotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
+
+        /** pass the dependent modules to the arm module */
+        HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
+        armModuleDependentModules.put("robotChassis", robotChassis);
+        /** pass the hardware ports to the arm module */
+        HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
+        armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
+        armModuleDependentInstances.put("initialControllerPad", gamepad1);
+        arm = new Arm();
+        arm.init(armModuleDependentModules, armModuleDependentInstances);
 
         /* TODO write the above to pass the dependencies and ports all the modules */
         imuReader = new IMUReader(hardwareMap);
