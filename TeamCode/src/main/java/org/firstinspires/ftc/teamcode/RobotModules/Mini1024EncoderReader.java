@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.RobotModule;
  * @Date 2023.3.16
  * @Version v0.0.3
 */
-public class Mini1024EncoderModule extends RobotModule {
+public class Mini1024EncoderReader extends RobotModule {
     /** the operable instance of the three encoders */
     private DcMotorEx encoder1, encoder2, encoder3;
 
@@ -40,7 +40,7 @@ public class Mini1024EncoderModule extends RobotModule {
      *
      * @param moduleName the name of the module, must be unique as it is used as an identifier
      */
-    public Mini1024EncoderModule(String moduleName) {
+    public Mini1024EncoderReader(String moduleName) {
         super(moduleName);
     }
 

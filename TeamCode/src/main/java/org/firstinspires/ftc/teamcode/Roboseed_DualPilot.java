@@ -97,40 +97,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         Thread imuReaderThread = new Thread(imuReader);
         imuReaderThread.start();
 
-        // computerVisionAUX.test(); // run the test
-
         if (isStopRequested()) return;
-
-        // Set the current state to TRAJECTORY_1, our first step
-        // Then have it follow that trajectory
-        // Make sure you use the async version of the commands
-        // Otherwise it will be blocking and pause the program here until the trajectory finishes
-//        currentState = State.TRAJECTORY_1;
-//        drive.followTrajectoryAsync(trajectory1);
-
-        Thread robotStatusMonitoringThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (opModeIsActive() && !isStopRequested()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) { throw new RuntimeException(e); }
-                    System.out.println("monitoring thread running");
-                    double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-                    String cameraPositionString = String.valueOf(robotCurrentPosition[0]) + " " + String.valueOf(robotCurrentPosition[1]) + " " + String.valueOf(robotCurrentPosition[2]);
-                    telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
-
-                    double[] encoderPosition = autoStageRobotChassis.getEncoderPosition();
-                    String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-                    telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
-
-                    double encoderRotation = autoStageRobotChassis.getEncoderRotation();
-                    telemetry.addData("robotCurrentRotation(Encoder)", encoderRotation);
-
-                    telemetry.update();
-                }
-            }
-        }); // robotStatusMonitoringThread.start();
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();

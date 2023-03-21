@@ -26,7 +26,7 @@ public abstract class RobotModule {
 
     /**
      * construct method of robot module
-     * sets the name of the module (the init function
+     * sets the name of the module
      *
      * @param moduleName the name of the module, must be unique as it is used as an identifier
      */

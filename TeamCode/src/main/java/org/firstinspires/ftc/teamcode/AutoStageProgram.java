@@ -11,5 +11,5 @@ package org.firstinspires.ftc.teamcode;
  * @Date 2023.2.27
  * @Version v0.1.0
 */
-public interface AutoStageProgram {
+public abstract class AutoStageProgram {
 }

@@ -22,7 +22,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-public class IMUReader implements Runnable{
+public class IMUReader implements Runnable {
     // The IMU sensor object
     BNO055IMU imu;
     private boolean terminated;

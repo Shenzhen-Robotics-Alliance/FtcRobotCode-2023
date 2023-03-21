@@ -27,7 +27,6 @@ import java.util.HashMap;
  * @Date 2023.2.27
  * @Version v0.1.0
  */
-@Deprecated
 @TeleOp(name = "ManualControlMode_v1.0_SinglePilot")
 public class Roboseed_SinglePilot extends LinearOpMode {
     /* the interface that connects the robot's hardware */
