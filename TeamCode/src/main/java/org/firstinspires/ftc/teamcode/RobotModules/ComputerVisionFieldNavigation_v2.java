@@ -10,6 +10,8 @@
  * */
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -18,8 +20,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.teamcode.RobotModule;
 
-public class ComputerVisionFieldNavigation_v2 implements Runnable {
+import java.util.HashMap;
+
+public class ComputerVisionFieldNavigation_v2 extends RobotModule {
     /**
      * the position of the x coordinate when storing in an array.
      * reverse x and y axles to fit the robot unless the robot will turn 90 degree when facing navigation sign
@@ -57,8 +62,32 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     /** the variable that stores */
     private double robotRotation;
     private ElapsedTime positionLastUpdateTime = new ElapsedTime();
-    
+
+    /** construction method of field navigation module */
     public ComputerVisionFieldNavigation_v2(HardwareMap hardwareMap) {
+        /* call to super and pass in the name of this module */
+        super("fieldNavigation");
+        /* instantiate the vuforia play instance */
+        vuforiaPOWERPLAY = new VuforiaCurrentGame();
+    }
+
+    /**
+     * initialize the field navigation system
+     *
+     * @param dependentModules: null should be given as this module does not depend on any other modules
+     * @param dependentInstances: the instance needed by the robot's chassis
+     *                          "hardwareMap" : HardwareMap the connection to the robot's hardware
+     */
+    @Override
+    public void init(
+            HashMap<String, RobotModule> dependentModules,
+            @NonNull
+            HashMap<String, Object> dependentInstances
+    ) throws NullPointerException {
+        /* get the connection to the robot's hardware */
+        HardwareMap hardwareMap = (HardwareMap) dependentInstances.get("hardwareMap");
+
+        /* set the params for vuforia module */
         final String vuforiaLicenseKey = "";
         WebcamName cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
         final String webcamCalibrationFilename = "";
@@ -70,15 +99,28 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         float firstAngle = 90; float secondAngle = 90; float thirdAngle = 0;
         boolean useCompetitionFieldTargetLocations = true; // params for initializing vuforia power play
 
-        vuforiaPOWERPLAY = new VuforiaCurrentGame(); // instantiate
+        /* start the vuforia module */
         vuforiaPOWERPLAY.initialize(vuforiaLicenseKey, cameraName, webcamCalibrationFilename, useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback, dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
         vuforiaPOWERPLAY.activate();
 
+        /* initialize the robot's position */
         robotPosition = new double[3];
     }
 
+    /**
+     * update an instance used in the module
+     * @Deprecated this module does not support updating instances once the initialization is completed
+     * @TODO this module may or may not support changing between different cameras in the future
+     */
+    @Override @Deprecated
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
+
+    /**
+     * update the position of the robot according to the available navigation signs, if any
+     * call this method in every run loop of the main program
+     */
     @Override
-    public void run() {
+    public void periodic() {
         final String[] targets = {"Red Audience Wall", "Red Rear Wall", "Blue Audience Wall", "Blue Rear Wall"};
 
         for (String target: targets) if (isTargetVisible(target)) {

@@ -80,6 +80,11 @@ public class Roboseed_DualPilot extends LinearOpMode {
         arm = new Arm();
         arm.init(armModuleDependentModules, armModuleDependentInstances);
 
+        /** pass the hardware ports to the field navigation module */
+        HashMap<String, RobotModule> fieldNavigationDependentModules = null;
+        HashMap<String, Object> fieldNavigationDependentInstances = new HashMap<>(1);
+        armModuleDependentInstances.put("")
+
         /* TODO write the above to pass the dependencies and ports all the modules */
         imuReader = new IMUReader(hardwareMap);
         imuReader.calibrateIMU();
@@ -101,7 +106,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
-            fieldNavigation.terminate();
             autoStageRobotChassis.terminate();
             imuReader.terminate();
         }
@@ -116,7 +120,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop();
-        } fieldNavigation.terminate(); autoStageRobotChassis.terminate();
+        } autoStageRobotChassis.terminate();
     }
 
     /**
@@ -125,7 +129,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop() throws InterruptedException {
-        /** calls the periodic function of the modules TODO put the modules in a map and go through tem to run per */
+        /** calls the periodic function of the modules TODO put the modules in a map and go through in every run loop */
         robotChassis.periodic();
         arm.periodic();
 
