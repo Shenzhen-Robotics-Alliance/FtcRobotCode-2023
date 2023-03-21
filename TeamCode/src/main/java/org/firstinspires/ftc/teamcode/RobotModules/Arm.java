@@ -244,7 +244,7 @@ public class Arm extends RobotModule {
 
     /**
      * called when status code is 2,
-     * meaning the arm is currently moving upward and should slowing the moment it gets close to the objective position
+     * meaning the arm is currently moving upward and should start slowing the moment it gets close to the objective position
      */
     private void waitForInclinedCompletion() {
         /* wait until the movement is completed */
@@ -353,44 +353,39 @@ public class Arm extends RobotModule {
         */
         boolean isDecline = position < hardwareDriver.lift_left.getCurrentPosition();
 
-        /* set the power of the motor
-        *   20% when it's going down, in considerate of the impulse of gravitation
-        *   40% when it's going up
-        */
         if (isDecline) {
+            /* set the power of the motor
+             * 20% when it's going down, in considerate of the impulse of gravitation
+             * */
             double armDeclineSpeed = 0.2;
             hardwareDriver.lift_left.setPower(armDeclineSpeed);
             hardwareDriver.lift_right.setPower(armDeclineSpeed);
+
+            /* if the arm is declining
+             * set the status code so the arm will decelerate in future calls of periodic
+             * */
+            this.armStatusCode = 1;
         } else {
+            /* set the power of the motor
+             * 40% when it's going up
+             * */
             double armInclineSpeed = 0.4;
             hardwareDriver.lift_left.setPower(armInclineSpeed);
             hardwareDriver.lift_right.setPower(armInclineSpeed);
+
+            /* if the arm isn't declining
+             *  move to the position directly, as gravity will slow the arm down
+             * */
+            this.armStatusCode = 2;
         }
 
-        /*
-        * set the targeted position of the motors
-        * set the running mode
-        * */
+        this.targetedArmPosition = position;
+
+        // TODO the rest shall be moved to the end of the slowing-down methods
         hardwareDriver.lift_left.setTargetPosition(position);
         hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hardwareDriver.lift_right.setTargetPosition(position);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        /* if the arm isn't declining
-         *  move to the position directly, as gravity will slow the arm down
-         */
-        if (!isDecline) {
-            this.armStatusCode = 2;
-            this.targetedArmPosition = position;
-            return;
-        }
-
-        /* if the arm is declining
-         * set the status code so the arm will decelerate in future calls of periodic
-         */
-        this.armStatusCode = 1;
-        this.targetedArmPosition = position;
-        return;
 
         while (Math.abs(hardwareDriver.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hardwareDriver.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
         /* slow the motor down */
