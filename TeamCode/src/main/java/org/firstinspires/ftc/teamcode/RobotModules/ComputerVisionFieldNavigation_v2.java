@@ -64,7 +64,7 @@ public class ComputerVisionFieldNavigation_v2 extends RobotModule {
     private ElapsedTime positionLastUpdateTime = new ElapsedTime();
 
     /** construction method of field navigation module */
-    public ComputerVisionFieldNavigation_v2(HardwareMap hardwareMap) {
+    public ComputerVisionFieldNavigation_v2() {
         /* call to super and pass in the name of this module */
         super("fieldNavigation");
         /* instantiate the vuforia play instance */

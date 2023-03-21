@@ -76,9 +76,15 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         robotChassis = new RobotChassis();
         robotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
 
+        /** pass the hardware ports to the field navigation module */
+        HashMap<String, RobotModule> fieldNavigationDependentModules = null;
+        HashMap<String, Object> fieldNavigationDependentInstances = new HashMap<>(1);
+        fieldNavigationDependentInstances.put("hardwareMap", hardwareMap);
+        fieldNavigation = new ComputerVisionFieldNavigation_v2();
+        fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
+
         /** TODO write the above to pass the dependencies and ports all the modules */
 
-        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
 
         imuReader = new IMUReader(hardwareMap);
         imuReader.calibrateIMU();
@@ -89,9 +95,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         telemetry.addLine("robotCurrentPosition(Encoder)");
         telemetry.addLine("robotCurrentRotation(Encoder)");
         telemetry.addLine("robotCurrentPosition(IMU)");
-
-        Thread navigationThread = new Thread(fieldNavigation);
-        navigationThread.start();
 
         Thread imuReaderThread = new Thread(imuReader);
         imuReaderThread.start();
@@ -133,7 +136,6 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
-            fieldNavigation.terminate();
             autoStageRobotChassis.terminate();
             imuReader.terminate();
         }
@@ -148,7 +150,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop(arm, robotChassis);
-        } fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
+        } autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
     }
 
     /**

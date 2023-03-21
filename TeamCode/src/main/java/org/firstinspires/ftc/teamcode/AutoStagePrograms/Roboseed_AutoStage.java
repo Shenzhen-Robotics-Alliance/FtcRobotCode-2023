@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
@@ -46,7 +47,13 @@ public class Roboseed_AutoStage extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
-        fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
+
+        /** pass the hardware ports to the field navigation module */
+        HashMap<String, RobotModule> fieldNavigationDependentModules = null;
+        HashMap<String, Object> fieldNavigationDependentInstances = new HashMap<>(1);
+        fieldNavigationDependentInstances.put("hardwareMap", hardwareMap);
+        fieldNavigation = new ComputerVisionFieldNavigation_v2();
+        fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
 
         chassisModule = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation);
         chassisModule.initRobotChassis();
@@ -61,7 +68,6 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
                 while (!isStopRequested() && opModeIsActive()) Thread.yield();
-                fieldNavigation.terminate();
                 chassisModule.terminate();
                 terminationFlag = true;
             }
