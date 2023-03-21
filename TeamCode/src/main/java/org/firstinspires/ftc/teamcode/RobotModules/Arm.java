@@ -54,7 +54,7 @@ public class Arm extends RobotModule {
      * 1: the arm is motioning downwards and has a distance between the objective position, so it should continue moving downwards to go to the targeted position;
      * 2: the arm is motioning upwards and has a distance between the objective position, so it should continue moving upwards to go to the targeted position;
      * 3: the arm is currently motioning downwards but is already close to the objective position, so it should decelerate;
-     * 4: the arm is currently motioning upwards but is already close to the objective position, so it should jump to status 0 and maintain height, after being slowed down due to gravity;
+     * 4: the arm is currently motioning upwards but is already close to the objective position, so it should immediately jump to status 0 and maintain height, after being slowed down due to gravity;
      * 5: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
      */
     private short armStatusCode;
@@ -162,11 +162,17 @@ public class Arm extends RobotModule {
     @Override
     public void periodic() throws InterruptedException {
         switch (armStatusCode) {
-            case -1: {
+            case -1: case 0: {
                 reactToPilotInputs();
                 break;
-            } case 0: {
-                reactToPilotInputs();
+            }  case 1: {
+                waitForDeclinedCompletion();
+                break;
+            } case 2: {
+                waitForInclinedCompletion();
+                break;
+            } case 3: {
+                waitForDecelerateCompletion();
                 break;
             }
         }
@@ -174,6 +180,8 @@ public class Arm extends RobotModule {
 
     /**
      * reacts to the instructions of the pilot
+     * called when status code is -1 or 0,
+     * meaning the robot is still and waiting for commands
      *
      * configuration of the game pad:
      *      right_bumper: close the claw to grab stuffs
@@ -243,8 +251,28 @@ public class Arm extends RobotModule {
     }
 
     /**
+     * called when status code is 1,
+     * meaning the arm is currently moving downward and should decelerate when the it's close to the objective position
+     */
+    private void waitForDeclinedCompletion() {
+        if (
+                Math.abs(hardwareDriver.lift_left.getCurrentPosition()-targetedArmPosition) < 20 |
+                        Math.abs(hardwareDriver.lift_right.getCurrentPosition()-targetedArmPosition) < 20)
+        {
+            /* set the arms to be decelerating */
+            hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            hardwareDriver.lift_right.setVelocity(0);
+            hardwareDriver.lift_left.setVelocity(0);
+
+            /* update the status code of the arm telling that they are currently working to slow down */
+            armStatusCode = 3;
+        }
+    }
+
+    /**
      * called when status code is 2,
-     * meaning the arm is currently moving upward and should start slowing the moment it gets close to the objective position
+     * meaning the arm is currently moving upward and should jump to maintenance of height the moment it gets close enough to the objective position
      */
     private void waitForInclinedCompletion() {
         /* wait until the movement is completed */
@@ -264,10 +292,22 @@ public class Arm extends RobotModule {
     }
 
     /**
-     * slows the arms, which are moving towards ground down so they don't hit the structure of the robot heavily
+     * called when the status code is 3,
+     * meaning the arm is currently motioning downwards but is already close to the objective position,
+     * so it should slow down to avoid hitting the structure of the robot heavily
      */
-    private void decelerateArm() {
+    private void waitForDecelerateCompletion() {
+        /* wait until the slow-down is completed, accept any deviation less than 10 */
+        if (Math.abs(hardwareDriver.lift_left.getVelocity()) < 10) {
+            /*  make the motor stick in their positions */
+            hardwareDriver.lift_left.setTargetPosition(targetedArmPosition);
+            hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            hardwareDriver.lift_right.setTargetPosition(targetedArmPosition);
+            hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+            /* update the status code of the arm telling that the slow-down is completed and they are maintaining height at current position  */
+            armStatusCode = 0;
+        }
     }
 
     /**
@@ -379,26 +419,14 @@ public class Arm extends RobotModule {
             this.armStatusCode = 2;
         }
 
-        this.targetedArmPosition = position;
-
-        // TODO the rest shall be moved to the end of the slowing-down methods
+        /* set the arms to be moving, towards the objective position */
         hardwareDriver.lift_left.setTargetPosition(position);
         hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hardwareDriver.lift_right.setTargetPosition(position);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        while (Math.abs(hardwareDriver.lift_left.getCurrentPosition()-position) > 20 | Math.abs(hardwareDriver.lift_right.getCurrentPosition()-position) > 20) Thread.yield(); // wait until the movement almost complete
-        /* slow the motor down */
-        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        hardwareDriver.lift_right.setVelocity(0);
-        hardwareDriver.lift_left.setVelocity(0);
-        while (Math.abs(hardwareDriver.lift_left.getVelocity()) < 10) Thread.yield(); // wait until the slow-down is completed, accept any deviation less than 3
-        /* set the desired position */
-        hardwareDriver.lift_left.setTargetPosition(position);
-        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hardwareDriver.lift_right.setTargetPosition(position);
-        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION); // make the motor stick in the position
+        /* update the targeted position */
+        this.targetedArmPosition = position;
     }
 
     public void deactivateArm() {
