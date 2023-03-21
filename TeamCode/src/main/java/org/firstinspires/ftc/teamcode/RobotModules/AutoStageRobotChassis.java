@@ -15,8 +15,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.RobotModule;
 
-public class AutoStageRobotChassis {
+import java.util.HashMap;
+
+public class AutoStageRobotChassis extends RobotModule {
     // presets for rotation correcting
     private final double encoderCorrectionFactor = -1;
     private final boolean x_y_Reversed = true;
@@ -86,6 +89,34 @@ public class AutoStageRobotChassis {
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
 
+    /**
+     * initialize the chassis module for autonomous stage
+     * @param dependentModules this module needs the following modules(pass them in the form of hashmap):
+     *                         "robotChassis" : RobotChassis, the module that controls the chassis of the robot
+     *@param dependentInstances this module needs the following instances(pass them in the form of hashmap):
+     *                          "
+     *                          this module have the following instances as optional
+     */
+    @Override
+    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException {
+        imu.calibrateIMU();
+        this.imuReaderThread = new Thread(() -> {
+            while (!isStopRequested) imu.updateIMUStatus();
+        });
+        imuReaderThread.start();
+        this.calibrateEncoder();
+        fieldNavigationThread.start();
+    }
+
+    @Override
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
+
+    }
+
+    @Override
+    public void periodic() throws InterruptedException {
+
+    }
 
     public void initRobotChassis() {
         imu.calibrateIMU();
