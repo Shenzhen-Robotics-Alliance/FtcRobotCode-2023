@@ -46,7 +46,6 @@ public abstract class RobotModule {
 
     /**
      * update the an instance that is needed in the module to a newer one
-     * TODO throw the exception of calling to a none exist item in hash map
      *
      * @param instanceName the name of instance that needs to be replaced
      * @param newerInstance the newer instance that
@@ -62,6 +61,11 @@ public abstract class RobotModule {
      * @throws InterruptedException if the program is interrupted by the system
      */
     public abstract void periodic() throws InterruptedException;
+
+    /**
+     * TODO add an abstract function for all the modules that's called at the end of the program, to destroy some instances, free-up some memories and disable motors
+     */
+     // public abstract void terminate();
 
     /**
      * the messages that the module wants to print in the present period

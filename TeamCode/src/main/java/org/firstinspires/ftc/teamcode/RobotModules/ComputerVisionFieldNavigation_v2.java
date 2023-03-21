@@ -57,9 +57,6 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
     /** the variable that stores */
     private double robotRotation;
     private ElapsedTime positionLastUpdateTime = new ElapsedTime();
-
-    private boolean paused = false;
-    private boolean terminated = false;
     
     public ComputerVisionFieldNavigation_v2(HardwareMap hardwareMap) {
         final String vuforiaLicenseKey = "";
@@ -82,14 +79,6 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
 
     @Override
     public void run() {
-        while (!terminated) {
-            updateRobotPosition();
-            threadReactions();
-        }
-    }
-
-    // private void updateRobotPosition() {
-    public void updateRobotPosition() {
         final String[] targets = {"Red Audience Wall", "Red Rear Wall", "Blue Audience Wall", "Blue Rear Wall"};
 
         for (String target: targets) if (isTargetVisible(target)) {
@@ -98,12 +87,25 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         }
     }
 
+    /**
+     * checks whether a selected target is in the range of the camera
+     *
+     * @param trackableName the name of the target selected
+     *                      "Red Audience Wall", the wall facing the audience, in the left side of the field;
+     *                      "Red Rear Wall", TODO add explanation;
+     *                      "Blue Audience Wall", TODO add explanation;
+     *                      "Blue Rear Wall", TODO add explanation;
+     * @return a boolean data representing the visibility of the selected target;
+     * */
     private boolean isTargetVisible(String trackableName) {
         // Get vuforia results for target.
         vuforiaResults = vuforiaPOWERPLAY.track(trackableName);
         return vuforiaResults.isVisible;
     }
 
+    /**
+     * process and store the position of the robot using the raw vuforia data
+     * */
     private void processTarget() {
         robotPosition[xAxisPositionInArray] = vuforiaResults.x * xAxisPositionCorrectionFactor;
         robotPosition[yAxisPositionInArray] = vuforiaResults.y * yAxlesPositionCorrectionFactor;
@@ -111,28 +113,30 @@ public class ComputerVisionFieldNavigation_v2 implements Runnable {
         robotRotation = Math.toRadians(vuforiaResults.zAngle);
     }
 
-    public void threadReactions() { // reactions when the process is paused or terminated
-        do {
-            if (terminated) {
-                vuforiaPOWERPLAY.deactivate(); vuforiaPOWERPLAY.close();
-                break;
-            }
-            Thread.yield();
-        } while (paused);
-    }
+    /**
+     *  get the position of the robot determined by the camera in the last time the camera sees a navigation sign
+     *  @return the position of the robot in an array with length three, the data is in millimeter
+     */
+    public double[] getRobotPosition() { return robotPosition; }
+    /**
+     *  get the facing of the robot determined by the camera in the last time the camera sees a navigation sign
+     *  @return the rotation of the robot, in radian
+     */
+    public double getRobotRotation() { return robotRotation; }
 
-    public double[] getRobotPosition() { return robotPosition; } // return the position of the robot, in mm
-    public double getRobotRotation() { return robotRotation; } // return the rotation of the robot, in radian
-    public double PositionLastUpdate() { return positionLastUpdateTime.seconds(); } // so that you can know how accurate the results are
+    /**
+     * to know how fresh are the data
+     * @return the time between present and the last the time the data is updated from the camera
+     */
+    public double PositionLastUpdate() { return positionLastUpdateTime.seconds(); }
+    /**
+     * to know whether there is(are) at least one navigation sign(s) available to navigate
+     * @return the visibility of any single one of all the targets
+     */
     public boolean checkNavigationSignsVisibility() {
-        if (terminated) return false; // do not execute if the program is already put to stop
         // check if any navigation sign is available
         final String[] targets = {"Red Audience Wall", "Red Rear Wall", "Blue Audience Wall", "Blue Rear Wall"};
         for (String target: targets) if (isTargetVisible(target)) return true; // run the check through all navigation signs
         return false;
     }
-
-    public void pause() { paused = true; }
-    public void resume() { paused = false;}
-    public void terminate() { terminated = true; }
 }
