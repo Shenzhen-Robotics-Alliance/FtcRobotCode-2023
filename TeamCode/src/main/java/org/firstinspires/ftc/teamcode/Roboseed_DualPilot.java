@@ -116,7 +116,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop();
-        } fieldNavigation.terminate(); autoStageRobotChassis.terminate(); // stop the chassis and navigation modules after the op mode is put to stop
+        } fieldNavigation.terminate(); autoStageRobotChassis.terminate();
     }
 
     /**

@@ -20,18 +20,41 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 public class ComputerVisionFieldNavigation_v2 implements Runnable {
-    // some presets
-    // TODO make these following presets a list, containing the preset for each navigation sign
+    /**
+     * the position of the x coordinate when storing in an array.
+     * reverse x and y axles to fit the robot unless the robot will turn 90 degree when facing navigation sign
+     */
     private final short xAxisPositionInArray = 0;
-    private final short yAxisPositionInArray = 1; // do not reverse x and y axles to fit the robot, as the robot will turn 90 degree when facing navigation sign
+    /**
+     * the position of the x coordinate when storing in an array.
+     * reverse x and y axles to fit the robot unless the robot will turn 90 degree when facing navigation sign
+     */
+    private final short yAxisPositionInArray = 1;
+    /** the position of the x coordinate when storing in an array */
     private final short zAxisPositionInArray = 2;
+    /**
+     * the factor that will be multiplied to the x-axis coordinate to correct to format it,
+     * leave it to be 1 if it's correct already
+     */
     private final double xAxisPositionCorrectionFactor = 1;
-    private final double yAxlesPositionCorrectionFactor = -1; // reverse y axis to match the field
+    /**
+     * the factor that will be multiplied to the y-axis coordinate to correct to format it
+     * reverse y axis to match the field
+     */
+    private final double yAxlesPositionCorrectionFactor = -1;
+    /**
+     * the factor that will be multiplied to the z-axis coordinate to correct to format it,
+     * leave it to be 1 if it's correct already
+     */
     private final double zAxlesPositionCorrectionFactor = 1;
-    private VuforiaCurrentGame vuforiaPOWERPLAY;
-    private VuforiaBase.TrackingResults vuforiaResults; // some vuforia instances
-    
+
+    /** some vuforia instances */
+    private final VuforiaCurrentGame vuforiaPOWERPLAY;
+    private VuforiaBase.TrackingResults vuforiaResults;
+
+    /** the array that stores the robot's position in a 3d space */
     private double[] robotPosition;
+    /** the variable that stores */
     private double robotRotation;
     private ElapsedTime positionLastUpdateTime = new ElapsedTime();
 
