@@ -90,32 +90,41 @@ public class AutoStageRobotChassis extends RobotModule {
     }
 
     /**
+     * construct method for chassis module used in autonomous stage
+     */
+    public AutoStageRobotChassis() {
+        /* call to super method */
+        super("autoStageRobotChassis");
+    }
+
+    /**
      * initialize the chassis module for autonomous stage
-     * @param dependentModules this module needs the following modules(pass them in the form of hashmap):
-     *                         "robotChassis" : RobotChassis, the module that controls the chassis of the robot
+     * @param dependentModules this module have the following modules as optional(pass them in the form of hashmap, or they will be created in the initialization):
+     *                         "fieldNavigation" : ComputerVisionFieldNavigation_v2, the module that calculates the robot's position using cameras;
+     *                         "imuReader" : IMUReader, the module that reads and formats the data from built-in imu sensor in the robot;
      *@param dependentInstances this module needs the following instances(pass them in the form of hashmap):
-     *                          "
-     *                          this module have the following instances as optional
+     *                          "hardwareDriver" : HardwareDriver, the driver of the robot's hardware, gain from main program;
+     *                          "hardwareMap" : HardwareMap, the connection to the ports of the robot;
      */
     @Override
     public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException {
+        
+
+        /* calibrate the encoders and the imu */
         imu.calibrateIMU();
-        this.imuReaderThread = new Thread(() -> {
-            while (!isStopRequested) imu.updateIMUStatus();
-        });
-        imuReaderThread.start();
         this.calibrateEncoder();
-        fieldNavigationThread.start();
     }
 
-    @Override
-    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
-
-    }
+    /**
+     * update an instance used in the module
+     *
+     * @Deprecated the robot chassis in auto stage does not support changing modules after initialization
+     */
+    @Override @Deprecated public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
 
     @Override
     public void periodic() throws InterruptedException {
-
+        imu.updateIMUStatus();
     }
 
     public void initRobotChassis() {
@@ -507,12 +516,6 @@ public class AutoStageRobotChassis extends RobotModule {
 
     public double getImuYaw() {
         return imu.getRobotHeading();
-    }
-
-    public void terminate() {
-        isStopRequested = true;
-        setRobotMotion(0, 0, 0);
-        fieldNavigation.terminate();
     }
 
     public void testRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
