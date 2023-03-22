@@ -106,7 +106,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
-            autoStageRobotChassis.terminate();
             imuReader.terminate();
         }
         }); terminationListenerThread.start();
@@ -120,7 +119,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop();
-        } autoStageRobotChassis.terminate();
+        }
     }
 
     /**
