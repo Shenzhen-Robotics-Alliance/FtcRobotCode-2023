@@ -125,6 +125,9 @@ public class Roboseed_DualPilot extends LinearOpMode {
         autoStageRobotChassis.calibrateEncoder();
         imuReader.calibrateIMU();
 
+        /* add telemetry line, TODO:use robot-debug-bridge to do it */
+        telemetry.addLine("arm-position-code");
+
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop();
@@ -170,6 +173,8 @@ public class Roboseed_DualPilot extends LinearOpMode {
             gamepad1.rumble(500);
         }
 
+        telemetry.addData("arm-position-code", arm.getArmStatusCode());
+        System.out.println("arm position code: " + arm.getArmStatusCode());
 
         telemetry.update();
     }

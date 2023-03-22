@@ -118,7 +118,6 @@ public class IMUReader extends RobotModule {
         position[0] += dX;
         position[1] += dY;
         dt.reset();
-        System.out.print(getRobotXAcceleration()); System.out.print(" "); System.out.println(getRobotYAcceleration());
     }
 
     public void calibrateIMU() {

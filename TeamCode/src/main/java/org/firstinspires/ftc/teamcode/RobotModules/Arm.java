@@ -267,6 +267,8 @@ public class Arm extends RobotModule {
 
             /* update the status code of the arm telling that they are currently working to slow down */
             armStatusCode = 3;
+            /* do periodic immediately */
+            this.periodic();
         }
     }
 
@@ -288,6 +290,8 @@ public class Arm extends RobotModule {
 
             /* update the status code of the arm telling that they are maintaining height at current position */
             armStatusCode = 0;
+            /* do periodic immediately */
+            this.periodic();
         }
     }
 
@@ -297,24 +301,30 @@ public class Arm extends RobotModule {
      * so it should slow down to avoid hitting the structure of the robot heavily
      */
     private void waitForDecelerateCompletion() {
-        /* wait until the slow-down is completed, accept any deviation less than 10 */
-        if (Math.abs(hardwareDriver.lift_left.getVelocity()) < 10) {
-            /*  make the motor stick in their positions */
-            hardwareDriver.lift_left.setTargetPosition(targetedArmPosition);
-            hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            hardwareDriver.lift_right.setTargetPosition(targetedArmPosition);
-            hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_left.setVelocity(0);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.lift_right.setVelocity(0);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            /* update the status code of the arm telling that the slow-down is completed and they are maintaining height at current position  */
-            armStatusCode = 0;
-        }
+        /* wait until the slow-down is completed, accept any deviation less than 10
+        * just do the whole process inside one period, it does not take much time */
+        while (Math.abs(hardwareDriver.lift_left.getVelocity()) < 10) Thread.yield();
+
+        /*  make the motor stick in their positions */
+        hardwareDriver.lift_left.setTargetPosition(targetedArmPosition);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_right.setTargetPosition(targetedArmPosition);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        /* update the status code of the arm telling that the slow-down is completed and they are maintaining height at current position  */
+        armStatusCode = 0;
+        /* do periodic immediately */
+        this.periodic();
     }
 
     /**
      * move the arm down into the following lower level
      */
     public void lowerArm() {
-        System.out.println(this);
         switch (armPositionCode) {
             case 3: toMidArmPosition(); break;
             case 2: toLowArmPosition(); break;
@@ -486,5 +496,18 @@ public class Arm extends RobotModule {
         return armIsBusy;
     }
 
-
+    /**
+     * get the status code of the arm
+     *
+     * -1: the arm is relaxed and waiting for pilot's instructions;
+     * 0: the arm is holding still at current height and waiting for pilot's instructions;
+     * 1: the arm is motioning downwards and has a distance between the objective position, so it should continue moving downwards to go to the targeted position;
+     * 2: the arm is motioning upwards and has a distance between the objective position, so it should continue moving upwards to go to the targeted position;
+     * 3: the arm is currently motioning downwards but is already close to the objective position, so it should decelerate;
+     * 4: the arm is currently motioning upwards but is already close to the objective position, so it should immediately jump to status 0 and maintain height, after being slowed down due to gravity;
+     * 5: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
+     */
+    public short getArmStatusCode() {
+        return armStatusCode;
+    }
 }
