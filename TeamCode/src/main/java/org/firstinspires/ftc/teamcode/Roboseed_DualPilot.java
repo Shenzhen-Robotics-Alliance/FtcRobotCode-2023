@@ -88,10 +88,23 @@ public class Roboseed_DualPilot extends LinearOpMode {
         fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
 
 
-        /* TODO write the above to pass the dependencies and ports all the modules */
-        imuReader = new IMUReader(hardwareMap);
+        /** pass the hardware ports to the field navigation module */
+        HashMap<String, RobotModule> imuReaderDependentModules = null;
+        HashMap<String, Object> imuReaderDependentInstances = new HashMap<>(1);
+        imuReaderDependentInstances.put("hardwareMap", hardwareMap);
+        this.imuReader = new IMUReader();
+        this.imuReader.init(imuReaderDependentModules, imuReaderDependentInstances);
         imuReader.calibrateIMU();
-        autoStageRobotChassis = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation, imuReader);
+
+        /** pass the hardware ports, drivers and dependent modules to the auto stage chassis module, which is for testing */
+        HashMap<String, RobotModule> autoStageRobotChassisDependentModules = new HashMap<>(1);
+        HashMap<String, Object> autoStageRobotChassisDependentInstances = new HashMap<>(1);
+        autoStageRobotChassisDependentModules.put("fieldNavigation", fieldNavigation);
+        autoStageRobotChassisDependentModules.put("imuReader", imuReader);
+        autoStageRobotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
+        autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
+        autoStageRobotChassis = new AutoStageRobotChassis();
+        autoStageRobotChassis.init(autoStageRobotChassisDependentModules, autoStageRobotChassisDependentInstances);
         // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
 
         /* telemetry.addLine("robotCurrentPosition(Camera)");
@@ -99,14 +112,10 @@ public class Roboseed_DualPilot extends LinearOpMode {
         telemetry.addLine("robotCurrentRotation(Encoder)");
         telemetry.addLine("robotCurrentPosition(IMU)"); */
 
-        Thread imuReaderThread = new Thread(imuReader);
-        imuReaderThread.start();
-
         if (isStopRequested()) return;
 
         Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
             while (!isStopRequested() && opModeIsActive()) Thread.yield();
-            imuReader.terminate();
         }
         }); terminationListenerThread.start();
 
@@ -132,6 +141,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         robotChassis.periodic();
         arm.periodic();
         fieldNavigation.periodic();
+        imuReader.periodic();
 
 
         /** switch between the two control modes if asked to */

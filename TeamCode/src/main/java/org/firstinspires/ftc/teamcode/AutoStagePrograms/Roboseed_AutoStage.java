@@ -20,24 +20,27 @@ import java.util.HashMap;
  * Copyright © 2023 SCCSC-Robotics-Club
  * FileName: Roboseed_AutoStage.java
  *
- * program for auto stage, not completed
+ * program for auto stage, not completed.
  * the robot starts in the corner of the field.
  * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
- * the robot moves to position(according to camera) -1022, -782
+ * the robot moves to position(according to camera) -1022, -782.
+ * the auto stage programs should extend this program as they have common procedure in the first 25 seconds,
+ * but the auto stage programs should have different objectives in the last 5 seconds, they maybe go to a fixed sector according to pilot's selection, or may use cameras to determine
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
  * @Version v0.1.0
  */
 @Autonomous(name = "AutoStateProgram_v1.0")
-public class Roboseed_AutoStage extends LinearOpMode {
+abstract class Roboseed_AutoStage extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
     private boolean terminationFlag;
 
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-    private AutoStageRobotChassis chassisModule;
+    private AutoStageRobotChassis robotChassis;
     private Arm arm;
+    private short sectorNum
 
     /**
      * the main entry of the robot's program during auto stage
@@ -55,43 +58,23 @@ public class Roboseed_AutoStage extends LinearOpMode {
         fieldNavigation = new ComputerVisionFieldNavigation_v2();
         fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
 
-        chassisModule = new AutoStageRobotChassis(hardwareDriver, hardwareMap, fieldNavigation);
-        chassisModule.initRobotChassis();
+        /** pass the hardware ports, drivers and dependent modules to the auto stage chassis module, which is for testing */
+        HashMap<String, RobotModule> autoStageRobotChassisDependentModules = new HashMap<>(1);
+        HashMap<String, Object> autoStageRobotChassisDependentInstances = new HashMap<>(1);
+        autoStageRobotChassisDependentModules.put("fieldNavigation", fieldNavigation);
+        autoStageRobotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
+        autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
+        this.robotChassis = new AutoStageRobotChassis();
+        this.robotChassis.init(autoStageRobotChassisDependentModules, autoStageRobotChassisDependentInstances);
         elapsedTime.reset();
 
-        /* pass the hardware ports to the arm module, TODO write this method for all the modules */
+        /** pass the hardware ports to the arm module */
         HashMap armModuleDependentModules = null;
         HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
         armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
         arm = new Arm();
         arm.init(armModuleDependentModules, armModuleDependentInstances);
 
-        Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
-                while (!isStopRequested() && opModeIsActive()) Thread.yield();
-                chassisModule.terminate();
-                terminationFlag = true;
-            }
-        }); terminationListenerThread.start();
-
-        Thread robotStatusMonitoringThread = new Thread(() -> {
-            while (opModeIsActive() && !isStopRequested()) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) { throw new RuntimeException(e); }
-                double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
-                String cameraPositionString = robotCurrentPosition[0] + " " + robotCurrentPosition[1] + " " + robotCurrentPosition[2];
-                telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
-
-                double[] encoderPosition = chassisModule.getEncoderPosition();
-                String encoderPositionString = String.valueOf(encoderPosition[0]) + "," + String.valueOf(encoderPosition[1]);
-                telemetry.addData("robotCurrentPosition(Encoder)", encoderPositionString);
-
-                telemetry.update();
-            }
-        });
-
-        terminationListenerThread.start();
-        robotStatusMonitoringThread.start();
         waitForStart();
 
         // start of the auto stage scripts
@@ -101,7 +84,6 @@ public class Roboseed_AutoStage extends LinearOpMode {
 
 
         // end of the program
-        chassisModule.terminate();
     }
 
     /**
@@ -146,30 +128,30 @@ public class Roboseed_AutoStage extends LinearOpMode {
         Thread.sleep(1000);
 
         // go to the center of the grid (200, 130), in reference to the red side team
-        chassisModule.setRobotPosition(0, 100);
+        robotChassis.setRobotPosition(0, 100);
 
         // line up vertically with the place where the targets
-        chassisModule.setRobotPosition(-800, 100);
-        chassisModule.setRobotPosition(-800, 780);
-        chassisModule.setRobotPosition(-1340, 780);
+        robotChassis.setRobotPosition(-800, 100);
+        robotChassis.setRobotPosition(-800, 780);
+        robotChassis.setRobotPosition(-1340, 780);
 
         // turn the robot to the goal
-        chassisModule.setRobotRotation(0);
+        robotChassis.setRobotRotation(0);
 
         // raise the arm
         arm.toHighArmPosition();
 
         // go forward a step
-        chassisModule.setRobotPosition(-1340, 860);
+        robotChassis.setRobotPosition(-1340, 860);
 
         // place the preloaded goal
         arm.toMidArmPosition();
         arm.openClaw();
 
         // go to the sleeve stack
-        chassisModule.setRobotPosition(-1340, 780); // step back from the goal
-        chassisModule.setRobotRotation(0);
-        chassisModule.setRobotPosition(-800, 780);
+        robotChassis.setRobotPosition(-1340, 780); // step back from the goal
+        robotChassis.setRobotRotation(0);
+        robotChassis.setRobotPosition(-800, 780);
 
         // drop tHE arm
         sleep(200);
@@ -221,21 +203,34 @@ public class Roboseed_AutoStage extends LinearOpMode {
         */
 
         // TODO move to parking position according to the driver input to pretend having visual recognizing
+        proceedGoToSector();
     }
 
-    /*
-     * go to sector 1, 2 or 3 if the pilot asks to
-     * */
+    /**
+     * go to the selected sector,
+     * overwrite this method in each sub-program that guides the robot to the objective sector
+     */
+    @Deprecated abstract void proceedGoToSector();
+
+    /**
+     * go to sector 1 if the pilot asks to
+     */
     private void proceedGoToSector1() {
-        chassisModule.setRobotRotation(0);
-        chassisModule.setRobotPosition(-800, 780);
+        robotChassis.setRobotRotation(0);
+        robotChassis.setRobotPosition(-800, 780);
     }
+    /**
+     * go to sector 2 if the pilot asks to
+     */
     private void proceedGoToSector2() {
-        chassisModule.setRobotRotation(0);
-        chassisModule.setRobotPosition(-50, 780);
+        robotChassis.setRobotRotation(0);
+        robotChassis.setRobotPosition(-50, 780);
     }
+    /**
+     * go to sector 3 if the pilot asks to
+     */
     private void proceedGoToSector3() {
-        chassisModule.setRobotRotation(0);
-        chassisModule.setRobotPosition(700, 780);
+        robotChassis.setRobotRotation(0);
+        robotChassis.setRobotPosition(700, 780);
     }
 }

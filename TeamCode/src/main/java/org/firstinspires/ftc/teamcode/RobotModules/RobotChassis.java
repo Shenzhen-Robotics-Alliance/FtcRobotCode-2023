@@ -129,7 +129,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     }
 
     @Override
-    public void periodic() throws InterruptedException {
+    public void periodic() {
         YawPitchRollAngles orientation;
         AngularVelocity angularVelocity;
         double facing;

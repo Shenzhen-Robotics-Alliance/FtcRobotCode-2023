@@ -55,9 +55,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private HardwareDriver hardwareDriver;
     private IMUReader imuReader;
-    private Thread imuReaderThread;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-    private Thread fieldNavigationThread;
 
 
     private double encoderStartingRotation;
@@ -66,28 +64,6 @@ public class AutoStageRobotChassis extends RobotModule {
     private double[] encoderCurrentPosition = new double[2];
     private double encoderCurrentRotation;
     private boolean isStopRequested = false;
-
-
-    public AutoStageRobotChassis(HardwareDriver hardwareDriver, HardwareMap hardwareMap) {
-        this.hardwareDriver = hardwareDriver;
-        this.imuReader = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
-        this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
-        this.fieldNavigationThread = new Thread(fieldNavigation);
-    }
-    public AutoStageRobotChassis(HardwareDriver hardwareDriver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
-        this.hardwareDriver = hardwareDriver;
-        this.imuReader = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
-        if (fieldNavigation == null) fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap); System.out.println("init field navigation");
-        this.fieldNavigation = fieldNavigation;
-        this.fieldNavigationThread = new Thread(fieldNavigation);
-    }
-
-    public AutoStageRobotChassis(HardwareDriver hardwareDriver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation, IMUReader imuReader) {
-        this.hardwareDriver = hardwareDriver;
-        this.imuReader = imuReader;
-        this.fieldNavigation = fieldNavigation;
-        this.fieldNavigationThread = new Thread(fieldNavigation);
-    }
 
     /**
      * construct method for chassis module used in autonomous stage
@@ -134,13 +110,18 @@ public class AutoStageRobotChassis extends RobotModule {
             HashMap<String, RobotModule> fieldNavigationDependentModules = null;
             HashMap<String, Object> fieldNavigationDependentInstances = new HashMap<>(1);
             fieldNavigationDependentInstances.put("hardwareMap", hardwareMap);
-            fieldNavigation = new ComputerVisionFieldNavigation_v2();
-            fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
+            this.fieldNavigation = new ComputerVisionFieldNavigation_v2();
+            this.fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
         }
         /* same for the imu module */
         if (dependentInstances.containsKey("imuReader")) this.imuReader = (IMUReader) dependentModules.get("imuReader");
         else {
-            // TODO write implement to the initialization of imu reader
+            /* pass the hardware ports to the field navigation module */
+            HashMap<String, RobotModule> imuReaderDependentModules = null;
+            HashMap<String, Object> imuReaderDependentInstances = new HashMap<>(1);
+            imuReaderDependentInstances.put("hardwareMap", hardwareMap);
+            this.imuReader = new IMUReader();
+            this.imuReader.init(imuReaderDependentModules, imuReaderDependentInstances);
         }
 
         /* calibrate the encoders and the imu */
@@ -156,18 +137,9 @@ public class AutoStageRobotChassis extends RobotModule {
     @Override @Deprecated public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
 
     @Override
-    public void periodic() throws InterruptedException {
-        imuReader.updateIMUStatus();
-    }
-
-    public void initRobotChassis() {
-        imuReader.calibrateIMU();
-        this.imuReaderThread = new Thread(() -> {
-            while (!isStopRequested) imuReader.updateIMUStatus();
-        });
-        imuReaderThread.start();
-        this.calibrateEncoder();
-        fieldNavigationThread.start();
+    public void periodic() {
+        imuReader.periodic();
+        fieldNavigation.periodic();
     }
 
     public void moveRobotWithEncoder(double targetedXPosition, double targetedYPosition) {
@@ -189,6 +161,8 @@ public class AutoStageRobotChassis extends RobotModule {
         double rotationDeviationDuringProcess, dynamicalRotationCorrection;
         boolean deviationAccepted;
         do {
+            /* update the readings of the sensors */
+            this.periodic();
             // get the distance left in x and y position
             double[] robotCurrentPosition = getEncoderPosition();
             distanceXPosition = targetedXPosition - robotCurrentPosition[0];
@@ -237,6 +211,9 @@ public class AutoStageRobotChassis extends RobotModule {
         double rotationDeviationDuringProcess, dynamicalRotationCorrection;
         boolean deviationAccepted;
         do {
+            /* update the readings of the sensors */
+            this.periodic();
+
             // get the distance left in x and y position
             double[] robotCurrentPosition = imuReader.getIMUPosition();
             distanceXPosition = targetedXPosition - robotCurrentPosition[0];

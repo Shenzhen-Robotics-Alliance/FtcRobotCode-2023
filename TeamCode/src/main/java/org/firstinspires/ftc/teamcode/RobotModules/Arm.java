@@ -160,7 +160,7 @@ public class Arm extends RobotModule {
     }
 
     @Override
-    public void periodic() throws InterruptedException {
+    public void periodic() {
         switch (armStatusCode) {
             case -1: case 0: {
                 reactToPilotInputs();

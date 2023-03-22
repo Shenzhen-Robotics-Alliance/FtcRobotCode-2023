@@ -57,10 +57,8 @@ public abstract class RobotModule {
     /**
      * the method called in every loop
      * this is an abstract method, overwrite it with the code of each module!
-     *
-     * @throws InterruptedException if the program is interrupted by the system
      */
-    public abstract void periodic() throws InterruptedException;
+    public abstract void periodic();
 
     /**
      * TODO add an abstract function for all the modules that's called at the end of the program, to destroy some instances, free-up some memories and disable motors

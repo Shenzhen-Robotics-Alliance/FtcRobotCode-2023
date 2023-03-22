@@ -57,7 +57,7 @@ public class RobotPositionCalculator extends RobotModule {
     }
 
     @Override
-    public void periodic() throws InterruptedException {
+    public void periodic() {
 
     }
 }
