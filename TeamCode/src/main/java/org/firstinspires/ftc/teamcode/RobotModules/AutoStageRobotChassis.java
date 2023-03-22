@@ -54,7 +54,7 @@ public class AutoStageRobotChassis extends RobotModule {
     private final double rotationalMotionCorrectionFactor = -1;
 
     private HardwareDriver hardwareDriver;
-    private final IMUReader imuReader;
+    private IMUReader imuReader;
     private Thread imuReaderThread;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private Thread fieldNavigationThread;
@@ -102,7 +102,7 @@ public class AutoStageRobotChassis extends RobotModule {
      * @param dependentModules this module have the following modules as optional(pass them in the form of hashmap, or they will be created in the initialization):
      *                         "fieldNavigation" : ComputerVisionFieldNavigation_v2, the module that calculates the robot's position using cameras;
      *                         "imuReader" : IMUReader, the module that reads and formats the data from built-in imu sensor in the robot;
-     *@param dependentInstances this module needs the following instances(pass them in the form of hashmap):
+     * @param dependentInstances this module needs the following instances(pass them in the form of hashmap):
      *                          "hardwareDriver" : HardwareDriver, the driver of the robot's hardware, gain from main program;
      *                          "hardwareMap" : HardwareMap, the connection to the ports of the robot;
      */
@@ -139,6 +139,9 @@ public class AutoStageRobotChassis extends RobotModule {
         }
         /* same for the imu module */
         if (dependentInstances.containsKey("imuReader")) this.imuReader = (IMUReader) dependentModules.get("imuReader");
+        else {
+            // TODO write implement to the initialization of imu reader
+        }
 
         /* calibrate the encoders and the imu */
         imuReader.calibrateIMU();
@@ -148,7 +151,7 @@ public class AutoStageRobotChassis extends RobotModule {
     /**
      * update an instance used in the module
      *
-     * @Deprecated the robot chassis in auto stage does not support changing modules after initialization
+     * @Deprecated the robot chassis in auto stage does not need or support changing instances after initialization
      */
     @Override @Deprecated public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
 

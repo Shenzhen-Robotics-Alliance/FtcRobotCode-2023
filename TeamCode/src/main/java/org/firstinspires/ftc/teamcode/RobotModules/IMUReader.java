@@ -21,8 +21,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.RobotModule;
 
-public class IMUReader implements Runnable {
+import java.util.HashMap;
+
+public class IMUReader extends RobotModule {
     // The IMU sensor object
     BNO055IMU imu;
     private boolean terminated;
@@ -62,9 +65,84 @@ public class IMUReader implements Runnable {
         // imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
     }
 
-    //----------------------------------------------------------------------------------------------
-    // Telemetry Configuration
-    //----------------------------------------------------------------------------------------------
+    /**
+     * initialize the imu reader module
+     * @param dependentModules null should be given, as this module does not any other modules as dependency
+     * @param dependentInstances this module needs the following instances(pass them in the form of hashmap):
+     *                          "hardwareMap" : HardwareMap, the connection to the ports of the robot;
+     */
+    @Override
+    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException {
+        /* throw out an error if the map of the instances needed is given as an empty map,
+        * or if the hardware map isn't given */
+        if (dependentInstances.isEmpty()) throw new NullPointerException(
+                "an empty set of dependent instance given to the module<<" + this.getModuleName() + ">> which requires at least one instance(s)"
+        );
+        if (!dependentInstances.containsKey("hardwareMap")) throw new NullPointerException(
+                "required dependency <<" + "hardwareMap" + ">> not specified for module <<" + this.getModuleName() + ">>"
+        );
+
+        /* get the connection to the hardware from the params */
+        HardwareMap hardwareMap = (HardwareMap) dependentInstances.get("hardwareMap");
+
+        /* set the params for the imu */
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        /* instantiate the imu */
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
+        dt.reset();
+        // imu.stopAccelerationIntegration();
+    }
+
+    /**
+     * update an instance used in the module
+     *
+     * @Deprecated the imu reader does not need to change any instance after initialization
+     */
+    @Override @Deprecated public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
+
+    @Override
+    public void periodic() throws InterruptedException {
+        updateIMUStatus();
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        double dX, dY;
+        dX = dY = 0;
+        // update the imu position
+        updateIMUStatus();
+        if (Math.abs(getRobotXAcceleration()) > 0.06) {
+            // calculate the current position, using trapezoid secondary integral of acceleration
+            dX = dt.seconds() * velocity[0];
+            velocity[0] += dt.seconds() * getRobotXAcceleration();
+            dX = dt.seconds() * velocity[0];
+            dX /= 2;
+        } else {
+            // assume it's motioning with constant velocity
+            // dX = dt.seconds() * velocity[0];
+        } if(Math.abs(getRobotYAcceleration()) > 0.06) {
+            dY = dt.seconds() * velocity[1];
+            velocity[1] += dt.seconds() * getRobotYAcceleration();
+            dY = dt.seconds() * velocity[1];
+            dY /= 2;
+        } else {
+            // dY = dt.seconds() * velocity[1];
+        }
+        position[0] += dX;
+        position[1] += dY;
+        dt.reset();
+        System.out.print(getRobotXAcceleration()); System.out.print(" "); System.out.println(getRobotYAcceleration());
+    }
 
     public void calibrateIMU() {
         updateIMUStatus();
@@ -104,51 +182,8 @@ public class IMUReader implements Runnable {
         return gravity.toString();
     }
 
-    @Override
-    public void run() {
-        dt.reset();
-        // imu.stopAccelerationIntegration();
-        while (!terminated) {
-            updateIMUStatus();
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            double dX, dY;
-            dX = dY = 0;
-            // update the imu position
-            updateIMUStatus();
-            if (Math.abs(getRobotXAcceleration()) > 0.06) {
-                // calculate the current position, using trapezoid secondary integral of acceleration
-                dX = dt.seconds() * velocity[0];
-                velocity[0] += dt.seconds() * getRobotXAcceleration();
-                dX = dt.seconds() * velocity[0];
-                dX /= 2;
-            } else {
-                // assume it's motioning with constant velocity
-                // dX = dt.seconds() * velocity[0];
-            } if(Math.abs(getRobotYAcceleration()) > 0.06) {
-                dY = dt.seconds() * velocity[1];
-                velocity[1] += dt.seconds() * getRobotYAcceleration();
-                dY = dt.seconds() * velocity[1];
-                dY /= 2;
-            } else {
-                // dY = dt.seconds() * velocity[1];
-            }
-            position[0] += dX;
-            position[1] += dY;
-            dt.reset();
-            System.out.print(getRobotXAcceleration()); System.out.print(" "); System.out.println(getRobotYAcceleration());
-        }
-    }
-
     public double[] getIMUPosition() {
         return position;
-    }
-
-    public void terminate() {
-        this.terminated = true;
     }
 
     public void pause() {
