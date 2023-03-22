@@ -94,11 +94,6 @@ public class IMUReader extends RobotModule {
     @Override
     public void periodic() {
         updateIMUStatus();
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         double dX, dY;
         dX = dY = 0;
         // update the imu position
