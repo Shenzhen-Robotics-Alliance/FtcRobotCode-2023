@@ -40,7 +40,8 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis robotChassis;
     private Arm arm;
-    private short sectorNum
+    /** the number of the sector the robot parks into by the end of auto stage */
+    private short parkingSectorNum;
 
     /**
      * the main entry of the robot's program during auto stage
@@ -50,6 +51,7 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
+        this.parkingSectorNum = determineParkingSector();
 
         /** pass the hardware ports to the field navigation module */
         HashMap<String, RobotModule> fieldNavigationDependentModules = null;
@@ -77,13 +79,25 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
 
         waitForStart();
 
-        // start of the auto stage scripts
+        /** start of the auto stage scripts */
+
         proceedAutoStageInstructions();
 
-        proceedGoToSector3();
-
-
-        // end of the program
+        /** determine where to park */
+        switch (parkingSectorNum) {
+            case 1: {
+                proceedGoToSector1();
+                break;
+            }
+            case 2: {
+                proceedGoToSector2();
+                break;
+            }
+            case 3: {
+                proceedGoToSector3();
+                break;
+            }
+        }
     }
 
     /**
@@ -110,6 +124,13 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
 
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
     }
+
+    /**
+     * determine which sector to park in by the end of the program
+     * overwrite this method, as the auto stage programs should have different objectives in the last 5 seconds,
+     * they maybe go to a fixed sector according to pilot's selection, or may use cameras to determine which sector to go
+     */
+    abstract short determineParkingSector();
 
     /*
      * the instruction given to the robot to make it score
@@ -201,16 +222,7 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
         armControllingMethods.openClaw();
         chassisModule.moveRobotWithEncoder(0, -100); // step back from the goal
         */
-
-        // TODO move to parking position according to the driver input to pretend having visual recognizing
-        proceedGoToSector();
     }
-
-    /**
-     * go to the selected sector,
-     * overwrite this method in each sub-program that guides the robot to the objective sector
-     */
-    @Deprecated abstract void proceedGoToSector();
 
     /**
      * go to sector 1 if the pilot asks to
