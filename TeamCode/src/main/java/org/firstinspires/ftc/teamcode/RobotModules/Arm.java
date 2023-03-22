@@ -267,6 +267,10 @@ public class Arm extends RobotModule {
 
             /* update the status code of the arm telling that they are currently working to slow down */
             armStatusCode = 3;
+
+            /* just stop the process, forget about the deceleration */
+            // armStatusCode = 0;
+
             /* do periodic immediately */
             this.periodic();
         }
