@@ -53,8 +53,8 @@ public class AutoStageRobotChassis extends RobotModule {
     private final double waitForNavigationSignTimeLimitation = 0.5; // the time limit when waiting for navigation sign to show up
     private final double rotationalMotionCorrectionFactor = -1;
 
-    private HardwareDriver driver;
-    private final IMUReader imu;
+    private HardwareDriver hardwareDriver;
+    private final IMUReader imuReader;
     private Thread imuReaderThread;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private Thread fieldNavigationThread;
@@ -68,23 +68,23 @@ public class AutoStageRobotChassis extends RobotModule {
     private boolean isStopRequested = false;
 
 
-    public AutoStageRobotChassis(HardwareDriver driver, HardwareMap hardwareMap) {
-        this.driver = driver;
-        this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
+    public AutoStageRobotChassis(HardwareDriver hardwareDriver, HardwareMap hardwareMap) {
+        this.hardwareDriver = hardwareDriver;
+        this.imuReader = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         this.fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap);
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
-    public AutoStageRobotChassis(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
-        this.driver = driver;
-        this.imu = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
+    public AutoStageRobotChassis(HardwareDriver hardwareDriver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation) {
+        this.hardwareDriver = hardwareDriver;
+        this.imuReader = new IMUReader(hardwareMap); // use backup imu2 from extension hub if imu does not work
         if (fieldNavigation == null) fieldNavigation = new ComputerVisionFieldNavigation_v2(hardwareMap); System.out.println("init field navigation");
         this.fieldNavigation = fieldNavigation;
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
 
-    public AutoStageRobotChassis(HardwareDriver driver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation, IMUReader imu) {
-        this.driver = driver;
-        this.imu = imu;
+    public AutoStageRobotChassis(HardwareDriver hardwareDriver, HardwareMap hardwareMap, ComputerVisionFieldNavigation_v2 fieldNavigation, IMUReader imuReader) {
+        this.hardwareDriver = hardwareDriver;
+        this.imuReader = imuReader;
         this.fieldNavigation = fieldNavigation;
         this.fieldNavigationThread = new Thread(fieldNavigation);
     }
@@ -108,10 +108,40 @@ public class AutoStageRobotChassis extends RobotModule {
      */
     @Override
     public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException {
-        
+        /* throw out an exception if the map of all the necessary instances are given as empty */
+        if (dependentInstances.isEmpty()) throw new NullPointerException (
+                "an empty set of dependent instance given to the module<<" + this.getModuleName() + ">> which requires at least one instance(s)"
+        );
+
+        /* throw out an exception if a necessary instance */
+        if (!dependentInstances.containsKey("hardwareDriver")) throw new NullPointerException(
+                "required dependency <<" + "hardwareDriver" + ">> not specified for module <<" + this.getModuleName() + ">>"
+        );
+        if (!dependentInstances.containsKey("hardwareMap")) throw new NullPointerException(
+                "required dependency <<" + "hardwareMap" + ">> not specified for module <<" + this.getModuleName() + ">>"
+        );
+
+        /* get the instances from the param */
+        this.hardwareDriver = (HardwareDriver) dependentInstances.get("hardwareDriver");
+        HardwareMap hardwareMap = (HardwareMap) dependentInstances.get("hardwareMap");
+
+        /* get the field navigation module, if specified, from the param,
+        *  otherwise, create the modules
+        * */
+        if (dependentModules.containsKey("fieldNavigation")) this.fieldNavigation = (ComputerVisionFieldNavigation_v2) dependentModules.get("fieldNavigation");
+        else {
+            /* pass the hardware ports to the field navigation module */
+            HashMap<String, RobotModule> fieldNavigationDependentModules = null;
+            HashMap<String, Object> fieldNavigationDependentInstances = new HashMap<>(1);
+            fieldNavigationDependentInstances.put("hardwareMap", hardwareMap);
+            fieldNavigation = new ComputerVisionFieldNavigation_v2();
+            fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
+        }
+        /* same for the imu module */
+        if (dependentInstances.containsKey("imuReader")) this.imuReader = (IMUReader) dependentModules.get("imuReader");
 
         /* calibrate the encoders and the imu */
-        imu.calibrateIMU();
+        imuReader.calibrateIMU();
         this.calibrateEncoder();
     }
 
@@ -124,13 +154,13 @@ public class AutoStageRobotChassis extends RobotModule {
 
     @Override
     public void periodic() throws InterruptedException {
-        imu.updateIMUStatus();
+        imuReader.updateIMUStatus();
     }
 
     public void initRobotChassis() {
-        imu.calibrateIMU();
+        imuReader.calibrateIMU();
         this.imuReaderThread = new Thread(() -> {
-            while (!isStopRequested) imu.updateIMUStatus();
+            while (!isStopRequested) imuReader.updateIMUStatus();
         });
         imuReaderThread.start();
         this.calibrateEncoder();
@@ -185,7 +215,7 @@ public class AutoStageRobotChassis extends RobotModule {
             deviationAccepted = Math.abs(distanceXPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio
                              && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
 
-            System.out.print(getImuYaw()); System.out.print(" "); System.out.println(imu.getRobotHeading());
+            System.out.print(getImuYaw()); System.out.print(" "); System.out.println(imuReader.getRobotHeading());
         } while(!deviationAccepted && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
@@ -205,7 +235,7 @@ public class AutoStageRobotChassis extends RobotModule {
         boolean deviationAccepted;
         do {
             // get the distance left in x and y position
-            double[] robotCurrentPosition = imu.getIMUPosition();
+            double[] robotCurrentPosition = imuReader.getIMUPosition();
             distanceXPosition = targetedXPosition - robotCurrentPosition[0];
             distanceYPosition = targetedYPosition - robotCurrentPosition[1];
 
@@ -233,7 +263,7 @@ public class AutoStageRobotChassis extends RobotModule {
             deviationAccepted = Math.abs(distanceXPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio
                     && Math.abs(distanceYPosition) < positionDeviationTolerance*minDifferenceToToleranceRatio;
 
-            System.out.print(getEncoderPosition()); System.out.print(" "); System.out.println(imu.getIMUPosition());
+            System.out.print(getEncoderPosition()); System.out.print(" "); System.out.println(imuReader.getIMUPosition());
         } while(!deviationAccepted && !isStopRequested);
 
         setRobotMotion(0, 0, 0);
@@ -303,21 +333,21 @@ public class AutoStageRobotChassis extends RobotModule {
         if (x_y_Reversed) { // if the x and y axles are reversed
             this.encoderCurrentPosition[1] = (
                     (double)
-                            this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
-                            + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor)
+                            this.hardwareDriver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            + this.hardwareDriver.rightFront.getCurrentPosition() * encoderCorrectionFactor)
                     / 2;
             this.encoderCurrentPosition[0] = (
-                    (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
-                            - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor)
+                    (double) this.hardwareDriver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            - this.hardwareDriver.leftRear.getCurrentPosition() * encoderCorrectionFactor)
                     / 2;        } else {
             this.encoderCurrentPosition[0] = (
                     (double)
-                            this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
-                            + this.driver.rightFront.getCurrentPosition() * encoderCorrectionFactor)
+                            this.hardwareDriver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            + this.hardwareDriver.rightFront.getCurrentPosition() * encoderCorrectionFactor)
                 / 2;
             this.encoderCurrentPosition[1] = (
-                    (double) this.driver.leftFront.getCurrentPosition() * encoderCorrectionFactor
-                            - this.driver.leftRear.getCurrentPosition() * encoderCorrectionFactor)
+                    (double) this.hardwareDriver.leftFront.getCurrentPosition() * encoderCorrectionFactor
+                            - this.hardwareDriver.leftRear.getCurrentPosition() * encoderCorrectionFactor)
                 / 2;
         }
 
@@ -329,7 +359,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     public double getEncoderRotation() {
         double encoderRotation, robotRotation;
-        this.encoderCurrentRotation = (double) this.driver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.driver.rightRear.getCurrentPosition()*encoderCorrectionFactor;
+        this.encoderCurrentRotation = (double) this.hardwareDriver.leftFront.getCurrentPosition()*encoderCorrectionFactor - this.hardwareDriver.rightRear.getCurrentPosition()*encoderCorrectionFactor;
 
         encoderRotation = encoderCurrentRotation - encoderStartingRotation;
 
@@ -343,7 +373,7 @@ public class AutoStageRobotChassis extends RobotModule {
         if (isStopRequested) return;
 
         final double fullCircle = 2 * Math.PI;
-        double currentRotation = imu.getRobotHeading();
+        double currentRotation = imuReader.getRobotHeading();
         if (currentRotation < 0) currentRotation = fullCircle + currentRotation;
 
         double numericalRotationDifference = targetedRotation - currentRotation;
@@ -374,7 +404,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
         double clockWiseDifference ;
         do {
-            double currentRotation = imu.getRobotHeading();
+            double currentRotation = imuReader.getRobotHeading();
             if (targetedRotation > currentRotation) clockWiseDifference = targetedRotation - currentRotation;
             else clockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of clockwise difference
 
@@ -390,7 +420,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
         double counterClockWiseDifference ;
         do {
-            double currentRotation = imu.getRobotHeading();
+            double currentRotation = imuReader.getRobotHeading();
             if (targetedRotation < currentRotation) counterClockWiseDifference = targetedRotation - currentRotation;
             else counterClockWiseDifference = 2*Math.PI - targetedRotation + currentRotation; // repeat the calculation of counter-clockwise difference
 
@@ -482,26 +512,26 @@ public class AutoStageRobotChassis extends RobotModule {
         rotationalMotion *= rotationalMotionCorrectionFactor;
         // control the Mecanum wheel
         if (runWithEncoder) {
-            driver.leftFront.setVelocity(yAxleMotion + rotationalMotion + xAxleMotion);
-            driver.leftRear.setVelocity(yAxleMotion + rotationalMotion - xAxleMotion);
-            driver.rightFront.setVelocity(yAxleMotion - rotationalMotion - xAxleMotion);
-            driver.rightRear.setVelocity(yAxleMotion - rotationalMotion + xAxleMotion);
+            hardwareDriver.leftFront.setVelocity(yAxleMotion + rotationalMotion + xAxleMotion);
+            hardwareDriver.leftRear.setVelocity(yAxleMotion + rotationalMotion - xAxleMotion);
+            hardwareDriver.rightFront.setVelocity(yAxleMotion - rotationalMotion - xAxleMotion);
+            hardwareDriver.rightRear.setVelocity(yAxleMotion - rotationalMotion + xAxleMotion);
 
-            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.hardwareDriver.leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.hardwareDriver.leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.hardwareDriver.rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.hardwareDriver.rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         } else {
             // set the running parameters for each motors
-            this.driver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.driver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.driver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            this.driver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.hardwareDriver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.hardwareDriver.leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.hardwareDriver.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            this.hardwareDriver.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-            driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-            driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-            driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+            hardwareDriver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+            hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+            hardwareDriver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
         }
     }
 
@@ -511,11 +541,11 @@ public class AutoStageRobotChassis extends RobotModule {
 
         // TODO write this method to correct the encoder with IMu, which is far more accurate
         // calculate the difference between the actual encoder value and the expected ones using the IMU, which is more accurate
-        imu.updateIMUStatus();
+        imuReader.updateIMUStatus();
     }
 
     public double getImuYaw() {
-        return imu.getRobotHeading();
+        return imuReader.getRobotHeading();
     }
 
     public void testRobotMotion(double xAxleMotion, double yAxleMotion, double rotationalMotion) {
