@@ -141,16 +141,16 @@ public class Roboseed_DualPilot extends LinearOpMode {
         ElapsedTime elapsedTime = new ElapsedTime();
         elapsedTime.reset();
         robotChassis.periodic();
-        System.out.println("<--chassis module delay: " + elapsedTime.seconds()*1000 + "-->");
+        // System.out.println("<--chassis module delay: " + elapsedTime.seconds()*1000 + "-->");
         elapsedTime.reset();
         arm.periodic();
-        System.out.println("<--arm module delay: " + elapsedTime.seconds()*1000 + "-->");
+        // System.out.println("<--arm module delay: " + elapsedTime.seconds()*1000 + "-->");
         elapsedTime.reset();
         fieldNavigation.periodic();
-        System.out.println("<--visual navigation module delay: " + elapsedTime.seconds()*1000 + "-->");
+        // System.out.println("<--visual navigation module delay: " + elapsedTime.seconds()*1000 + "-->");
         elapsedTime.reset();
         imuReader.periodic();
-        System.out.println("<--imu reader module delay: " + elapsedTime.seconds()*1000 + "-->");
+        // System.out.println("<--imu reader module delay: " + elapsedTime.seconds()*1000 + "-->");
 
 
         /** switch between the two control modes if asked to */
