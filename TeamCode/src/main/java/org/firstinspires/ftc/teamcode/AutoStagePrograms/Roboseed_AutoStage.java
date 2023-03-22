@@ -31,7 +31,6 @@ import java.util.HashMap;
  * @Date 2023.2.27
  * @Version v0.1.0
  */
-@Autonomous(name = "AutoStateProgram_v1.0")
 abstract class Roboseed_AutoStage extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
     private boolean terminationFlag;
