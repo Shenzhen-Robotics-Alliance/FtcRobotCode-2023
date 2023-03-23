@@ -38,25 +38,29 @@ public class Roboseed_Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        configureRobot();
-        // DcMotorEx test_encoder = hardwareMap.get(DcMotorEx.class, "test encoder");
+        // configureRobot();
+        DcMotorEx test_encoder = hardwareMap.get(DcMotorEx.class, "test encoder");
         waitForStart();
 
-        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        /* hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hardwareDriver.lift_right.setPower(0.6);
         hardwareDriver.lift_left.setPower(0.6);
 
-        while (opModeIsActive() && !isStopRequested()){
+//        hardwareDriver.leftFront.setPower(0.6);
+//        hardwareDriver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); */
+
+        /* while (opModeIsActive() && !isStopRequested()){
             System.out.println("test running...");
             System.out.println(hardwareDriver.lift_left.getCurrentPosition());
-        }
+        } */
 
-//        telemetry.addLine("encoderValue");
-//        while (opModeIsActive() && !isStopRequested()) {
-//            /* test the encoder */
-//            telemetry.addData("encoderValue", test_encoder.getCurrentPosition());
-//        }
+        telemetry.addLine("encoderValue");
+        while (opModeIsActive() && !isStopRequested()) {
+            /* test the encoder */
+            telemetry.addData("encoderValue", test_encoder.getCurrentPosition());
+            telemetry.update();
+        }
     }
 
     private void configureRobot() {
