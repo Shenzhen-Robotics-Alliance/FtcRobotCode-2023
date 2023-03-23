@@ -267,10 +267,10 @@ public class Arm extends RobotModule {
             hardwareDriver.lift_left.setVelocity(0);
 
             /* update the status code of the arm telling that they are currently working to slow down */
-            armStatusCode = 3;
+            // armStatusCode = 3;
 
             /* just stop the process, forget about the deceleration */
-            // armStatusCode = 0;
+            armStatusCode = 0;
 
             /* do periodic immediately */
             this.periodic();
@@ -284,8 +284,8 @@ public class Arm extends RobotModule {
     private void waitForInclinedCompletion() {
         /* wait until the movement is completed */
         if (
-                Math.abs(hardwareDriver.lift_left.getCurrentPosition()-targetedArmPosition) < 5 |
-                        Math.abs(hardwareDriver.lift_right.getCurrentPosition()-targetedArmPosition) < 5)
+                Math.abs(hardwareDriver.lift_left.getCurrentPosition()-targetedArmPosition) < 20 |
+                        Math.abs(hardwareDriver.lift_right.getCurrentPosition()-targetedArmPosition) < 20)
         {
             /* when the movement is completed, set the arm to stay still */
             hardwareDriver.lift_left.setTargetPosition(targetedArmPosition);

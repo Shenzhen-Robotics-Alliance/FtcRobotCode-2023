@@ -66,7 +66,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
     /** configuration of the robot's driving feelings */
     /** the minimum power needed to move the robot */
-    private final double minDrivingPower = 0.02;
+    private final double minDrivingPower = 0;
     /** the minimum stick input value that the robot will respond to, anything smaller than this, the robot ignores */
     private final double minStickValue = 0.05;
     /** the maximum motor power of the robot when it's moving free */
