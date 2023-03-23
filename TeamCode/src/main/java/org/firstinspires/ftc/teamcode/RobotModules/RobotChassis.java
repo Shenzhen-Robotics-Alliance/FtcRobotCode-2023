@@ -64,8 +64,18 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private final ElapsedTime previousYAxleReverseSwitchActivation;
     private final ElapsedTime lastMovement;
 
+    /** configuration of the robot's driving feelings */
+    /** the minimum power needed to move the robot */
+    private final double minDrivingPower = 0.02;
+    /** the minimum stick input value that the robot will respond to, anything smaller than this, the robot ignores */
+    private final double minStickValue = 0.05;
+    /** the maximum motor power of the robot when it's moving free */
+    private final double maxDrivingPower = 1;
+    /** the limit fo the motor power when the robot is carrying a goal */
+    private final double maxCarryingPower = 0.6;
+
     /**
-     *
+     * construct function of the robot chassis, use init() for further initialization
      */
     public RobotChassis() {
         super("RobotChassis");
@@ -277,10 +287,10 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     }
     private double linearMap(double value) {
         if (slowMotionModeActivationSwitch) { // when slow motion activated
-            if (value > 0) return linearMapMethod(0.05, 1, 0, 0.4, value);
-            return linearMapMethod(-1, -0.05, -0.4, 0, value); // change the speed range to -0.4~0.4
-        } if (value > 0) return linearMapMethod(0.05, 1, 0, 1, value);
-        return linearMapMethod(-1, -0.05, -1, 0, value); // map the axle of the stick to make sure inputs below 10% are ignored
+            if (value > 0) return linearMapMethod(minStickValue, 1, minDrivingPower, maxCarryingPower, value);
+            return linearMapMethod(-1, -minStickValue, -maxCarryingPower, minDrivingPower, value); // change the speed range to -0.4~0.4
+        } if (value > 0) return linearMapMethod(minStickValue, 1, minDrivingPower, maxDrivingPower, value);
+        return linearMapMethod(-1, -minStickValue, -maxDrivingPower, minDrivingPower, value); // map the axle of the stick to make sure inputs below 10% are ignored
     }
     public static double linearMapMethod(double fromFloor, double fromCeiling, double toFloor, double toCeiling, double value){
         if (value > Math.max(fromCeiling, fromFloor)) return Math.max(toCeiling, toFloor);

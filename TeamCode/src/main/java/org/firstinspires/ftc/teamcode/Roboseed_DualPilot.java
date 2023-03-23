@@ -120,7 +120,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         }); terminationListenerThread.start();
 
         waitForStart();
-        sleep(1000);
+        sleep(300);
 
         autoStageRobotChassis.calibrateEncoder();
         imuReader.calibrateIMU();

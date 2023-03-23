@@ -84,6 +84,14 @@ public class ComputerVisionFieldNavigation_v2 extends RobotModule {
             @NonNull
             HashMap<String, Object> dependentInstances
     ) throws NullPointerException {
+        /* throw out an exception if the instances or given empty or if the hardware map is not specified */
+        if (dependentInstances.isEmpty()) throw new NullPointerException (
+                "an empty set of dependent instance given to the module<<" + this.getModuleName() + ">> which requires at least one instance(s)"
+        );
+        if (!dependentInstances.containsKey("hardwareMap")) throw new NullPointerException(
+                "required dependency <<" + "hardwareMap" + ">> not specified for module <<" + this.getModuleName() + ">>"
+        );
+
         /* get the connection to the robot's hardware */
         HardwareMap hardwareMap = (HardwareMap) dependentInstances.get("hardwareMap");
 

@@ -239,8 +239,9 @@ public class Arm extends RobotModule {
             hardwareDriver.lift_left.setPower(0);
             System.out.println("saving battery...");
             System.exit(0);
-        } if (PreviousElevatorActivation.seconds() > 5 & this.getClaw()) {
+        } if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
             System.out.println("cooling down the motors...");
+            this.toLowArmPosition(); // move the arm down, else it will hang on the top
             this.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
         }
@@ -453,7 +454,7 @@ public class Arm extends RobotModule {
         hardwareDriver.lift_left.setPower(0);
         hardwareDriver.lift_right.setPower(0);
         armPositionCode = -1;
-        targetedArmPosition = armPositionCode;
+        armStatusCode = -1;
     }
 
 
