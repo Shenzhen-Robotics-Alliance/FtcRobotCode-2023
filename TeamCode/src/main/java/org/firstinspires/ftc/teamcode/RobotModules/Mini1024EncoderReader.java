@@ -31,6 +31,9 @@ public class Mini1024EncoderReader extends RobotModule {
     /** the starting position of the encoders, updated when the encoders are requested to calibrate */
     private double encoder1StartingPosition, encoder2StartingPosition, encoder3StartingPosition;
 
+    /** whether to read the data from encoder3 */
+    private boolean useEncoder3;
+
     /** the difference in time between two adjacent periods */
     private ElapsedTime dt = new ElapsedTime();
 
@@ -48,19 +51,22 @@ public class Mini1024EncoderReader extends RobotModule {
      * initialize the encoders
      *
      * @param dependentModules: not needed
-     * @param dependentInstances:
+     * @param dependentInstances
      *                          DcMotorEx "encoder-1-instance", "encoder-2-instance", "encoder-3-instance3":
      *                          the instance of the three encoders
+     * @param useEncoder3 whether to read from encoder 3
      */
-    @Override
     public void init (
             HashMap<String, RobotModule> dependentModules,
-            HashMap<String, Object> dependentInstances
-    ) throws NullPointerException{
+            HashMap<String, Object> dependentInstances,
+            boolean useEncoder3
+    ) throws NullPointerException {
         /* get the three encoders from the args */
         encoder1 = (DcMotorEx) dependentInstances.get("encoder-1-instance");
         encoder2 = (DcMotorEx) dependentInstances.get("encoder-2-instance");
-        encoder3 = (DcMotorEx) dependentInstances.get("encoder-3-instance");
+        /* the third encoder is optional */
+        this.useEncoder3 = useEncoder3;
+        if (useEncoder3) encoder3 = (DcMotorEx) dependentInstances.get("encoder-3-instance");
 
         /* initialize the time */
         dt.reset();
@@ -69,6 +75,14 @@ public class Mini1024EncoderReader extends RobotModule {
         calibrateEncoder(1);
         calibrateEncoder(2);
         calibrateEncoder(3);
+    }
+
+    @Override
+    public void init (
+            HashMap<String, RobotModule> dependentModules,
+            HashMap<String, Object> dependentInstances
+    ) throws NullPointerException {
+        init(dependentModules, dependentInstances, false);
     }
 
     /**
@@ -90,12 +104,12 @@ public class Mini1024EncoderReader extends RobotModule {
         /* get the current position of the three encoders */
         double encoder1CurrentPosition = encoder1.getCurrentPosition();
         double encoder2CurrentPosition = encoder2.getCurrentPosition();
-        double encoder3CurrentPosition = encoder3.getCurrentPosition();
+        double encoder3CurrentPosition = 0; if (useEncoder3) encoder3CurrentPosition = encoder3.getCurrentPosition();
 
         /* calculate the change in each of these positions */
         double encoder1PositionDifference = encoder1CurrentPosition - encoder1Position;
         double encoder2PositionDifference = encoder2CurrentPosition - encoder2Position;
-        double encoder3PositionDifference = encoder3CurrentPosition - encoder3Position;
+        double encoder3PositionDifference = 0; if (useEncoder3) encoder3PositionDifference = encoder3CurrentPosition - encoder3Position;
 
         /* the older version of the positions are no longer needed, refresh them */
         encoder1Position = encoder1CurrentPosition;
