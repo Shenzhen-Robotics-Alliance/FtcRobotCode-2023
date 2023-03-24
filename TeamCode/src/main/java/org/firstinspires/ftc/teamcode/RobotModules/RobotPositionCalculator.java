@@ -12,6 +12,7 @@ import java.util.HashMap;
  * FileName: RobotPositionCalculator.java
  *
  * the module that calculates the robot's position according to the data from the encoders
+ * TODO complete this method using linear algebra
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.3.17
@@ -131,3 +132,28 @@ public class RobotPositionCalculator extends RobotModule {
 
     }
 }
+
+/**
+ * represents a matrix, whether 2 by 2 or 2 by 1
+ * for easier calculation
+ */
+abstract class Matrix {
+    /** the size of the matrix, in the form of {columns, rows}*/
+    protected short[] size = new short[2];
+
+    /** the contend of the matrix */
+    protected double[][] contend;
+
+    // TODO write the calculations between matrices
+}
+
+/** representing a vector in 2d space */
+class Vector2d extends Matrix {
+    public Vector2d(double x, double y) {
+        this.size = new short[] {1, 2};
+        this.contend = new double[1][2];
+    }
+}
+
+/** represents a linear transformation in 2d space */
+class linearTransform {}

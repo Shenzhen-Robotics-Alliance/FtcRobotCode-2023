@@ -38,13 +38,10 @@ public class Mini1024EncoderReader extends RobotModule {
     private ElapsedTime dt = new ElapsedTime();
 
     /**
-     * construct method of robot module
-     * sets the name of the module (the init function
-     *
-     * @param moduleName the name of the module, must be unique as it is used as an identifier
+     * construct method of the reader of mini1024 encoder
      */
-    public Mini1024EncoderReader(String moduleName) {
-        super(moduleName);
+    public Mini1024EncoderReader() {
+        super("encoderReader");
     }
 
     /**
@@ -82,7 +79,7 @@ public class Mini1024EncoderReader extends RobotModule {
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances
     ) throws NullPointerException {
-        init(dependentModules, dependentInstances, false);
+        init(dependentModules, dependentInstances, true);
     }
 
     /**
