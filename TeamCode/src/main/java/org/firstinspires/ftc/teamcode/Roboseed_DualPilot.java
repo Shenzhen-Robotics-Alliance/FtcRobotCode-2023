@@ -201,7 +201,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         }
 
         telemetry.addData("arm-position-code", arm.getArmStatusCode());
-        System.out.println("arm position code: " + arm.getArmStatusCode());
+        // System.out.println("arm position code: " + arm.getArmStatusCode());
 
         telemetry.update();
     }

@@ -62,7 +62,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
             HashMap<String, Object> dependentInstances
     ) throws NullPointerException {
         /* throw out an error if encoder reader module not given */
-        if (dependentInstances.isEmpty()) throw new NullPointerException (
+        if (dependentModules.isEmpty()) throw new NullPointerException (
                 "an empty set of dependent modules given to the module<<" + this.getModuleName() + ">> which requires at least one module(s) as dependency"
         );
         if (!dependentModules.containsKey("encoderReader")) throw new NullPointerException(
