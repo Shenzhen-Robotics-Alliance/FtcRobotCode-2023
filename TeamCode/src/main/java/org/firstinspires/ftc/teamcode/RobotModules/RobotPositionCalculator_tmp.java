@@ -1,6 +1,8 @@
 // TODO write this module as a simple calculator for vertical and horizontal encoders only, in place the real robot position calculator for now
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
@@ -26,11 +28,19 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     /** the module used to the read the data from encoders */
     private Mini1024EncoderReader encoderReader;
 
+    /** to calculate the difference in time */
+    private static final ElapsedTime dt = new ElapsedTime();
+
     /** some configurations of the robot TODO:measure these values */
     /** the ratio between the angular velocity(in rad/s) to the difference in the velocity of the two parallel encoders (in encoder value) */
-    private final double angularVelocityPerParallelEncoderVelocityDifference = 1;
+    private static final double angularVelocityPerParallelEncoderVelocityDifference = 1;
     /** the ratio between the angular velocity(in rad/s) to the velocity of the third encoder, assuming that the robot's rotating center is still */
-    private final double angularVelocityPerThirdEncoderVelocity = 1;
+    private static final double angularVelocityPerThirdEncoderVelocity = 1;
+
+    /** stores the robot's current facing, in radian */
+    private double robotRotation;
+    /** stores the robot's current position, in encoder values */
+    private double[] robotPosition;
 
     /**
      * construct method of temporary robot position calculator
@@ -61,15 +71,73 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
         /* get the encoder reader module from the param */
         this.encoderReader = (Mini1024EncoderReader) dependentModules.get("encoderReader");
+
+        /* start the timer */
+        this.dt.reset();
     }
 
-    @Override
-    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
+    /**
+     * updates an instance of this module
+     *
+     * @Deprecated the robot position calculator does not need any instances in the first place
+     */
+    @Override @Deprecated public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
 
-    }
-
+    /** updates the robot's current position by taking the integral of the calculated robot velocity over all times */
     @Override
     public void periodic() {
+        /** calculate the angular velocity of the robot */
+        double angularVelocity = getAngularVelocity(encoderReader.getEncoderVelocity(1), encoderReader.getEncoderVelocity(2));
 
+        /** update the robot's current rotation */
+        /* take the integral of angular velocity to time */
+        this.robotRotation += angularVelocity * dt.seconds();
+        /* format the rotation value */
+        while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
+        while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
+
+        /** calculate the robot's velocity, in reference to itself */
+        double[] rawVelocity = new double[2];
+        /* calculate the horizontal velocity of the robot */
+        rawVelocity[0] =
+    }
+
+    /**
+     * determines the angular velocity of the robot using the difference between the velocity of the two parallel encoders
+     *
+     * @param parallelEncoder1Velocity the current velocity of the first parallel encoder
+     * @param parallelEncoder2Velocity the current velocity of the second parallel encoder
+     * @return the calculated angular velocity of the robot, in rad/s
+     */
+    private static double getAngularVelocity(double parallelEncoder1Velocity, double parallelEncoder2Velocity) {
+        /* calculate the difference between the velocity of the two parallel encoders */
+        double velocityDifference = parallelEncoder1Velocity - parallelEncoder2Velocity;
+
+        /*
+        * the two encoders are installed vertically, parallel to each other, and identical about the central line of the robot
+        * so the difference between the two encoders are always proportional to the angular velocity of the robot
+        * */
+        double robotRotation = velocityDifference * angularVelocityPerParallelEncoderVelocityDifference;
+
+        return robotRotation;
+    }
+
+    private static double correctThirdEncoderVelocity(double thirdEncoderRawVelocity, double angularVelocity) {
+        /*
+        * the third encoder is installed horizontally
+        * so the linear velocity of the third horizontal encoder, assuming the robot is still can be calculated
+        * though the third encoder not installed at the central of the robot
+        * but the angle between the encoder's facing and the perpendicular line of the line that connects the third encoder and the central is fixed
+        * so the influence on the reading of the third encoder is still always proportional to the angular velocity of the robot
+        * */
+        double thirdEncoderLinearVelocity = angularVelocity / angularVelocityPerThirdEncoderVelocity;
+
+        /*
+        * to calculate the robot's linear movement
+        * simply subtract the actual value by the rotation velocity
+        * */
+        double thirdEncoderActualVelocity = thirdEncoderRawVelocity - thirdEncoderLinearVelocity;
+
+        return thirdEncoderActualVelocity;
     }
 }
