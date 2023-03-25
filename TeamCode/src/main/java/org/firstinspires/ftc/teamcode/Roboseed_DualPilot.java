@@ -121,7 +121,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
         encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
         encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
         encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
-
         encoderReader = new Mini1024EncoderReader();
         encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
 

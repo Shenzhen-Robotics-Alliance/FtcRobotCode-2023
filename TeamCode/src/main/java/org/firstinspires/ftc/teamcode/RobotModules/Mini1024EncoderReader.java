@@ -91,6 +91,8 @@ public class Mini1024EncoderReader extends RobotModule {
         calibrateEncoder(1);
         calibrateEncoder(2);
         calibrateEncoder(3);
+        
+        System.out.println(encoder2StartingPosition + ", " + encoder2Position);
     }
 
     /**

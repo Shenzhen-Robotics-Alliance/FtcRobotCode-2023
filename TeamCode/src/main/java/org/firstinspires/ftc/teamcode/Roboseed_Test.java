@@ -21,6 +21,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
+import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+
+import java.util.HashMap;
 
 /*
  * the robot starts in the corner of the field.
@@ -38,27 +41,28 @@ public class Roboseed_Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // configureRobot();
-        DcMotorEx test_encoder = hardwareMap.get(DcMotorEx.class, "test encoder");
-        waitForStart();
-
-        /* hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        hardwareDriver.lift_right.setPower(0.6);
-        hardwareDriver.lift_left.setPower(0.6);
-
-//        hardwareDriver.leftFront.setPower(0.6);
-//        hardwareDriver.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); */
-
-        /* while (opModeIsActive() && !isStopRequested()){
-            System.out.println("test running...");
-            System.out.println(hardwareDriver.lift_left.getCurrentPosition());
-        } */
+        Mini1024EncoderReader encoderReader;
+        configureRobot();
+        HashMap<String, RobotModule> encoderReaderDependentModules = null;
+        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
+        /* get the instances of the encoders from hardware map */
+//        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
+//        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
+//        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
+        /* no enough ports, use the encoder ports of the driving motors instead */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
+        encoderReader = new Mini1024EncoderReader();
+        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
 
         telemetry.addLine("encoderValue");
+        waitForStart();
+        encoderReader.calibrateEncoder(2);
         while (opModeIsActive() && !isStopRequested()) {
+            encoderReader.periodic();
             /* test the encoder */
-            telemetry.addData("encoderValue", test_encoder.getCurrentPosition());
+            telemetry.addData("encoderValue", encoderReader.getEncoderPosition(2));
             telemetry.update();
         }
     }

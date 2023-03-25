@@ -30,6 +30,9 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
     /** to calculate the difference in time */
     private static final ElapsedTime dt = new ElapsedTime();
+    /** to calculate the time after start */
+    private static final ElapsedTime startTime = new ElapsedTime();
+    private static boolean started = false;
 
     /** some configurations of the robot TODO:measure these values */
     /** the ratio between the angular velocity(in rad/s) to the difference in the velocity of the two parallel encoders (in encoder value) */
@@ -38,9 +41,9 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     private static final double angularVelocityPerThirdEncoderVelocity = 1;
 
     /** stores the robot's current facing, in radian */
-    private double robotRotation;
+    private double robotRotation = 0;
     /** stores the robot's current position, in encoder values */
-    private double[] robotPosition;
+    private double[] robotPosition = {0,0};
 
     /**
      * construct method of temporary robot position calculator
@@ -51,6 +54,9 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
     /**
      * initialize the temporary robot position calculator with given encoder reader module
+     * vertical left encoder:1, facing backwards
+     * vertical right encoder:2, facing backwards
+     * horizontal encoder:3, facing left
      *
      * @param dependentModules the following modules are required for robot position calculator
      *                         "encoderReader": Mini1024EncoderReader, the module that reads and processes the encoder value
@@ -86,6 +92,15 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     /** updates the robot's current position by taking the integral of the calculated robot velocity over all times */
     @Override
     public void periodic() {
+        /** do no calculations during the first 100 milliseconds */
+        if (!started) {
+            started = true;
+            startTime.reset();
+        } if (startTime.seconds() < 0.1) {
+            encoderReader.calibrateEncoder(1); encoderReader.calibrateEncoder(2); encoderReader.calibrateEncoder(3);
+            return;
+        }
+
         /** calculate the angular velocity of the robot */
         double angularVelocity = getAngularVelocity(encoderReader.getEncoderVelocity(1), encoderReader.getEncoderVelocity(2));
 
@@ -93,8 +108,8 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         /* take the integral of angular velocity to time */
         this.robotRotation += angularVelocity * dt.seconds();
         /* format the rotation value */
-        while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
-        while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
+//        while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
+//        while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
 
         /** calculate the robot's velocity, in reference to itself */
         double[] rawVelocity = new double[2];
@@ -109,7 +124,8 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
         /* TODO: calculate the actual velocity, in reference to the field and use it to find the position */
 
-        System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
+        // System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
+        System.out.println("rotation:" + robotRotation);
 
     }
 
