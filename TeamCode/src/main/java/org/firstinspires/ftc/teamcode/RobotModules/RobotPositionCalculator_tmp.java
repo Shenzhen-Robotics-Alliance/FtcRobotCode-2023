@@ -98,8 +98,14 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
         /** calculate the robot's velocity, in reference to itself */
         double[] rawVelocity = new double[2];
-        /* calculate the horizontal velocity of the robot */
-        rawVelocity[0] =
+        /* calculate the horizontal velocity of the robot by correcting the velocity of the horizontal encoder */
+        rawVelocity[0] = correctThirdEncoderVelocity(angularVelocity, encoderReader.getEncoderVelocity(3));
+        /*
+        * the two vertically installed encoders are identical about the central line of the robot and are parallel to each other
+        * therefore, they are influenced equally and reversely by the rotation of the robot
+        * so vertical velocity is the mean value of the two encoder values
+        * */
+        rawVelocity[1] = (encoderReader.getEncoderVelocity(1) + encoderReader.getEncoderVelocity(2)) / 2;
     }
 
     /**

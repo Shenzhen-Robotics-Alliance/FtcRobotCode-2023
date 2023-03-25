@@ -34,6 +34,13 @@ public class Mini1024EncoderReader extends RobotModule {
     /** whether to read the data from encoder3 */
     private boolean useEncoder3;
 
+    /** the correction factor of the first encoders */
+    private double encoder1CorrectionFactor = 1;
+    /** the correction factor of the second encoders */
+    private double encoder2CorrectionFactor = 1;
+    /** the correction factor of the third encoders */
+    private double encoder3CorrectionFactor = 1;
+
     /** the difference in time between two adjacent periods */
     private ElapsedTime dt = new ElapsedTime();
 
@@ -56,14 +63,23 @@ public class Mini1024EncoderReader extends RobotModule {
     public void init (
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances,
-            boolean useEncoder3
+            boolean useEncoder3,
+            boolean reverseEncoder1,
+            boolean reverseEncoder2,
+            boolean reverseEncoder3
     ) throws NullPointerException {
         /* get the three encoders from the args */
         encoder1 = (DcMotorEx) dependentInstances.get("encoder-1-instance");
         encoder2 = (DcMotorEx) dependentInstances.get("encoder-2-instance");
+
         /* the third encoder is optional */
         this.useEncoder3 = useEncoder3;
         if (useEncoder3) encoder3 = (DcMotorEx) dependentInstances.get("encoder-3-instance");
+
+        /* reverse the value of the encoders if asked */
+        if (reverseEncoder1) encoder1CorrectionFactor = -1;
+        if (reverseEncoder2) encoder2CorrectionFactor = -1;
+        if (reverseEncoder3) encoder3CorrectionFactor = -1;
 
         /* initialize the time */
         dt.reset();
@@ -79,7 +95,7 @@ public class Mini1024EncoderReader extends RobotModule {
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances
     ) throws NullPointerException {
-        init(dependentModules, dependentInstances, true);
+        init(dependentModules, dependentInstances, true, false, false , false);
     }
 
     /**
