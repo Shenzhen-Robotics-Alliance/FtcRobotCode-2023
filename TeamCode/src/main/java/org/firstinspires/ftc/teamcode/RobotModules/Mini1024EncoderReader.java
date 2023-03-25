@@ -59,6 +59,9 @@ public class Mini1024EncoderReader extends RobotModule {
      *                          DcMotorEx "encoder-1-instance", "encoder-2-instance", "encoder-3-instance3":
      *                          the instance of the three encoders
      * @param useEncoder3 whether to read from encoder 3
+     * @param reverseEncoder1  whether to inverse encoder1's value
+     * @param reverseEncoder2  whether to inverse encoder2's value
+     * @param reverseEncoder3  whether to inverse encoder3's value
      */
     public void init (
             HashMap<String, RobotModule> dependentModules,
@@ -90,6 +93,14 @@ public class Mini1024EncoderReader extends RobotModule {
         calibrateEncoder(3);
     }
 
+    /**
+     * initialize the encoders
+     *
+     * @param dependentModules: not needed
+     * @param dependentInstances
+     *                          DcMotorEx "encoder-1-instance", "encoder-2-instance", "encoder-3-instance3":
+     *                          the instance of the three encoders
+     */
     @Override
     public void init (
             HashMap<String, RobotModule> dependentModules,

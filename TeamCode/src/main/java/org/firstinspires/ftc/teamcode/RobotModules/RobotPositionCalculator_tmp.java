@@ -106,6 +106,11 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         * so vertical velocity is the mean value of the two encoder values
         * */
         rawVelocity[1] = (encoderReader.getEncoderVelocity(1) + encoderReader.getEncoderVelocity(2)) / 2;
+
+        /* TODO: calculate the actual velocity, in reference to the field and use it to find the position */
+
+        System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
+
     }
 
     /**

@@ -10,10 +10,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
 
 import java.util.HashMap;
 
@@ -47,6 +49,8 @@ public class Roboseed_DualPilot extends LinearOpMode {
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis autoStageRobotChassis;
     private IMUReader imuReader;
+    private Mini1024EncoderReader encoderReader;
+    private RobotPositionCalculator_tmp positionCalculator;
 
     /**
      * the main entry of the robot's program during manual stage
@@ -105,7 +109,24 @@ public class Roboseed_DualPilot extends LinearOpMode {
         autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
         autoStageRobotChassis = new AutoStageRobotChassis();
         autoStageRobotChassis.init(autoStageRobotChassisDependentModules, autoStageRobotChassisDependentInstances);
-        // autoStageChassisModule.initRobotChassis(); // to gather encoder data for auto stage
+
+        /** pass the hardware ports to the encoder reader module */
+        HashMap<String, RobotModule> encoderReaderDependentModules = null;
+        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
+        /* get the instances of the encoders from hardware map */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
+        encoderReader = new Mini1024EncoderReader();
+        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
+
+        /** pass the encoder reader to the temporary position calculator */
+        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
+        HashMap<String, Object> positionCalculatorDependentInstances = null;
+        positionCalculatorDependentModules.put("encoderReader", encoderReader);
+        positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+
 
         /* telemetry.addLine("robotCurrentPosition(Camera)");
         telemetry.addLine("robotCurrentPosition(Encoder)");
@@ -154,6 +175,13 @@ public class Roboseed_DualPilot extends LinearOpMode {
         elapsedTime.reset();
         imuReader.periodic();
         // System.out.println("<--imu reader module delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
+        encoderReader.periodic();
+        // System.out.println("<--encoder reader module delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
+        positionCalculator.periodic();
+        // System.out.println("<--position calculator module delay: " + elapsedTime.seconds()*1000 + "-->");
+
 
 
         /** switch between the two control modes if asked to */
