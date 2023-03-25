@@ -179,12 +179,15 @@ public class Mini1024EncoderReader extends RobotModule {
         switch (id) {
             case 1: {
                 encoder1StartingPosition = startingPosition;
+                break;
             }
             case 2: {
                 encoder2StartingPosition = startingPosition;
+                break;
             }
             case 3: {
                 encoder3StartingPosition = startingPosition;
+                break;
             }
             default: {
                 throw new IndexOutOfBoundsException();

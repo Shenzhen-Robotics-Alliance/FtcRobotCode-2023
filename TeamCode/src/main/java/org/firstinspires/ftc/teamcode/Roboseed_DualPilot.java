@@ -114,9 +114,14 @@ public class Roboseed_DualPilot extends LinearOpMode {
         HashMap<String, RobotModule> encoderReaderDependentModules = null;
         HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
         /* get the instances of the encoders from hardware map */
-        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
-        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
-        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
+//        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
+//        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
+//        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
+        /* no enough ports, use the encoder ports of the driving motors instead */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
+
         encoderReader = new Mini1024EncoderReader();
         encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
 
@@ -135,13 +140,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        Thread terminationListenerThread = new Thread(new Runnable() { @Override public void run() {
-            while (!isStopRequested() && opModeIsActive()) Thread.yield();
-        }
-        }); terminationListenerThread.start();
-
         waitForStart();
-        sleep(300);
 
         autoStageRobotChassis.calibrateEncoder();
         imuReader.calibrateIMU();

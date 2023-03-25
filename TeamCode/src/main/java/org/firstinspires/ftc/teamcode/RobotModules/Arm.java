@@ -162,10 +162,15 @@ public class Arm extends RobotModule {
     @Override
     public void periodic() {
         switch (armStatusCode) {
-            case -1: case 0: {
+            case -1: {
                 reactToPilotInputs();
                 break;
-            }  case 1: {
+            } case 0: {
+                setArmStill();
+                reactToPilotInputs();
+                break;
+            }
+            case 1: {
                 waitForDeclinedCompletion();
                 break;
             } case 2: {
@@ -249,6 +254,16 @@ public class Arm extends RobotModule {
         // control slow motion automatically
         if (this.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
         else robotChassis.setSlowMotionModeActivationSwitch(false);
+    }
+
+    /**
+     * let the arm maintain it's current height
+     */
+    private void setArmStill() {
+        hardwareDriver.lift_left.setTargetPosition(targetedArmPosition);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_right.setTargetPosition(targetedArmPosition);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     /**
@@ -477,7 +492,7 @@ public class Arm extends RobotModule {
     public void openClaw() {
         System.out.println("opening");
         claw = true;
-        hardwareDriver.claw.setPosition(.35); // open grabber
+        hardwareDriver.claw.setPosition(.62); // open grabber
         // while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
         armIsBusy = false;
     }
@@ -487,7 +502,7 @@ public class Arm extends RobotModule {
     public void closeClaw() {
         System.out.println("closing");
         claw = false;
-        hardwareDriver.claw.setPosition(.65); // close grabber
+        hardwareDriver.claw.setPosition(.9); // close grabber
         // while (Math.abs(hr.claw.getPosition() - .65) > .05) Thread.yield();
         armIsBusy = true;
     }
