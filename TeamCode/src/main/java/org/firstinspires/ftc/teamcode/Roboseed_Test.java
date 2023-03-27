@@ -45,10 +45,6 @@ public class Roboseed_Test extends LinearOpMode {
         configureRobot();
         HashMap<String, RobotModule> encoderReaderDependentModules = null;
         HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
-        /* get the instances of the encoders from hardware map */
-//        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
-//        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
-//        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
         /* no enough ports, use the encoder ports of the driving motors instead */
         encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
         encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
@@ -61,7 +57,6 @@ public class Roboseed_Test extends LinearOpMode {
         telemetry.addLine("encoder3Value");
         waitForStart();
 
-        encoderReader.calibrateEncoder(1); encoderReader.calibrateEncoder(2); encoderReader.calibrateEncoder(3);
         while (opModeIsActive() && !isStopRequested()) {
             encoderReader.periodic();
             /* test the encoder */
@@ -69,7 +64,6 @@ public class Roboseed_Test extends LinearOpMode {
             telemetry.addData("encoder2Value", encoderReader.getEncoderPosition(2));
             telemetry.addData("encoder3Value", encoderReader.getEncoderPosition(3));
             telemetry.update();
-
         }
     }
 

@@ -113,7 +113,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         /* TODO calculate the actual velocity, in reference to the field and use it to find the position */
 
         // System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
-        System.out.println("rotation:" + robotRotation);
+        System.out.println("encoder 1 velocity:" + encoderReader.getEncoderVelocity(1));
 
     }
 

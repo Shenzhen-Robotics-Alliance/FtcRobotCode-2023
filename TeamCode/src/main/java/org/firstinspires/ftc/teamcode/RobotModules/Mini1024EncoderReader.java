@@ -110,7 +110,7 @@ public class Mini1024EncoderReader extends RobotModule {
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances
     ) throws NullPointerException {
-        this.init(dependentModules, dependentInstances, true, false, false , false);
+        this.init(dependentModules, dependentInstances, true, false, false , true);
     }
 
     /**
@@ -288,16 +288,16 @@ public class Mini1024EncoderReader extends RobotModule {
      * @throws IndexOutOfBoundsException if an none-exist encoder is selected
      */
     public void calibrateEncoder(int id) throws IndexOutOfBoundsException {
-        /* wait for the hardware initialization to complete */
-        // while (getEncoderPosition(id) == 0) SystemClock.sleep(50);
-        /* set the starting position */
-        System.out.println("encoderStartingPosition:" + getEncoderPosition(id));
-        double selectedEncoderCurrentPosition = getEncoderPosition(id);
-        setEncoderStartingPosition(id, selectedEncoderCurrentPosition);
-
         /* re-initialize all the variables */
+        encoder1StartingPosition = encoder2StartingPosition = encoder3StartingPosition = 0;
         encoder1Position = encoder2Position = encoder3Position = 0;
         encoder1Velocity = encoder2Velocity = encoder3Velocity = 0;
         encoder1Acceleration = encoder2Acceleration = encoder3Acceleration = 0;
+
+        /* set the starting position */
+        this.periodic();
+        double selectedEncoderCurrentPosition = getEncoderPosition(id);
+        System.out.println("encoder starting position:" + selectedEncoderCurrentPosition);
+        setEncoderStartingPosition(id, selectedEncoderCurrentPosition);
     }
 }

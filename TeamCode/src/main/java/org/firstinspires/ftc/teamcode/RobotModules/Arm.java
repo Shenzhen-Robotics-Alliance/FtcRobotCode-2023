@@ -10,6 +10,8 @@
  * */
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import static android.os.SystemClock.sleep;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -74,6 +76,9 @@ public class Arm extends RobotModule {
     private final ElapsedTime PreviousElevatorActivation = new ElapsedTime();
     private final ElapsedTime PreviousClawActivation = new ElapsedTime();
     private final ElapsedTime PreviousGrepActivation = new ElapsedTime();
+
+    /** to make sure the robot waits until the grabbing is finished */
+    private final ElapsedTime lastGrabbingDelay = new ElapsedTime();
 
     /** the chassis module of robot */
     private RobotChassis robotChassis;
@@ -163,6 +168,7 @@ public class Arm extends RobotModule {
     public void periodic() {
         switch (armStatusCode) {
             case -1: {
+                deactivateArm();
                 reactToPilotInputs();
                 break;
             } case 0: {
@@ -178,6 +184,21 @@ public class Arm extends RobotModule {
                 break;
             } case 3: {
                 waitForDecelerateCompletion();
+                break;
+            } case 5: {
+                /* jump out of this status when the arm is almost on the ground */
+                if (hardwareDriver.lift_left.getCurrentPosition() - gndPos < 30) {
+                    /* set a 300ms delay to closing the claw */
+                    lastGrabbingDelay.reset();
+                    armStatusCode = 6;
+                }
+                break;
+            }
+            case 6: {
+                if (lastGrabbingDelay.seconds() > 0.3) {
+                    closeClaw();
+                    this.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+                }
                 break;
             }
         }
@@ -223,6 +244,7 @@ public class Arm extends RobotModule {
             PreviousGrepActivation.reset();
             this.openClaw();
             this.deactivateArm();
+            periodic();
             // TODO aim the target automatically using computer vision
             this.closeClaw();
 
@@ -246,8 +268,8 @@ public class Arm extends RobotModule {
             System.exit(0);
         } if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
             System.out.println("cooling down the motors...");
-            this.toLowArmPosition(); // move the arm down, else it will hang on the top
-            this.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+            this.deactivateArm(); // move the arm down, else it will hang on the top
+            armStatusCode = 5; // let the system check for completion
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
         }
 
@@ -460,11 +482,10 @@ public class Arm extends RobotModule {
     }
 
     public void deactivateArm() {
-        /* if (
-                arm == -1 |
-                (!claw) // if the claw is set to be closed
-        ) return; // if the arm is already deactivated, or if the claw is holding stuff, abort */
-        while (armPositionCode > 0) lowerArm(); // put the arm down step by step
+        if (hardwareDriver.lift_left.getCurrentPosition() > lowPos) {
+            elevateArm(gndPos);
+            return;
+        }
         openClaw();
         hardwareDriver.lift_left.setPower(0);
         hardwareDriver.lift_right.setPower(0);
@@ -490,20 +511,18 @@ public class Arm extends RobotModule {
      * open the claw of the arm by setting the position of the servo driving it
      */
     public void openClaw() {
-        System.out.println("opening");
+        // System.out.println("opening");
         claw = true;
         hardwareDriver.claw.setPosition(.62); // open grabber
-        // while (Math.abs(hr.claw.getPosition() - .35) > .05) Thread.yield(); // wait until the movement is finished, accept any inaccuracy below 5%
         armIsBusy = false;
     }
     /**
      * close the claw of the arm by setting the position of the servo driving it
      */
     public void closeClaw() {
-        System.out.println("closing");
+        // System.out.println("closing");
         claw = false;
         hardwareDriver.claw.setPosition(.9); // close grabber
-        // while (Math.abs(hr.claw.getPosition() - .65) > .05) Thread.yield();
         armIsBusy = true;
     }
 
@@ -525,7 +544,8 @@ public class Arm extends RobotModule {
      * 2: the arm is motioning upwards and has a distance between the objective position, so it should continue moving upwards to go to the targeted position;
      * 3: the arm is currently motioning downwards but is already close to the objective position, so it should decelerate;
      * 4: the arm is currently motioning upwards but is already close to the objective position, so it should immediately jump to status 0 and maintain height, after being slowed down due to gravity;
-     * 5: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
+     * 5: the arm is doing the complete process of grabbing and is currently on it's way to the lowest position
+     * 6: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
      */
     public short getArmStatusCode() {
         return armStatusCode;

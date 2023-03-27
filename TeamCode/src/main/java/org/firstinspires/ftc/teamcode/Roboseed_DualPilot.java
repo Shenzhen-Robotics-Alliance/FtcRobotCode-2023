@@ -139,13 +139,13 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        waitForStart();
-
         autoStageRobotChassis.calibrateEncoder();
         imuReader.calibrateIMU();
 
         /* add telemetry line, TODO:use robot-debug-bridge to do it */
         telemetry.addLine("arm-position-code");
+
+        waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
