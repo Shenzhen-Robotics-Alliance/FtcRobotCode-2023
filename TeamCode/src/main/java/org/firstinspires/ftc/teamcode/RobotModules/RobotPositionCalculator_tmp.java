@@ -35,7 +35,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     /** the ratio between the angular velocity(in rad/s) to the difference in the velocity of the two parallel encoders (in encoder value) */
     private static final double angularVelocityPerParallelEncoderVelocityDifference = 10*Math.PI * 2 / 202520.56922511634; // to get this data I rotated the robot 10 rounds on the field and get the difference in encoder value
     /** the ratio between the angular velocity(in rad/s) to the velocity of the third encoder, assuming that the robot's rotating center is still */
-    private static final double angularVelocityPerThirdEncoderVelocity = 1;
+    private static final double angularVelocityPerThirdEncoderVelocity = 31.4 / 69865.0; // to get this data, I also make robot rotate 10 times on the field
 
     /** stores the robot's current facing, in radian */
     private double robotRotation = 0;
@@ -112,9 +112,9 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
         /* TODO calculate the actual velocity, in reference to the field and use it to find the position */
 
-        // System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
-        System.out.println("robot rotation:" + robotRotation);
-        System.out.println();
+        System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
+        // System.out.print(     "robot rotation:" + robotRotation);
+        // System.out.println("   encoder3 value:" + encoderReader.getEncoderPosition(3));
 
         this.dt.reset();
     }
@@ -128,7 +128,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
      */
     private static double getAngularVelocity(double parallelEncoder1Velocity, double parallelEncoder2Velocity) {
         /* calculate the difference between the velocity of the two parallel encoders */
-        double velocityDifference = parallelEncoder1Velocity - parallelEncoder2Velocity;
+        double velocityDifference = parallelEncoder2Velocity - parallelEncoder1Velocity;
 
         /*
         * the two encoders are installed vertically, parallel to each other, and identical about the central line of the robot
