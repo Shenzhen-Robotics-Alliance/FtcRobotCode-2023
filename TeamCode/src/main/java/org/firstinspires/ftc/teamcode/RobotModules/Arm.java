@@ -30,6 +30,16 @@ public class Arm extends RobotModule {
     private final int lowPos = 280;
     /** loading position of the arm */
     private final int gndPos = 45;
+    /**
+     * power of the motor to lower the arm
+     * 20% when it's going down, in considerate of the impulse of gravitation
+     */
+    double armDeclineSpeed = 0.2;
+    /**
+     * power of the motor to lower the arm
+     * 40% when it's going up
+     */
+    double armInclineSpeed = 0.4;
 
     /** connects to the hardware */
     private HardwareDriver hardwareDriver;
@@ -51,13 +61,16 @@ public class Arm extends RobotModule {
 
     /**
      * the status code for the arm
+     *
      * -1: the arm is relaxed and waiting for pilot's instructions;
      * 0: the arm is holding still at current height and waiting for pilot's instructions;
      * 1: the arm is motioning downwards and has a distance between the objective position, so it should continue moving downwards to go to the targeted position;
      * 2: the arm is motioning upwards and has a distance between the objective position, so it should continue moving upwards to go to the targeted position;
      * 3: the arm is currently motioning downwards but is already close to the objective position, so it should decelerate;
      * 4: the arm is currently motioning upwards but is already close to the objective position, so it should immediately jump to status 0 and maintain height, after being slowed down due to gravity;
-     * 5: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
+     * 5: the arm is doing the complete process of grabbing and is currently on it's way to the lowest position
+     * 6: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
+     * 7: the arm is in the deactivation process and is moving downward, it should jump out and go to code -1 after it reaches ground
      */
     private short armStatusCode;
 
@@ -134,7 +147,7 @@ public class Arm extends RobotModule {
         this.gamepad = (Gamepad) dependentInstances.get("initialControllerPad");
 
         /* set the robot's arm to be the default status */
-        hardwareDriver.claw.setPosition(0.6);
+        openClaw();
         this.claw = false;
         deactivateArm();
         this.armPositionCode = -1;
@@ -168,7 +181,6 @@ public class Arm extends RobotModule {
     public void periodic() {
         switch (armStatusCode) {
             case -1: {
-                deactivateArm();
                 reactToPilotInputs();
                 break;
             } case 0: {
@@ -197,8 +209,12 @@ public class Arm extends RobotModule {
             case 6: {
                 if (lastGrabbingDelay.seconds() > 0.3) {
                     closeClaw();
-                    this.deactivateArm(); // deactivate when no use for 5 seconds so that the motors don't overheat
+                    this.toLowArmPosition(); // raise the arm up
                 }
+                break;
+            } case 7: {
+                /* wait for the arm to move to the ground */
+                armDeactivation();
                 break;
             }
         }
@@ -244,11 +260,7 @@ public class Arm extends RobotModule {
             PreviousGrepActivation.reset();
             this.openClaw();
             this.deactivateArm();
-            periodic();
-            // TODO aim the target automatically using computer vision
-            this.closeClaw();
-
-            this.toMidArmPosition();
+            armStatusCode = 5; // let the system check for completion
         }
 
         if (gamepad.left_stick_y < -0.8 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
@@ -268,8 +280,7 @@ public class Arm extends RobotModule {
             System.exit(0);
         } if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
             System.out.println("cooling down the motors...");
-            this.deactivateArm(); // move the arm down, else it will hang on the top
-            armStatusCode = 5; // let the system check for completion
+            this.deactivateArm(); // deactivate the arm to avoiding burning the motors
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
         }
 
@@ -446,10 +457,7 @@ public class Arm extends RobotModule {
         boolean isDecline = position < hardwareDriver.lift_left.getCurrentPosition();
 
         if (isDecline) {
-            /* set the power of the motor
-             * 20% when it's going down, in considerate of the impulse of gravitation
-             * */
-            double armDeclineSpeed = 0.2;
+            /* set the power of the motor */
             hardwareDriver.lift_left.setPower(armDeclineSpeed);
             hardwareDriver.lift_right.setPower(armDeclineSpeed);
 
@@ -458,10 +466,7 @@ public class Arm extends RobotModule {
              * */
             this.armStatusCode = 1;
         } else {
-            /* set the power of the motor
-             * 40% when it's going up
-             * */
-            double armInclineSpeed = 0.4;
+            /* set the power of the motor */
             hardwareDriver.lift_left.setPower(armInclineSpeed);
             hardwareDriver.lift_right.setPower(armInclineSpeed);
 
@@ -481,15 +486,26 @@ public class Arm extends RobotModule {
         this.targetedArmPosition = position;
     }
 
-    public void deactivateArm() {
-        if (hardwareDriver.lift_left.getCurrentPosition() > lowPos) {
-            elevateArm(gndPos);
-            return;
-        }
-        openClaw();
+    public void armDeactivation() {
+        /* wait until the arm goes below the lowest position */
+        if (hardwareDriver.lift_left.getCurrentPosition() > lowPos) return;
         hardwareDriver.lift_left.setPower(0);
         hardwareDriver.lift_right.setPower(0);
+        openClaw();
+        armStatusCode = -1;
         armPositionCode = -1;
+    }
+
+    public void deactivateArm() {
+        /* give the arm some power to make it go down */
+        hardwareDriver.lift_left.setPower(0.1);
+        hardwareDriver.lift_right.setPower(0.1);
+        hardwareDriver.lift_left.setTargetPosition(gndPos);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hardwareDriver.lift_right.setTargetPosition(gndPos);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        armPositionCode = 0;
         armStatusCode = -1;
     }
 
@@ -513,7 +529,7 @@ public class Arm extends RobotModule {
     public void openClaw() {
         // System.out.println("opening");
         claw = true;
-        hardwareDriver.claw.setPosition(.62); // open grabber
+        hardwareDriver.claw.setPosition(0); // open grabber
         armIsBusy = false;
     }
     /**
@@ -522,7 +538,7 @@ public class Arm extends RobotModule {
     public void closeClaw() {
         // System.out.println("closing");
         claw = false;
-        hardwareDriver.claw.setPosition(.9); // close grabber
+        hardwareDriver.claw.setPosition(1); // close grabber
         armIsBusy = true;
     }
 
@@ -546,6 +562,7 @@ public class Arm extends RobotModule {
      * 4: the arm is currently motioning upwards but is already close to the objective position, so it should immediately jump to status 0 and maintain height, after being slowed down due to gravity;
      * 5: the arm is doing the complete process of grabbing and is currently on it's way to the lowest position
      * 6: the arm is doing the complete process of grabbing and is current closing it's claw, 300ms after being so the should then be lifted to middle position
+     * 7: the arm is in the deactivation process and is moving downward, it should jump out and go to code -1 after it reaches ground
      */
     public short getArmStatusCode() {
         return armStatusCode;

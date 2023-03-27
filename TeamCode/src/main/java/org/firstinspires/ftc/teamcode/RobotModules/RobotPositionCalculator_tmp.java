@@ -110,9 +110,11 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         * */
         rawVelocity[1] = (encoderReader.getEncoderVelocity(1) + encoderReader.getEncoderVelocity(2)) / 2;
 
-        /* TODO calculate the actual velocity, in reference to the field and use it to find the position */
+        /* do an integral of the actual velocity to time towards calculate the robot's position */
+        this.robotPosition[0] += getActualVelocity(rawVelocity, robotRotation)[0] * dt.seconds();
+        this.robotPosition[1] += getActualVelocity(rawVelocity, robotRotation)[1] * dt.seconds();
 
-        System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
+        System.out.println("x-position<<" + robotPosition[0] + ">>, y-position<<" +robotPosition[1] + ">>"); // TODO test the position reader
         // System.out.print(     "robot rotation:" + robotRotation);
         // System.out.println("   encoder3 value:" + encoderReader.getEncoderPosition(3));
 
@@ -156,6 +158,28 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         double thirdEncoderActualVelocity = thirdEncoderRawVelocity - thirdEncoderLinearVelocity;
 
         return thirdEncoderActualVelocity;
+    }
+
+    /**
+     * calculate, using the raw velocity captured by the encoders, the actual velocity vector of the robot, in reference to ground
+     *
+     * @param rawVelocity the raw velocity captured by the encoders
+     * @param robotHeading the robot's current facing, obtained from the imu module or calculated form the encoders
+     * @return the actual velocity, according to the field, in encoder values
+     */
+    private static double[] getActualVelocity(double[] rawVelocity, double robotHeading) {
+        double[] actualVelocity = new double[2];
+
+        /* the effect on the actual horizontal(in reference to the field) component of the velocity by the raw horizontal(according to the robot) part of the velocity */
+        actualVelocity[0] += rawVelocity[0] * Math.cos(robotHeading);
+        /* the effect on the actual horizontal(in reference to the field) component of the velocity by the raw vertical(according to the robot) part of the velocity */
+        actualVelocity[0] += rawVelocity[1] * Math.cos(robotHeading + Math.toRadians(90));
+        /* the effect on the actual vertical(in reference to the field) component of the velocity by the raw horizontal(according to the robot) part of the velocity */
+        actualVelocity[1] += rawVelocity[0] * Math.sin(robotHeading);
+        /* the effect on the actual vertical(in reference to the field) component of the velocity by the raw vertical(according to the robot) part of the velocity */
+        actualVelocity[1] += rawVelocity[1] * Math.sin(robotHeading + Math.toRadians(90));
+
+        return actualVelocity;
     }
 
     public double[] getRobotPosition() {
