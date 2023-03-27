@@ -60,9 +60,9 @@ public class Roboseed_Test extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             encoderReader.periodic();
             /* test the encoder */
-            telemetry.addData("encoder1Value", encoderReader.getEncoderPosition(1));
-            telemetry.addData("encoder2Value", encoderReader.getEncoderPosition(2));
-            telemetry.addData("encoder3Value", encoderReader.getEncoderPosition(3));
+            telemetry.addData("encoder1Value", encoderReader.getEncoderVelocity(1));
+            telemetry.addData("encoder2Value", encoderReader.getEncoderVelocity(2));
+            telemetry.addData("encoder3Value", encoderReader.getEncoderVelocity(3));
             telemetry.update();
         }
     }

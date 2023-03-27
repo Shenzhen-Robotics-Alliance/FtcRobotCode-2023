@@ -33,7 +33,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
     /** some configurations of the robot TODO:measure these values */
     /** the ratio between the angular velocity(in rad/s) to the difference in the velocity of the two parallel encoders (in encoder value) */
-    private static final double angularVelocityPerParallelEncoderVelocityDifference = 1;
+    private static final double angularVelocityPerParallelEncoderVelocityDifference = 10*Math.PI * 2 / 202520.56922511634; // to get this data I rotated the robot 10 rounds on the field and get the difference in encoder value
     /** the ratio between the angular velocity(in rad/s) to the velocity of the third encoder, assuming that the robot's rotating center is still */
     private static final double angularVelocityPerThirdEncoderVelocity = 1;
 
@@ -94,7 +94,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
         /** update the robot's current rotation */
         /* take the integral of angular velocity to time */
-        this.robotRotation += angularVelocity * dt.seconds();
+        this.robotRotation += angularVelocity * this.dt.seconds();
         /* format the rotation value */
 //        while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
 //        while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
@@ -113,8 +113,10 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         /* TODO calculate the actual velocity, in reference to the field and use it to find the position */
 
         // System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
-        System.out.println("encoder 1 velocity:" + encoderReader.getEncoderVelocity(1));
+        System.out.println("robot rotation:" + robotRotation);
+        System.out.println();
 
+        this.dt.reset();
     }
 
     /**
