@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import android.os.SystemClock;
+
 import java.util.HashMap;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -91,7 +93,7 @@ public class Mini1024EncoderReader extends RobotModule {
         calibrateEncoder(1);
         calibrateEncoder(2);
         calibrateEncoder(3);
-        
+
         System.out.println(encoder2StartingPosition + ", " + encoder2Position);
     }
 
@@ -108,7 +110,7 @@ public class Mini1024EncoderReader extends RobotModule {
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances
     ) throws NullPointerException {
-        init(dependentModules, dependentInstances, true, false, false , false);
+        this.init(dependentModules, dependentInstances, true, false, false , false);
     }
 
     /**
@@ -135,7 +137,7 @@ public class Mini1024EncoderReader extends RobotModule {
         /* calculate the change in each of these positions */
         double encoder1PositionDifference = encoder1CurrentPosition - encoder1Position;
         double encoder2PositionDifference = encoder2CurrentPosition - encoder2Position;
-        double encoder3PositionDifference = 0; if (useEncoder3) encoder3PositionDifference = encoder3CurrentPosition - encoder3Position;
+        double encoder3PositionDifference = encoder3CurrentPosition - encoder3Position;
 
         /* the older version of the positions are no longer needed, refresh them */
         encoder1Position = encoder1CurrentPosition;
@@ -285,8 +287,11 @@ public class Mini1024EncoderReader extends RobotModule {
      * @param id the id of the desired encoder , 1 2 or 3
      * @throws IndexOutOfBoundsException if an none-exist encoder is selected
      */
-    public void calibrateEncoder(int id) throws IndexOutOfBoundsException{
+    public void calibrateEncoder(int id) throws IndexOutOfBoundsException {
+        /* wait for the hardware initialization to complete */
+        // while (getEncoderPosition(id) == 0) SystemClock.sleep(50);
         /* set the starting position */
+        System.out.println("encoderStartingPosition:" + getEncoderPosition(id));
         double selectedEncoderCurrentPosition = getEncoderPosition(id);
         setEncoderStartingPosition(id, selectedEncoderCurrentPosition);
 

@@ -1,45 +1,45 @@
 package org.firstinspires.ftc.teamcode.AutoStagePrograms;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
+import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
 
 import java.util.HashMap;
 
 /**
  * Copyright © 2023 SCCSC-Robotics-Club
- * FileName: Roboseed_AutoStage.java
+ * FileName: Roboseed_AutoStage_tmp.java
  *
- * program for auto stage, not completed.
- * the robot starts in the corner of the field.
- * first, the robot moves out of the parking spot and rotates 90 degree to face the navigation marks,
+ * a temporary program for auto stage
+ * the robot starts in the right corner of the field, with it's left side lining up with the righter border between the second and third region, counting from the right side
+ * step1, the robot moves out of the parking spot to the center of the third(counting from the right) region
+ * step2, the robot places the pre-loaded
  * the robot moves to position(according to camera) -1022, -782.
  * the auto stage programs should extend this program as they have common procedure in the first 25 seconds,
  * but the auto stage programs should have different objectives in the last 5 seconds, they maybe go to a fixed sector according to pilot's selection, or may use cameras to determine
- *
- * TODO complete this program by making it a periodic program
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
  * @Version v0.1.0
  */
-abstract class Roboseed_AutoStage extends LinearOpMode {
-    private ElapsedTime elapsedTime = new ElapsedTime();
-
+public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
-    private AutoStageRobotChassis robotChassis;
+    private AutoStageRobotChassis_tmp robotChassis;
     private Arm arm;
+    private AutoStageArm autoStageArm;
     /** the number of the sector the robot parks into by the end of auto stage */
     private short parkingSectorNum;
 
@@ -51,23 +51,7 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
-
-        /** pass the hardware ports to the field navigation module */
-        HashMap<String, RobotModule> fieldNavigationDependentModules = null;
-        HashMap<String, Object> fieldNavigationDependentInstances = new HashMap<>(1);
-        fieldNavigationDependentInstances.put("hardwareMap", hardwareMap);
-        fieldNavigation = new ComputerVisionFieldNavigation_v2();
-        fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
-
-        /** pass the hardware ports, drivers and dependent modules to the auto stage chassis module, which is for testing */
-        HashMap<String, RobotModule> autoStageRobotChassisDependentModules = new HashMap<>(1);
-        HashMap<String, Object> autoStageRobotChassisDependentInstances = new HashMap<>(1);
-        autoStageRobotChassisDependentModules.put("fieldNavigation", fieldNavigation);
-        autoStageRobotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
-        autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
-        this.robotChassis = new AutoStageRobotChassis();
-        this.robotChassis.init(autoStageRobotChassisDependentModules, autoStageRobotChassisDependentInstances);
-        elapsedTime.reset();
+        this.parkingSectorNum = determineParkingSector();
 
         /** pass the hardware ports to the arm module */
         HashMap armModuleDependentModules = null;
@@ -76,7 +60,31 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
         arm = new Arm();
         arm.init(armModuleDependentModules, armModuleDependentInstances);
 
-        /* determines where to park */
+        /** the temporary arm module to operate the arm during auto stage */
+        autoStageArm = new AutoStageArm(arm);
+
+        /** pass the hardware ports to the encoder reader module */
+        HashMap<String, RobotModule> encoderReaderDependentModules = null;
+        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
+        /* no enough ports, use the encoder ports of the driving motors instead */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
+        Mini1024EncoderReader encoderReader = new Mini1024EncoderReader();
+        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
+
+        /** pass the encoder reader to the temporary position calculator */
+        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
+        HashMap<String, Object> positionCalculatorDependentInstances = null;
+        positionCalculatorDependentModules.put("encoderReader", encoderReader);
+        RobotPositionCalculator_tmp positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+
+        /** the temporary chassis module */
+        this.robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
+
+
+        /* sey the parking sector */
         this.parkingSectorNum = determineParkingSector();
 
         waitForStart();
@@ -146,84 +154,7 @@ abstract class Roboseed_AutoStage extends LinearOpMode {
      * @throws InterruptedException
      * */
     private void proceedAutoStageInstructions() throws InterruptedException {
-        // grab the preloaded sleeve
-        arm.closeClaw();
-        Thread.sleep(1000);
 
-        // go to the center of the grid (200, 130), in reference to the red side team
-        robotChassis.setRobotPosition(0, 100);
-
-        // line up vertically with the place where the targets
-        robotChassis.setRobotPosition(-800, 100);
-        robotChassis.setRobotPosition(-800, 780);
-        robotChassis.setRobotPosition(-1340, 780);
-
-        // turn the robot to the goal
-        robotChassis.setRobotRotation(0);
-
-        // raise the arm
-        arm.toHighArmPosition();
-
-        // go forward a step
-        robotChassis.setRobotPosition(-1340, 860);
-
-        // place the preloaded goal
-        arm.toMidArmPosition();
-        arm.openClaw();
-
-        // go to the sleeve stack
-        robotChassis.setRobotPosition(-1340, 780); // step back from the goal
-        robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(-800, 780);
-
-        // drop tHE arm
-        sleep(200);
-        arm.toMidArmPosition();
-        arm.deactivateArm();
-
-        /* sleep(2000);
-
-        // turn the robot to the stick
-        chassisModule.setRobotRotation(Math.toRadians(90));
-
-        // precise navigation to the sleeves using visual guidance
-        if (fieldNavigation.checkNavigationSignsVisibility()) // if the navigation signs are available
-            chassisModule.setRobotPositionWithVisualNavigation(-1000, 1500); // visual guidance to the sleeves
-        else chassisModule.setRobotPosition(0, 600); // other wise, dive to the sleeves using encoders TODO set this position to make robot very close to the sleeves
-
-        /*
-        // raise the arms
-        armControllingMethods.openClaw();
-        armControllingMethods.toLoadingArmPosition();
-
-        // go to the sleeves
-        chassisModule.moveRobotWithEncoder(0, 200);
-        // grab a sleeve and raise it up
-        armControllingMethods.closeClaw();
-        armControllingMethods.toMidArmPosition();
-        // step back and drag it on the ground
-        chassisModule.moveRobotWithEncoder(0, -200);
-        armControllingMethods.toGroundArmPosition();
-
-        // turn the robot to the goal
-        chassisModule.setRobotRotation(270);
-
-        // go to the goal
-        if (fieldNavigation.checkNavigationSignsVisibility())
-            chassisModule.setRobotPositionWithVisualNavigation(0, 0);
-        else chassisModule.moveRobotWithEncoder(0, 0); // TODO set the positions to make the position line up and stick close with the goal one step away
-
-        // raise the arm
-        armControllingMethods.toHighArmPosition();
-
-        // go forward a step
-        chassisModule.moveRobotWithEncoder(0, 100); // TODO set the position so that the sleeve goes right to the goal
-
-        // place the sleeve
-        armControllingMethods.deactivateArm();
-        armControllingMethods.openClaw();
-        chassisModule.moveRobotWithEncoder(0, -100); // step back from the goal
-        */
     }
 
     /**

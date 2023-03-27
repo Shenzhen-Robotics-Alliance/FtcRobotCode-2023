@@ -416,7 +416,7 @@ public class Arm extends RobotModule {
      *
      * @param position: the targeted position, ranged 0-1000, 0 is when the arm hits the robot badly, 1000 is when the arm flips around and damage the structer
      */
-    private void elevateArm(int position) {
+    public void elevateArm(int position) {
         /** the direction that the arm is going
         *   true when the arm is going up
         *   false when the arm is going down

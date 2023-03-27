@@ -30,9 +30,6 @@ public class RobotPositionCalculator_tmp extends RobotModule {
 
     /** to calculate the difference in time */
     private static final ElapsedTime dt = new ElapsedTime();
-    /** to calculate the time after start */
-    private static final ElapsedTime startTime = new ElapsedTime();
-    private static boolean started = false;
 
     /** some configurations of the robot TODO:measure these values */
     /** the ratio between the angular velocity(in rad/s) to the difference in the velocity of the two parallel encoders (in encoder value) */
@@ -92,15 +89,6 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     /** updates the robot's current position by taking the integral of the calculated robot velocity over all times */
     @Override
     public void periodic() {
-        /** do no calculations during the first 100 milliseconds */
-        if (!started) {
-            started = true;
-            startTime.reset();
-        } if (startTime.seconds() < 0.1) {
-            encoderReader.calibrateEncoder(1); encoderReader.calibrateEncoder(2); encoderReader.calibrateEncoder(3);
-            return;
-        }
-
         /** calculate the angular velocity of the robot */
         double angularVelocity = getAngularVelocity(encoderReader.getEncoderVelocity(1), encoderReader.getEncoderVelocity(2));
 
@@ -122,7 +110,7 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         * */
         rawVelocity[1] = (encoderReader.getEncoderVelocity(1) + encoderReader.getEncoderVelocity(2)) / 2;
 
-        /* TODO: calculate the actual velocity, in reference to the field and use it to find the position */
+        /* TODO calculate the actual velocity, in reference to the field and use it to find the position */
 
         // System.out.println("angular velocity<<" + angularVelocity + ">>, horizontal velocity<<" + rawVelocity[0] + ">>, vertical velocity<<" + rawVelocity[1] + ">>");
         System.out.println("rotation:" + robotRotation);
@@ -166,5 +154,13 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         double thirdEncoderActualVelocity = thirdEncoderRawVelocity - thirdEncoderLinearVelocity;
 
         return thirdEncoderActualVelocity;
+    }
+
+    public double[] getRobotPosition() {
+        return robotPosition;
+    }
+
+    public double getRobotRotation() {
+        return robotRotation;
     }
 }

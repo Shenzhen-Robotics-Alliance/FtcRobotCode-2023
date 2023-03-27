@@ -1,0 +1,30 @@
+package org.firstinspires.ftc.teamcode.RobotModules;
+
+/**
+ * the program that connects to the arm module to control the arm during auto stage
+ *
+ * @Deprecated
+ */
+@Deprecated
+public class AutoStageArm {
+    // TODO set these configurations
+    /** the sets of positions of the arm to match the sleeves stack with different amount of sleeves left */
+    private static final int[] sleevesStackPositions = {0,0,0,0};
+    /** count the number of sleeves obtained already */
+    private int sleevesCount = 0;
+    Arm armModule;
+    public AutoStageArm(Arm armModule) {
+        this.armModule = armModule;
+    }
+
+    public void goToHighestTower() {
+        armModule.toHighArmPosition();
+        while (armModule.getArmStatusCode() != 0) armModule.periodic();
+    }
+
+    public void grabFromSleevesStack() {
+        armModule.elevateArm(sleevesStackPositions[sleevesCount]);
+        while (armModule.getArmStatusCode() != 0) armModule.periodic();
+        sleevesCount++;
+    }
+}

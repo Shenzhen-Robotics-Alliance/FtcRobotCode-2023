@@ -56,14 +56,20 @@ public class Roboseed_Test extends LinearOpMode {
         encoderReader = new Mini1024EncoderReader();
         encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
 
-        telemetry.addLine("encoderValue");
+        telemetry.addLine("encoder1Value");
+        telemetry.addLine("encoder2Value");
+        telemetry.addLine("encoder3Value");
         waitForStart();
-        encoderReader.calibrateEncoder(2);
+
+        encoderReader.calibrateEncoder(1); encoderReader.calibrateEncoder(2); encoderReader.calibrateEncoder(3);
         while (opModeIsActive() && !isStopRequested()) {
             encoderReader.periodic();
             /* test the encoder */
-            telemetry.addData("encoderValue", encoderReader.getEncoderPosition(2));
+            telemetry.addData("encoder1Value", encoderReader.getEncoderPosition(1));
+            telemetry.addData("encoder2Value", encoderReader.getEncoderPosition(2));
+            telemetry.addData("encoder3Value", encoderReader.getEncoderPosition(3));
             telemetry.update();
+
         }
     }
 
