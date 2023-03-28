@@ -96,13 +96,13 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         /* take the integral of angular velocity to time */
         this.robotRotation += angularVelocity * this.dt.seconds();
         /* format the rotation value */
-//        while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
-//        while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
+        while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
+        while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
 
         /** calculate the robot's velocity, in reference to itself */
         double[] rawVelocity = new double[2];
         /* calculate the horizontal velocity of the robot by correcting the velocity of the horizontal encoder */
-        rawVelocity[0] = correctThirdEncoderVelocity(angularVelocity, encoderReader.getEncoderVelocity(3));
+        rawVelocity[0] = correctThirdEncoderVelocity(encoderReader.getEncoderVelocity(3), angularVelocity);
         /*
         * the two vertically installed encoders are identical about the central line of the robot and are parallel to each other
         * therefore, they are influenced equally and reversely by the rotation of the robot
@@ -110,13 +110,13 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         * */
         rawVelocity[1] = (encoderReader.getEncoderVelocity(1) + encoderReader.getEncoderVelocity(2)) / 2;
 
-        /* do an integral of the actual velocity to time towards calculate the robot's position */
+        /** do an integral of the actual velocity to time towards calculate the robot's position */
         this.robotPosition[0] += getActualVelocity(rawVelocity, robotRotation)[0] * dt.seconds();
         this.robotPosition[1] += getActualVelocity(rawVelocity, robotRotation)[1] * dt.seconds();
 
-        System.out.println("x-position<<" + robotPosition[0] + ">>, y-position<<" +robotPosition[1] + ">>"); // TODO test the position reader
-        // System.out.print(     "robot rotation:" + robotRotation);
-        // System.out.println("   encoder3 value:" + encoderReader.getEncoderPosition(3));
+        // System.out.println(     "robot rotation:" + robotRotation);
+        // System.out.println("raw velocity:" + rawVelocity[0] + ", " + rawVelocity[1]); // TODO the problem originated from the raw velocity
+        // System.out.println("actual velocity: " + getActualVelocity(rawVelocity, robotRotation)[0] + ", " + getActualVelocity(rawVelocity, robotRotation)[1]);
 
         this.dt.reset();
     }

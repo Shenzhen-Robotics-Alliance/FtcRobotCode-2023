@@ -90,7 +90,9 @@ public class AutoStageRobotChassis_tmp {
      * @return the amount of radians that the robot needs to rotate, positive for anti-clockwise, ti get to the objective rotation
      */
     private double reformatRotationDifference(double rawDifference) {
-        // if ()
-        return -114514;
+        // TODO add explanations
+        if (rawDifference > Math.PI) return Math.PI*2 - rawDifference;
+        if (rawDifference < -Math.PI) return Math.PI*2 + rawDifference;
+        return rawDifference;
     }
 }

@@ -179,8 +179,12 @@ public class Arm extends RobotModule {
 
     @Override
     public void periodic() {
+        /* proceed different instructions according to the status code */
         switch (armStatusCode) {
             case -1: {
+                /* save battery and cool down the arms */
+                hardwareDriver.lift_left.setPower(0);
+                hardwareDriver.lift_right.setPower(0);
                 reactToPilotInputs();
                 break;
             } case 0: {
@@ -401,31 +405,31 @@ public class Arm extends RobotModule {
      * set the arm to match the higher tower
      */
     public void toHighArmPosition() {
-        elevateArm(highPos);
         armPositionCode = 3;
         armIsBusy = true;
+        elevateArm(highPos);
     }
     /**
      * set the arm to match the higher, middle and lowest tower
      */
     public void toMidArmPosition() {
-        elevateArm(midPos);
         armPositionCode = 2;
         armIsBusy = true;
+        elevateArm(midPos);
     }
     /**
      * set the arm to match the higher, middle and lowest tower
      */
     public void toLowArmPosition() {
-        elevateArm(lowPos);
         armPositionCode = 1;
         armIsBusy = true;
+        elevateArm(lowPos);
     }
 
     public void toGroundArmPosition() {
-        elevateArm(gndPos);
         armPositionCode = 0;
         armIsBusy = false;
+        elevateArm(gndPos);
     }
 
     /**
@@ -506,7 +510,7 @@ public class Arm extends RobotModule {
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         armPositionCode = 0;
-        armStatusCode = -1;
+        armStatusCode = 7;
     }
 
 
@@ -538,7 +542,7 @@ public class Arm extends RobotModule {
     public void closeClaw() {
         // System.out.println("closing");
         claw = false;
-        hardwareDriver.claw.setPosition(1); // close grabber
+        hardwareDriver.claw.setPosition(0.4); // close grabber
         armIsBusy = true;
     }
 

@@ -152,8 +152,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             linearMap(0.05, 1, 0, 1,
                     Math.abs(gamepad.left_stick_x)
             ), gamepad.left_stick_x); */
-        double rotationalMotion = linearMap(gamepad.left_stick_x);
-        if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.6;
+        double rotationalMotion = linearMap(gamepad.left_stick_x) * 0.6;
+        if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.8;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
         if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -190,6 +190,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+
+        // TODO correct the motor power using the position calculator
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
