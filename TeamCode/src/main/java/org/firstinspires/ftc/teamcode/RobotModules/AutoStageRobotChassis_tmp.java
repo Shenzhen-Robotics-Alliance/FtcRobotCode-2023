@@ -44,6 +44,7 @@ public class AutoStageRobotChassis_tmp {
     }
 
     public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
+        // TODO test this method and add explanations
         positionCalculator.periodic();
         double startingRotation = positionCalculator.getRobotRotation();
 
@@ -51,7 +52,7 @@ public class AutoStageRobotChassis_tmp {
             setRobotMotion(
                     (encoderPositionX-positionCalculator.getRobotPosition()[0]) / positionStartsSlowingDown,
                     (encoderPositionY-positionCalculator.getRobotPosition()[1]) / positionStartsSlowingDown,
-                    (startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
+                    reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
             );
         } while (Math.sqrt(encoderPositionX * encoderPositionX + encoderPositionY * encoderPositionY) > positionTolerance);
     }
@@ -59,7 +60,7 @@ public class AutoStageRobotChassis_tmp {
     private void setRobotRotation(double radians) {
         do {
             setRobotMotion(0,0,
-                    radians - positionCalculator.getRobotRotation() / rotationTolerance * encoderVelocityPerAngularVelocity
+                    reformatRotationDifference(radians - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
                     );
         } while (Math.abs(reformatRotationDifference(radians) - positionCalculator.getRobotRotation()) > rotationTolerance);
     }
@@ -90,9 +91,11 @@ public class AutoStageRobotChassis_tmp {
      * @return the amount of radians that the robot needs to rotate, positive for anti-clockwise, ti get to the objective rotation
      */
     private double reformatRotationDifference(double rawDifference) {
-        // TODO add explanations
+        /* if the rotational difference is greater than 180 degree, and that the objective is in the clockwise direction of the current, go the other way around(turn counter-clockwise) */
         if (rawDifference > Math.PI) return Math.PI*2 - rawDifference;
+        /* if the rotation difference is greater than 180, and that the objective is in counter-clockwise, go clockwise */
         if (rawDifference < -Math.PI) return Math.PI*2 + rawDifference;
+        /* if the rotation difference is no greater than 180, just turn to the objective directly */
         return rawDifference;
     }
 }
