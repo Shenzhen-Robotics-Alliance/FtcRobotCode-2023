@@ -26,15 +26,15 @@ public class AutoStageRobotChassis_tmp {
     private static final int positionStartsSlowingDown = 10000;
 
     /** accept any deviation in rotation less than 10 degrees */
-    private static final double rotationTolerance = Math.toRadians(10);
+    private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
     /** minimum power to make the robot move */
-    private static final double minMovingMotorPower = 0.05;
+    private static final double minMovingMotorPower = 0.1;
     /** maximum power during auto stage */
     private static final double maxMovingMotorPower = 0.6;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
-    private static final double rotationPowerFactor = 0.6;
+    private static final double rotationPowerFactor = -0.6;
 
 
     public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator_tmp positionCalculator) {
@@ -74,12 +74,12 @@ public class AutoStageRobotChassis_tmp {
 
             /* do a linear map do determine how much motor power is used to rotate the robot  */
             double rotationalPower = Math.copySign(RobotChassis.linearMap(
-                    rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower * rotationPowerFactor,maxMovingMotorPower * rotationPowerFactor,
+                    rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
                     Math.abs(rotationalDifference)
             ) , rotationalDifference);
 
             /* set the power of the motors */
-            setRobotMotion(0,0,rotationalPower);
+            setRobotMotion(0,0,rotationalPower * rotationPowerFactor);
 
             System.out.println(radians - positionCalculator.getRobotRotation() + ", " + rotationalDifference);
         } while (Math.abs(reformatRotationDifference(radians) - positionCalculator.getRobotRotation()) > rotationTolerance);
