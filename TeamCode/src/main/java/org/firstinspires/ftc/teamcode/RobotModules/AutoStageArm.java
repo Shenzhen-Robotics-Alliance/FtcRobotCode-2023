@@ -29,7 +29,7 @@ public class AutoStageArm {
         armModule.openClaw();
     }
 
-    public void
+    //public void
 
     public void goToHighestTower() {
         armModule.toHighArmPosition();

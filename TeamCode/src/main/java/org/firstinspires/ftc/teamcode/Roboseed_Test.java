@@ -20,8 +20,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
 
 import java.util.HashMap;
 
@@ -41,30 +44,31 @@ public class Roboseed_Test extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Mini1024EncoderReader encoderReader;
         configureRobot();
+
+        /** pass the hardware ports to the encoder reader module */
         HashMap<String, RobotModule> encoderReaderDependentModules = null;
         HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
         /* no enough ports, use the encoder ports of the driving motors instead */
         encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
         encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
         encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
-        encoderReader = new Mini1024EncoderReader();
+        Mini1024EncoderReader encoderReader = new Mini1024EncoderReader();
         encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
 
-        telemetry.addLine("encoder1Value");
-        telemetry.addLine("encoder2Value");
-        telemetry.addLine("encoder3Value");
+        /** pass the encoder reader to the temporary position calculator */
+        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
+        HashMap<String, Object> positionCalculatorDependentInstances = null;
+        positionCalculatorDependentModules.put("encoderReader", encoderReader);
+        RobotPositionCalculator_tmp positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+
+        /** the temporary chassis module */
+        AutoStageRobotChassis_tmp robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
+
         waitForStart();
 
-        while (opModeIsActive() && !isStopRequested()) {
-            encoderReader.periodic();
-            /* test the encoder */
-            telemetry.addData("encoder1Value", encoderReader.getEncoderVelocity(1));
-            telemetry.addData("encoder2Value", encoderReader.getEncoderVelocity(2));
-            telemetry.addData("encoder3Value", encoderReader.getEncoderVelocity(3));
-            telemetry.update();
-        }
+        robotChassis.setRobotRotation(90);
     }
 
     private void configureRobot() {

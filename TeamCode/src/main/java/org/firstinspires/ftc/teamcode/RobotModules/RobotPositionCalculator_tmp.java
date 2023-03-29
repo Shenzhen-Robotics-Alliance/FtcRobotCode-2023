@@ -121,6 +121,9 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         this.dt.reset();
     }
 
+    /** force the encoder reader to update the readings */
+    public void forceUpdateEncoderValue() { encoderReader.periodic(); }
+
     /**
      * determines the angular velocity of the robot using the difference between the velocity of the two parallel encoders
      *

@@ -45,6 +45,8 @@ public class AutoStageRobotChassis_tmp {
 
     public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
         // TODO test this method and add explanations
+        /* update sensor readings */
+        positionCalculator.forceUpdateEncoderValue();
         positionCalculator.periodic();
         double startingRotation = positionCalculator.getRobotRotation();
 
@@ -59,9 +61,19 @@ public class AutoStageRobotChassis_tmp {
 
     private void setRobotRotation(double radians) {
         do {
-            setRobotMotion(0,0,
-                    reformatRotationDifference(radians - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
-                    );
+            /* update sensor readings */
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+
+            /* calculate bias between the current and the targeted rotation */
+            double rotationalDifference = reformatRotationDifference(radians - positionCalculator.getRobotRotation())
+            setRobotMotion(0,0, // set the robot to be still
+                    Math.copySign(RobotChassis.linearMap(
+                            0,0,0,0,
+                            Math.abs(rotationalDifference)
+                    ) , rotationalDifference)
+            );
+            System.out.println(positionCalculator.getRobotRotation());
         } while (Math.abs(reformatRotationDifference(radians) - positionCalculator.getRobotRotation()) > rotationTolerance);
     }
 

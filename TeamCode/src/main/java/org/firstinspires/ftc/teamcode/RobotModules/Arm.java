@@ -501,13 +501,15 @@ public class Arm extends RobotModule {
     }
 
     public void deactivateArm() {
-        /* give the arm some power to make it go down */
-        hardwareDriver.lift_left.setPower(0.1);
-        hardwareDriver.lift_right.setPower(0.1);
+        /* set the arm to move down */
         hardwareDriver.lift_left.setTargetPosition(gndPos);
         hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hardwareDriver.lift_right.setTargetPosition(gndPos);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        /* give the motor some power to make it slow down */
+        // hardwareDriver.lift_left.setPower(0.1);
+        // hardwareDriver.lift_right.setPower(0.1);
 
         armPositionCode = 0;
         armStatusCode = 7;
