@@ -142,19 +142,33 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
      */
     abstract short determineParkingSector();
 
-    /*
+    /**
      * the instruction given to the robot to make it score
-     *  1. the robot grabs the signal sleeves, go to the center of the field
-     *  2. the robot moves to the targeted towers, lifts its arm , move a step forward and score goal
-     *  3. the robot release its arm, move to the center of the current grid
-     *  4. the robot moves, according to the instructions that pilots selected manually in the beginning, to the parking sector that the signal sleeves pointed
+     *  the robot starts in the right corner of the field, with it's left side lining up with the righter border between the second and third region, counting from the right side
+     *  step1, the robot moves out of the parking spot and go to the center of the starting region
+     *  step2, the robot moves to next region in the front, then to right behind the tower, and place the pre-loaded sleeve onto it
+     *  step3, the robot goes back to the
+     *  the robot moves to position(according to camera) -1022, -782.
      *
-     * @param Nah
-     * @return Nah
-     * @throws InterruptedException
+     *
+     * @throws InterruptedException if the process is interrupted by sytem
      * */
     private void proceedAutoStageInstructions() throws InterruptedException {
+        /* grab the pre-loaded sleeve */
+        autoStageArm.holdPreLoadedSleeve();
+        /* step1, the robot moves out of the parking spot and go to the center of the starting region */
+        robotChassis.setRobotPosition(-11250, 2000);
 
+        /* step2, the robot moves to next region in the front */
+        robotChassis.setRobotPosition(-11250, 14500);
+        /* then to right behind the tower */
+        robotChassis.setRobotPosition(-19000, 14500);
+        /* place the pre-loaded sleeve onto it */
+        autoStageArm.goToHighestTower();
+        robotChassis.setRobotPosition(-19000, 17000);
+        autoStageArm.dropSleeve();
+
+        // TODO finish the rest
     }
 
     /**
