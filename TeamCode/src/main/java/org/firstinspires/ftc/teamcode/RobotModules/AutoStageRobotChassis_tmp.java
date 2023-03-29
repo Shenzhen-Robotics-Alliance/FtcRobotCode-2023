@@ -30,7 +30,7 @@ public class AutoStageRobotChassis_tmp {
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
     /** minimum power to make the robot move */
-    private static final double minMovingMotorPower = 0.1;
+    private static final double minMovingMotorPower = 0.2;
     /** maximum power during auto stage */
     private static final double maxMovingMotorPower = 0.6;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
@@ -48,18 +48,26 @@ public class AutoStageRobotChassis_tmp {
     }
 
     public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
-        // TODO test this method and add explanations
-        /* update sensor readings */
-        positionCalculator.forceUpdateEncoderValue();
-        positionCalculator.periodic();
         double startingRotation = positionCalculator.getRobotRotation();
 
         do {
-//            setRobotMotion(
-//                    (encoderPositionX-positionCalculator.getRobotPosition()[0]) / positionStartsSlowingDown,
-//                    (encoderPositionY-positionCalculator.getRobotPosition()[1]) / positionStartsSlowingDown,
-//                    reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
-//            );
+            /* update sensor readings */
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+
+            /** calculate bias between the current and the starting rotation */
+            double rotationalDifference = reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation());
+
+            /* the bias between the current and the targeted position in the x-axis, in reference to the field */
+            double xAxisFieldDifference = encoderPositionX - positionCalculator.getRobotPosition()[0];
+            double yAxisFieldDifference = encoderPositionY - positionCalculator.getRobotPosition()[1];
+            // TODO finish up this method by calculating the x axis and y axis velocity needed, in reference to the robot
+
+            setRobotMotion(
+                    (encoderPositionX-positionCalculator.getRobotPosition()[0]) / positionStartsSlowingDown,
+                    (encoderPositionY-positionCalculator.getRobotPosition()[1]) / positionStartsSlowingDown,
+                    reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
+            );
         } while (Math.sqrt(encoderPositionX * encoderPositionX + encoderPositionY * encoderPositionY) > positionTolerance);
     }
 
