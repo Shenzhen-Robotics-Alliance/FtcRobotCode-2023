@@ -29,8 +29,12 @@ public class AutoStageRobotChassis_tmp {
     private static final double rotationTolerance = Math.toRadians(10);
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
-    /** the rate between the encoder velocity and the angular velocity TODO: adjust it */
-    private static final int encoderVelocityPerAngularVelocity = 10000;
+    /** minimum power to make the robot move */
+    private static final double minMovingMotorPower = 0.05;
+    /** maximum power during auto stage */
+    private static final double maxMovingMotorPower = 0.6;
+    /** the power needed to rotate the robot is slightly smaller than that needed to move it */
+    private static final double rotationPowerFactor = 0.6;
 
 
     public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator_tmp positionCalculator) {
@@ -51,11 +55,11 @@ public class AutoStageRobotChassis_tmp {
         double startingRotation = positionCalculator.getRobotRotation();
 
         do {
-            setRobotMotion(
-                    (encoderPositionX-positionCalculator.getRobotPosition()[0]) / positionStartsSlowingDown,
-                    (encoderPositionY-positionCalculator.getRobotPosition()[1]) / positionStartsSlowingDown,
-                    reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
-            );
+//            setRobotMotion(
+//                    (encoderPositionX-positionCalculator.getRobotPosition()[0]) / positionStartsSlowingDown,
+//                    (encoderPositionY-positionCalculator.getRobotPosition()[1]) / positionStartsSlowingDown,
+//                    reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
+//            );
         } while (Math.sqrt(encoderPositionX * encoderPositionX + encoderPositionY * encoderPositionY) > positionTolerance);
     }
 
@@ -66,14 +70,18 @@ public class AutoStageRobotChassis_tmp {
             positionCalculator.periodic();
 
             /* calculate bias between the current and the targeted rotation */
-            double rotationalDifference = reformatRotationDifference(radians - positionCalculator.getRobotRotation())
-            setRobotMotion(0,0, // set the robot to be still
-                    Math.copySign(RobotChassis.linearMap(
-                            0,0,0,0,
-                            Math.abs(rotationalDifference)
-                    ) , rotationalDifference)
-            );
-            System.out.println(positionCalculator.getRobotRotation());
+            double rotationalDifference = reformatRotationDifference(radians - positionCalculator.getRobotRotation());
+
+            /* do a linear map do determine how much motor power is used to rotate the robot  */
+            double rotationalPower = Math.copySign(RobotChassis.linearMap(
+                    rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower * rotationPowerFactor,maxMovingMotorPower * rotationPowerFactor,
+                    Math.abs(rotationalDifference)
+            ) , rotationalDifference);
+
+            /* set the power of the motors */
+            setRobotMotion(0,0,rotationalPower);
+
+            System.out.println(radians - positionCalculator.getRobotRotation() + ", " + rotationalDifference);
         } while (Math.abs(reformatRotationDifference(radians) - positionCalculator.getRobotRotation()) > rotationTolerance);
     }
 
