@@ -137,10 +137,10 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         if (dependentModules.isEmpty()) throw new NullPointerException(
                 "an empty map of dependent modules given to this module, which requires at least one instant dependencies"
         );
-        if (! dependentInstances.containsKey("positionCalculator")) throw new NullPointerException(
+        if (! dependentModules.containsKey("positionCalculator")) throw new NullPointerException(
                 "dependent instance not given: " + "positionCalculator"
         );
-        this.positionCalculator = (RobotPositionCalculator_tmp) dependentInstances.get("positionCalculator");
+        this.positionCalculator = (RobotPositionCalculator_tmp) dependentModules.get("positionCalculator");
 
 
         /* calibrate the imu */

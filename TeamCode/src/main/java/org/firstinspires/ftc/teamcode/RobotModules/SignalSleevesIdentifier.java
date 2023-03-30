@@ -86,7 +86,7 @@ public class SignalSleevesIdentifier extends RobotModule {
         /* the model is trained using tensorflow 2 */
         tfodParameters.isModelTensorFlow2 = true;
         /* the input size of the picture */
-        tfodParameters.inputSize = 360;
+        tfodParameters.inputSize = 300;
 
         /* create the tensorflow engine */
         tfObjectDetector = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);

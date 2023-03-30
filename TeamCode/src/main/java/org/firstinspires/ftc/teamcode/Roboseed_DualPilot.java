@@ -62,9 +62,32 @@ public class Roboseed_DualPilot extends LinearOpMode {
         /* configure the ports for all the hardware's */
         this.configureRobot();
 
+        /** pass the hardware ports to the encoder reader module */
+        HashMap<String, RobotModule> encoderReaderDependentModules = null;
+        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
+        /* get the instances of the encoders from hardware map */
+//        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
+//        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
+//        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
+        /* no enough ports, use the encoder ports of the driving motors instead */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
+        encoderReader = new Mini1024EncoderReader();
+        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
+
+        /** pass the encoder reader to the temporary position calculator */
+        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
+        HashMap<String, Object> positionCalculatorDependentInstances = null;
+        positionCalculatorDependentModules.put("encoderReader", encoderReader);
+        positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+
         /** pass the hardware ports to the robot chassis */
-        HashMap<String, RobotModule> robotChassisDependentModules = null;
-        HashMap<String, Object> robotChassisDependentInstances = new HashMap<>();
+        HashMap<String, RobotModule> robotChassisDependentModules = new HashMap<>(1);
+        /* the module that computes the robot's current position and motion */
+        robotChassisDependentModules.put("positionCalculator", positionCalculator);
+        HashMap<String, Object> robotChassisDependentInstances = new HashMap<>(1);
         /* give the first pilot's controller pad as the initial controller pad for robot's movement to the chassis module */
         robotChassisDependentInstances.put("initialControllerPad", gamepad1);
         /* give the connection to the hardware to the module */
@@ -109,27 +132,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
         autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
         autoStageRobotChassis = new AutoStageRobotChassis();
         autoStageRobotChassis.init(autoStageRobotChassisDependentModules, autoStageRobotChassisDependentInstances);
-
-        /** pass the hardware ports to the encoder reader module */
-        HashMap<String, RobotModule> encoderReaderDependentModules = null;
-        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
-        /* get the instances of the encoders from hardware map */
-//        encoderReaderDependentInstances.put("encoder-1-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-left"));
-//        encoderReaderDependentInstances.put("encoder-2-instance", hardwareMap.get(DcMotorEx.class, "vertical-encoder-right"));
-//        encoderReaderDependentInstances.put("encoder-3-instance", hardwareMap.get(DcMotorEx.class, "horizontal-encoder"));
-        /* no enough ports, use the encoder ports of the driving motors instead */
-        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
-        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
-        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
-        encoderReader = new Mini1024EncoderReader();
-        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
-
-        /** pass the encoder reader to the temporary position calculator */
-        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
-        HashMap<String, Object> positionCalculatorDependentInstances = null;
-        positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        positionCalculator = new RobotPositionCalculator_tmp();
-        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
 
         /* telemetry.addLine("robotCurrentPosition(Camera)");

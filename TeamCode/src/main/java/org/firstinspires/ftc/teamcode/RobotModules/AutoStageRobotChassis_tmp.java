@@ -30,7 +30,7 @@ public class AutoStageRobotChassis_tmp {
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
     /** minimum power to make the robot move */
-    private static final double minMovingMotorPower = 0.1;
+    private static final double minMovingMotorPower = 0.2;
     /** the amount of time that the robot needs to slow down */
     private static final double timeForSlowDown = 0.3;
     /** maximum power during auto stage */
