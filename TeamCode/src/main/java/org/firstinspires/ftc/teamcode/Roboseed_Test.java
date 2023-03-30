@@ -68,7 +68,7 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
-        robotChassis.setRobotRotation(90);
+        robotChassis.setRobotPosition();
     }
 
     private void configureRobot() {

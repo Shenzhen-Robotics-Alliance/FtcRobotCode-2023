@@ -57,17 +57,42 @@ public class AutoStageRobotChassis_tmp {
 
             /** calculate bias between the current and the starting rotation */
             double rotationalDifference = reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation());
+            double rotationCorrectionMotorSpeed = Math.copySign(RobotChassis.linearMap(
+                    rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
+                    Math.abs(rotationalDifference)
+            ) , rotationalDifference);
 
-            /* the bias between the current and the targeted position in the x-axis, in reference to the field */
+            /** the bias between the current and the targeted position in the x-axis, in reference to the field */
             double xAxisFieldDifference = encoderPositionX - positionCalculator.getRobotPosition()[0];
             double yAxisFieldDifference = encoderPositionY - positionCalculator.getRobotPosition()[1];
-            // TODO finish up this method by calculating the x axis and y axis velocity needed, in reference to the robot
 
-            setRobotMotion(
-                    (encoderPositionX-positionCalculator.getRobotPosition()[0]) / positionStartsSlowingDown,
-                    (encoderPositionY-positionCalculator.getRobotPosition()[1]) / positionStartsSlowingDown,
-                    reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation()) / rotationTolerance * encoderVelocityPerAngularVelocity
-            );
+            /** calculates the velocity needed in reference to the ground, do a linear map to get the motor speed */
+            double xAxisFieldVelocity = Math.copySign(
+                    RobotChassis.linearMap(
+                            (double) positionTolerance,
+                            (double) positionStartsSlowingDown,
+                            (double) minMovingMotorPower,
+                            (double) maxMovingMotorPower,
+                            (double) Math.abs(xAxisFieldDifference)
+                    ), xAxisFieldDifference);
+            double yAxisFieldVelocity = Math.copySign(
+                    RobotChassis.linearMap(
+                            (double) positionTolerance,
+                            (double) positionStartsSlowingDown,
+                            (double) minMovingMotorPower,
+                            (double) maxMovingMotorPower,
+                            (double) Math.abs(yAxisFieldDifference)
+                    ), yAxisFieldDifference);
+
+            /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */
+            double xAxisAbsoluteVelocity = xAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's x-axis velocity
+                    + yAxisFieldVelocity * Math.sin(positionCalculator.getRobotRotation()); // the effect of y-axis field velocity on the robot's x-axis velocity
+            double yAxisAbsoluteVelocity = xAxisFieldVelocity * Math.sin(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's y-axis velocity
+                    + yAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()); // the effect of y-axis field velocity on the robot's y-axis velocity
+
+            /** set the motors to run */
+            setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed);
+        /** jump out of the loop when the robot reaches the targeted area */
         } while (Math.sqrt(encoderPositionX * encoderPositionX + encoderPositionY * encoderPositionY) > positionTolerance);
     }
 
