@@ -207,12 +207,12 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double motorSpeed = Math.sqrt(xAxleMotion*xAxleMotion + yAxleMotion*yAxleMotion);
         double[] currentMotorVelocity = {motorSpeed * Math.cos(currentDirection), motorSpeed * Math.sin(currentDirection)};
         /* using the current velocity computed above, correct the targeted velocity */
-        xAxleMotion -= currentMotorVelocity[0];
-        yAxleMotion -= currentMotorVelocity[1];
+        xAxleMotion += xAxleMotion - currentMotorVelocity[0];
+        yAxleMotion += yAxleMotion - currentMotorVelocity[1];
 
         /** make the robot stick to the rotation where it is, when it's not asked to rotate */
         if (rotationalMotion == 0) {
-            // TODO write here
+            // TODO test the above and write here
         }
 
         // control the Mecanum wheel
