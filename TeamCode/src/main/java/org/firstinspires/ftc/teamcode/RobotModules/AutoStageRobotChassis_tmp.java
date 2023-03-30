@@ -99,7 +99,7 @@ public class AutoStageRobotChassis_tmp {
             /** set the motors to run, correct the motor speed for rotation and scale it down a bit as we don't want it to shake */
             setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed * rotationPowerFactor * 0.8);
             /** jump out of the loop when the robot reaches the targeted area */
-            completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) > positionTolerance;
+            completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
         } while (!completed);
     }
 
