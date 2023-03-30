@@ -106,7 +106,7 @@ public class AutoStageRobotChassis_tmp {
             setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed * rotationPowerFactor * 0.8);
             /** jump out of the loop when the robot reaches the targeted area */
             completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
-            completed = Math.abs(xAxisFieldDifference) < positionTolerance || Math.abs(yAxisFieldDifference) < positionTolerance;
+            completed = Math.abs(xAxisFieldDifference) < positionTolerance && Math.abs(yAxisFieldDifference) < positionTolerance;
         } while (!completed);
         /* set the motors to stop */
         hardwareDriver.leftFront.setVelocity(0);
@@ -115,7 +115,11 @@ public class AutoStageRobotChassis_tmp {
         hardwareDriver.rightRear.setVelocity(0);
 
         /* wait until the robot is completely still */
-        while (Math.abs(positionCalculator.getRawVelocity()[0]) > 200 || Math.abs(positionCalculator.getRawVelocity()[1]) > 200) positionCalculator.periodic();
+        while (Math.abs(positionCalculator.getRawVelocity()[0]) > 200 || Math.abs(positionCalculator.getRawVelocity()[1]) > 200) {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            System.out.println(positionCalculator.getRawVelocity()[0] + ", " + positionCalculator.getRawVelocity()[1]);
+        }
     }
 
     private void setRobotRotation(double radians) {
