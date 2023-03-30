@@ -82,7 +82,11 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the rotation of the robot after the last time the robot is asked to rotate, which is the rotation that the robot needs to stick to until the next rotation command */
     private double startingRotation;
     /** whether the robot is asked to rotated at the last period */
-    private boolean wasAskedToRotate = false;
+    private boolean wasAskedToRotate = true;
+    /** whether to use the encoders or not */
+    private static final boolean useEncoderCorrection = false;
+    /** the minimum speed when the encoder starts to correct the motion */
+    private static final double useEncoderCorrectionSpeed = 0.3;
 
     /**
      * construct function of the robot chassis, use init() for further initialization
@@ -201,14 +205,19 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
 
         /** correct the motion using encoder readings */
-        /* get the current moving direction according to the encoders, in radian */
-        double currentDirection = Math.acos(positionCalculator.getRawVelocity()[1] / positionCalculator.getRawVelocity()[0]);
-        /* using the current direction that the encoders gave us, determine the robot's current movement, in motor speed(not in encoder value) */
-        double motorSpeed = Math.sqrt(xAxleMotion*xAxleMotion + yAxleMotion*yAxleMotion);
-        double[] currentMotorVelocity = {motorSpeed * Math.cos(currentDirection), motorSpeed * Math.sin(currentDirection)};
-        /* using the current velocity computed above, correct the targeted velocity */
-        xAxleMotion += xAxleMotion - currentMotorVelocity[0];
-        yAxleMotion += yAxleMotion - currentMotorVelocity[1];
+        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[1] != 0 && useEncoderCorrection) {
+            /* get the current moving direction according to the encoders, in radian */
+            double currentDirection = Math.atan(positionCalculator.getRawVelocity()[1] / positionCalculator.getRawVelocity()[0]);
+            /* using the current direction that the encoders gave us, determine the robot's current movement, in motor speed(not in encoder value) */
+            double motorSpeed = Math.sqrt(xAxleMotion * xAxleMotion + yAxleMotion * yAxleMotion);
+            double[] currentMotorVelocity = {motorSpeed * Math.cos(currentDirection), motorSpeed * Math.sin(currentDirection)};
+            /* using the current velocity computed above, correct the targeted velocity */
+            if (motorSpeed > useEncoderCorrectionSpeed) {
+                xAxleMotion += (xAxleMotion - currentMotorVelocity[0]);
+                yAxleMotion += (yAxleMotion - currentMotorVelocity[1]);
+            }
+            // System.out.println(xAxleMotion + ", " + currentMotorVelocity[0] + "/ " + yAxleMotion + ", " + currentMotorVelocity[1]);
+        }
 
         /** make the robot stick to the rotation where it is, when it's not asked to rotate */
         if (rotationalMotion == 0) {
@@ -220,7 +229,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
-        System.out.println(xAxleMotion + ", " + yAxleMotion + ", " + rotationalMotion);
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
