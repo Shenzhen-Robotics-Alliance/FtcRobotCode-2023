@@ -161,6 +161,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         autoStageArm.holdPreLoadedSleeve();
         /* step1, the robot moves out of the parking spot and go to the center of the starting region */
         robotChassis.setRobotPosition(-11250, 2000);
+        sleep(500);
 
         /* step2, the robot moves to next region in the front */
         robotChassis.setRobotPosition(-11250, 14500);

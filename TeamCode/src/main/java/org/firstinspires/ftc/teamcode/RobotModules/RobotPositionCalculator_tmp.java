@@ -195,4 +195,6 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     }
 
     public double[] getRawVelocity() { return rawVelocity; }
+
+    public double[] getVelocity() { return getActualVelocity(rawVelocity, robotRotation); }
 }

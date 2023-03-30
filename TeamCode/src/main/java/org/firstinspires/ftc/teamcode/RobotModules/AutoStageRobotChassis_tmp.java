@@ -30,7 +30,9 @@ public class AutoStageRobotChassis_tmp {
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
     /** minimum power to make the robot move */
-    private static final double minMovingMotorPower = 0.2;
+    private static final double minMovingMotorPower = 0.1;
+    /** the amount of time that the robot needs to slow down */
+    private static final double timeForSlowDown = 0.3;
     /** maximum power during auto stage */
     private static final double maxMovingMotorPower = 0.4;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
@@ -70,6 +72,10 @@ public class AutoStageRobotChassis_tmp {
             double xAxisFieldDifference = encoderPositionX - positionCalculator.getRobotPosition()[0];
             double yAxisFieldDifference = encoderPositionY - positionCalculator.getRobotPosition()[1];
 
+            /** take in consider the motion of the robot */
+            xAxisFieldDifference -= positionCalculator.getVelocity()[0] * timeForSlowDown;
+            yAxisFieldDifference -= positionCalculator.getVelocity()[1] * timeForSlowDown;
+
             System.out.println(xAxisFieldDifference + ","  + yAxisFieldDifference);
 
             /** calculates the velocity needed in reference to the ground, do a linear map to get the motor speed */
@@ -101,6 +107,14 @@ public class AutoStageRobotChassis_tmp {
             /** jump out of the loop when the robot reaches the targeted area */
             completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
         } while (!completed);
+        /* set the motors to stop */
+        hardwareDriver.leftFront.setVelocity(0);
+        hardwareDriver.leftRear.setVelocity(0);
+        hardwareDriver.rightFront.setVelocity(0);
+        hardwareDriver.rightRear.setVelocity(0);
+
+        /* wait until the robot is completely still */
+        while (positionCalculator.getRawVelocity() != new double[]{0, 0}) Thread.yield();
     }
 
     private void setRobotRotation(double radians) {
