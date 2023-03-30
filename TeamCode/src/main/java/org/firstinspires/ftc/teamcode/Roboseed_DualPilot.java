@@ -148,14 +148,17 @@ public class Roboseed_DualPilot extends LinearOpMode {
         imuReader.calibrateIMU();
 
         /* add telemetry line, TODO:use robot-debug-bridge to do it */
-        telemetry.addLine("position");
-        telemetry.addLine("program-delay");
+        telemetry.addLine("<--start-up complete-->");
+        telemetry.update();
 
         waitForStart();
+        telemetry.addLine("position");
+        telemetry.addLine("program-delay");
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
             runLoop();
+            telemetry.update();
         }
     }
 

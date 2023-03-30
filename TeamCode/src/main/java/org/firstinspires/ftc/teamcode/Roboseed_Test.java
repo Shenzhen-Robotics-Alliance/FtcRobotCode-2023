@@ -16,9 +16,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.RobotModules.Arm;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
@@ -41,10 +44,22 @@ public class Roboseed_Test extends LinearOpMode {
 
     AutoStageRobotChassis autoStageRobotChassis;
     ComputerVisionFieldNavigation_v2 fieldNavigation;
+    private AutoStageRobotChassis_tmp robotChassis;
 
     @Override
     public void runOpMode() throws InterruptedException {
         configureRobot();
+
+        /** pass the hardware ports to the arm module */
+        HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
+        HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
+        armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
+        armModuleDependentInstances.put("initialControllerPad", new Gamepad());
+        Arm arm = new Arm();
+        arm.init(armModuleDependentModules, armModuleDependentInstances, false);
+
+        /** the temporary arm module to operate the arm during auto stage */
+        AutoStageArm autoStageArm = new AutoStageArm(arm);
 
         /** pass the hardware ports to the encoder reader module */
         HashMap<String, RobotModule> encoderReaderDependentModules = null;
@@ -64,12 +79,13 @@ public class Roboseed_Test extends LinearOpMode {
         positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** the temporary chassis module */
-        AutoStageRobotChassis_tmp robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
+        this.robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
 
         waitForStart();
 
-        robotChassis.setRobotPosition(20000, 3000);
-        System.out.println(positionCalculator.getRobotPosition()[0] + ", " + positionCalculator.getRobotPosition()[1]);
+        while (true) {
+            arm.periodic();
+        }
     }
 
     private void configureRobot() {

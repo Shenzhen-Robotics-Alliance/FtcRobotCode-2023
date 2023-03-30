@@ -160,16 +160,15 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         /* grab the pre-loaded sleeve */
         autoStageArm.holdPreLoadedSleeve();
         /* step1, the robot moves out of the parking spot and go to the center of the starting region */
-        robotChassis.setRobotPosition(-11250, 2000);
-        sleep(500);
+        robotChassis.setRobotPosition(0, 2000);
+        robotChassis.setRobotPosition(-12250, 2000);
 
-        /* step2, the robot moves to next region in the front */
-        robotChassis.setRobotPosition(-11250, 14500);
-        /* then to right behind the tower */
-        robotChassis.setRobotPosition(-19000, 14500);
+        /* step2, the robot moves to next region in the front, move to the right of the tower */
+        robotChassis.setRobotPosition(-12250, 17000);
         /* place the pre-loaded sleeve onto it */
-        autoStageArm.goToHighestTower();
-        robotChassis.setRobotPosition(-19000, 17000);
+        // autoStageArm.goToHighestTower();
+        sleep(1500);
+        robotChassis.setRobotPosition(-20000, 18000);
         autoStageArm.dropSleeve();
 
         // TODO finish the rest

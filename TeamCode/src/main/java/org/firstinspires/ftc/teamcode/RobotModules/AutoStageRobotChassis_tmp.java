@@ -21,20 +21,20 @@ public class AutoStageRobotChassis_tmp {
     RobotPositionCalculator_tmp positionCalculator;
 
     /** accept any deviation in position less than 1000 encoder values */
-    private static final int positionTolerance = 1000;
+    private static final int positionTolerance = 500;
     /** the positional deviation when the robot starts slowdown  */
-    private static final int positionStartsSlowingDown = 10000;
+    private static final int positionStartsSlowingDown = 6000;
 
     /** accept any deviation in rotation less than 10 degrees */
     private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
     /** minimum power to make the robot move */
-    private static final double minMovingMotorPower = 0.2;
+    private static final double minMovingMotorPower = 0.25;
     /** the amount of time that the robot needs to slow down */
     private static final double timeForSlowDown = 0.3;
     /** maximum power during auto stage */
-    private static final double maxMovingMotorPower = 0.4;
+    private static final double maxMovingMotorPower = 0.45;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
     private static final double rotationPowerFactor = -0.6;
 
@@ -78,7 +78,7 @@ public class AutoStageRobotChassis_tmp {
 
             /** calculates the velocity needed in reference to the ground, do a linear map to get the motor speed */
             double xAxisFieldVelocity, yAxisFieldVelocity;
-            if (Math.abs(yAxisFieldDifference) > positionTolerance) {
+            if (Math.abs(yAxisFieldDifference) > positionTolerance*2 && Math.abs(xAxisFieldDifference) < positionTolerance*2) {
                 /* if the robot is already moving along y axis, we don't need minimum power to keep it moving in the x-drection*/
                 xAxisFieldVelocity = Math.copySign(
                         RobotChassis.linearMap(
@@ -99,7 +99,7 @@ public class AutoStageRobotChassis_tmp {
                                 Math.abs(xAxisFieldDifference)
                         ), xAxisFieldDifference);
             }
-            if (Math.abs(xAxisFieldDifference) > positionTolerance) {
+            if (Math.abs(xAxisFieldDifference) > positionTolerance*2 && Math.abs(yAxisFieldDifference) < positionTolerance*2) {
                 yAxisFieldVelocity = Math.copySign(
                         RobotChassis.linearMap(
                                 positionTolerance,
@@ -117,7 +117,8 @@ public class AutoStageRobotChassis_tmp {
                                 maxMovingMotorPower,
                                 Math.abs(yAxisFieldDifference)
                         ), yAxisFieldDifference);
-            } System.out.println(xAxisFieldVelocity + ", " + yAxisFieldVelocity);
+            }
+            System.out.println(startingRotation + ", " + positionCalculator.getRobotRotation());
 
             /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */
             double xAxisAbsoluteVelocity = xAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's x-axis velocity
@@ -129,7 +130,7 @@ public class AutoStageRobotChassis_tmp {
             setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed * rotationPowerFactor * 0.8);
             /** jump out of the loop when the robot reaches the targeted area */
             completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
-            completed = Math.abs(xAxisFieldDifference) < positionTolerance && Math.abs(yAxisFieldDifference) < positionTolerance;
+            completed = Math.abs(xAxisFieldDifference) < positionTolerance*2 && Math.abs(yAxisFieldDifference) < positionTolerance*2;
         } while (!completed);
         /* set the motors to stop */
         hardwareDriver.leftFront.setVelocity(0);
@@ -141,7 +142,7 @@ public class AutoStageRobotChassis_tmp {
         while (Math.abs(positionCalculator.getRawVelocity()[0]) > 200 || Math.abs(positionCalculator.getRawVelocity()[1]) > 200) {
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
-            System.out.println(positionCalculator.getRawVelocity()[0] + ", " + positionCalculator.getRawVelocity()[1]);
+            System.out.println(startingRotation + ", " + positionCalculator.getRobotRotation());
         }
     }
 
