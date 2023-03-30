@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
 
 import java.util.HashMap;
@@ -54,11 +55,11 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         this.parkingSectorNum = determineParkingSector();
 
         /** pass the hardware ports to the arm module */
-        HashMap armModuleDependentModules = null;
+        HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
         HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
         armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
         arm = new Arm();
-        arm.init(armModuleDependentModules, armModuleDependentInstances);
+        arm.init(armModuleDependentModules, armModuleDependentInstances, false);
 
         /** the temporary arm module to operate the arm during auto stage */
         autoStageArm = new AutoStageArm(arm);

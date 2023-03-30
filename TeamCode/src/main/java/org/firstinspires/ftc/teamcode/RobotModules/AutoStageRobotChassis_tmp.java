@@ -62,7 +62,7 @@ public class AutoStageRobotChassis_tmp {
             /** calculate bias between the current and the starting rotation */
             double rotationalDifference = reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation());
             double rotationCorrectionMotorSpeed = Math.copySign(RobotChassis.linearMap(
-                    rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
+                    rotationTolerance,rotationStartsSlowingDown,0,maxMovingMotorPower,
                     Math.abs(rotationalDifference)
             ) , rotationalDifference);
 

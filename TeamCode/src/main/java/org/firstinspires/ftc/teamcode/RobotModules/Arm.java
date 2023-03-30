@@ -95,6 +95,8 @@ public class Arm extends RobotModule {
 
     /** the chassis module of robot */
     private RobotChassis robotChassis;
+    /** whether to inform the robot chassis to slow down */
+    private boolean informRobotChassis;
 
     /**
      * construct function of arm controlling methods
@@ -114,27 +116,32 @@ public class Arm extends RobotModule {
      * @param dependentInstances this module needs the following instances(pass them in the form of hashmap):
      *                           "hardwareDriver" : HardwareDriver, the driver that connects to the hardware, gained from super class "LinearOpMode"
      *                           "initialControllerPad" : com.qualcomm.robotcore.hardware.Gamepad, the default game pad used to control the robot's arm
+     * @param informRobotChassis  whether to inform the robot chassis to go to slow-motion mode automatically
      */
-    @Override
     public void init(
             HashMap<String, RobotModule> dependentModules,
-            HashMap<String, Object> dependentInstances
+            HashMap<String, Object> dependentInstances,
+            boolean informRobotChassis
     ) throws NullPointerException {
-        /* throw out an error if the dependent module is given an empty map */
-        if (dependentModules.isEmpty()) throw new NullPointerException(
-                "an empty map of dependent modules given to this module, which requires at least one modular dependencies"
-        );
+        this.robotChassis = null;
+        if (informRobotChassis) {
+            /* throw out an error if the dependent module is given an empty map */
+            if (dependentModules.isEmpty()) throw new NullPointerException(
+                    "an empty map of dependent modules given to this module, which requires at least one modular dependencies"
+            );
+            /* get the dependent modules from the param */
+            if (! dependentModules.containsKey("robotChassis")) throw new NullPointerException(
+                    "dependent module not given: " + "robotChassis"
+            );
+            this.robotChassis = (RobotChassis) dependentModules.get("robotChassis");
+        }
+
+        this.informRobotChassis = informRobotChassis;
 
         /* throw out an error if the dependentInstances is given an empty map */
         if (dependentInstances.isEmpty()) throw new NullPointerException(
                 "an empty map of dependent instances given to this module, which requires at least one instant dependencies"
         );
-
-        /* get the dependent modules from the param */
-        if (! dependentModules.containsKey("robotChassis")) throw new NullPointerException(
-                "dependent module not given: " + "robotChassis"
-        );
-        this.robotChassis = (RobotChassis) dependentModules.get("robotChassis");
 
         /* get the instances from the param */
         if (! dependentInstances.containsKey("hardwareDriver")) throw new NullPointerException(
@@ -151,6 +158,14 @@ public class Arm extends RobotModule {
         this.claw = false;
         deactivateArm();
         this.armPositionCode = -1;
+    }
+
+    @Override
+    public void init(
+            HashMap<String, RobotModule> dependentModules,
+            HashMap<String, Object> dependentInstances
+    ) {
+        init(dependentModules, dependentInstances, true);
     }
 
     /**
@@ -277,20 +292,24 @@ public class Arm extends RobotModule {
             PreviousElevatorActivation.reset();
         }
 
-        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
-            hardwareDriver.lift_left.setPower(0);
-            hardwareDriver.lift_left.setPower(0);
-            System.out.println("saving battery...");
-            System.exit(0);
-        } if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
-            System.out.println("cooling down the motors...");
-            this.deactivateArm(); // deactivate the arm to avoiding burning the motors
-            PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
-        }
+        if (informRobotChassis) {
 
-        // control slow motion automatically
-        if (this.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
-        else robotChassis.setSlowMotionModeActivationSwitch(false);
+            if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+                hardwareDriver.lift_left.setPower(0);
+                hardwareDriver.lift_left.setPower(0);
+                System.out.println("saving battery...");
+                System.exit(0);
+            }
+            if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
+                System.out.println("cooling down the motors...");
+                this.deactivateArm(); // deactivate the arm to avoiding burning the motors
+                PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
+            }
+
+            // control slow motion automatically
+            if (this.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
+            else robotChassis.setSlowMotionModeActivationSwitch(false);
+        }
     }
 
     /**
