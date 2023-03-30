@@ -329,15 +329,31 @@ public class Arm extends RobotModule {
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        /* get the current velocity and position of the arm according to the more reliable motor */
+        /* get the current position, velocity and power of the arm according to the more reliable motor */
         double currentPosition = Math.max(hardwareDriver.lift_left.getCurrentPosition(), hardwareDriver.lift_right.getCurrentPosition());
         double currentVelocity; if (hardwareDriver.lift_right.getVelocity() != 0) currentVelocity = hardwareDriver.lift_right.getVelocity(); else currentVelocity = hardwareDriver.lift_left.getVelocity();
-        /* the power that the motors need in order to fall */
-        double fallingPower; if (currentPosition > 600) fallingPower = 0; else fallingPower = -0.1;
-        /* the power that the motors need to  */
+        double currentPower = Math.max(hardwareDriver.lift_left.getPower(), hardwareDriver.lift_right.getPower());
 
-        if (targetedArmPosition - currentPosition < 0) {
-            hardwareDriver.lift_left
+//        /* the power that the motors need in order to fall */
+//        double fallingPower; if (currentPosition > 600) fallingPower = 0; else fallingPower = -0.1;
+//        /* the power that the motors need to  */
+
+        final double powerAttemptingDifference = 0.02;
+        double armPower;
+        if (targetedArmPosition-currentPosition < -20) {
+            /* decline the arms */
+            final double armDecliningVelocity = -300;
+            if (currentVelocity < armDecliningVelocity) armPower = currentPower + powerAttemptingDifference;
+            else armPower = currentPower - powerAttemptingDifference;
+        } else if (targetedArmPosition-currentPosition > 20) {
+            /* raise the arms */
+            final double armIncliningVelocity = 300;
+            if (currentVelocity < armIncliningVelocity) armPower = currentPower + powerAttemptingDifference;
+            else armPower = currentPower - powerAttemptingDifference;
+        } else {
+            /* set the arms to be still */
+            if (currentVelocity < 0) armPower = currentPower + powerAttemptingDifference;
+            else armPower = currentPower - powerAttemptingDifference;
         }
     }
 
