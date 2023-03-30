@@ -48,10 +48,14 @@ public class AutoStageRobotChassis_tmp {
     }
 
     public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
+        /** get the rotation by the start of the move */
         double startingRotation = positionCalculator.getRobotRotation();
 
+        /** whether the process is finished */
+        boolean completed = false;
+
         do {
-            /* update sensor readings */
+            /** update sensor readings */
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
 
@@ -65,6 +69,8 @@ public class AutoStageRobotChassis_tmp {
             /** the bias between the current and the targeted position in the x-axis, in reference to the field */
             double xAxisFieldDifference = encoderPositionX - positionCalculator.getRobotPosition()[0];
             double yAxisFieldDifference = encoderPositionY - positionCalculator.getRobotPosition()[1];
+
+            System.out.println(xAxisFieldDifference + ","  + yAxisFieldDifference);
 
             /** calculates the velocity needed in reference to the ground, do a linear map to get the motor speed */
             double xAxisFieldVelocity = Math.copySign(
@@ -90,10 +96,11 @@ public class AutoStageRobotChassis_tmp {
             double yAxisAbsoluteVelocity = xAxisFieldVelocity * Math.sin(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's y-axis velocity
                     + yAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()); // the effect of y-axis field velocity on the robot's y-axis velocity
 
-            /** set the motors to run */
-            setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed);
-        /** jump out of the loop when the robot reaches the targeted area */
-        } while (Math.sqrt(encoderPositionX * encoderPositionX + encoderPositionY * encoderPositionY) > positionTolerance);
+            /** set the motors to run, correct the motor speed for rotation and scale it down a bit as we don't want it to shake */
+            setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed * rotationPowerFactor * 0.8);
+            /** jump out of the loop when the robot reaches the targeted area */
+            completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) > positionTolerance;
+        } while (!completed);
     }
 
     private void setRobotRotation(double radians) {
