@@ -32,7 +32,7 @@ public class AutoStageRobotChassis_tmp {
     /** minimum power to make the robot move */
     private static final double minMovingMotorPower = 0.2;
     /** maximum power during auto stage */
-    private static final double maxMovingMotorPower = 0.6;
+    private static final double maxMovingMotorPower = 0.4;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
     private static final double rotationPowerFactor = -0.6;
 
@@ -75,19 +75,19 @@ public class AutoStageRobotChassis_tmp {
             /** calculates the velocity needed in reference to the ground, do a linear map to get the motor speed */
             double xAxisFieldVelocity = Math.copySign(
                     RobotChassis.linearMap(
-                            (double) positionTolerance,
-                            (double) positionStartsSlowingDown,
-                            (double) minMovingMotorPower,
-                            (double) maxMovingMotorPower,
-                            (double) Math.abs(xAxisFieldDifference)
+                            positionTolerance,
+                            positionStartsSlowingDown,
+                            minMovingMotorPower,
+                            maxMovingMotorPower,
+                            Math.abs(xAxisFieldDifference)
                     ), xAxisFieldDifference);
             double yAxisFieldVelocity = Math.copySign(
                     RobotChassis.linearMap(
-                            (double) positionTolerance,
-                            (double) positionStartsSlowingDown,
-                            (double) minMovingMotorPower,
-                            (double) maxMovingMotorPower,
-                            (double) Math.abs(yAxisFieldDifference)
+                            positionTolerance,
+                            positionStartsSlowingDown,
+                            minMovingMotorPower,
+                            maxMovingMotorPower,
+                            Math.abs(yAxisFieldDifference)
                     ), yAxisFieldDifference);
 
             /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */

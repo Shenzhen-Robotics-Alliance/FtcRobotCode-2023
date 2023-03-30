@@ -293,7 +293,6 @@ public class Arm extends RobotModule {
         }
 
         if (informRobotChassis) {
-
             if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
                 hardwareDriver.lift_left.setPower(0);
                 hardwareDriver.lift_left.setPower(0);

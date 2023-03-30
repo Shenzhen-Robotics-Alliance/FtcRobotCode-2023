@@ -45,6 +45,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private HardwareDriver driver;
     /** the robot's imu for navigation */
     private IMU imu;
+    /** the module that calculates the robot's position and velocity */
+    private RobotPositionCalculator_tmp positionCalculator;
 
     /** whether the pilot asked for slow motion mode */
     private boolean slowMotionModeRequested;
@@ -74,6 +76,14 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the limit fo the motor power when the robot is carrying a goal */
     private final double maxCarryingPower = 0.6;
 
+    /** calibrate the controller, store the initial state of the controller, in the order of x-axis, y axis and rotational axis */
+    private double[] pilotControllerPadZeroPosition = {0, 0, 0};
+
+    /** the rotation of the robot after the last time the robot is asked to rotate, which is the rotation that the robot needs to stick to until the next rotation command */
+    private double startingRotation;
+    /** whether the robot is asked to rotated at the last period */
+    private boolean wasAskedToRotate = false;
+
     /**
      * construct function of the robot chassis, use init() for further initialization
      */
@@ -93,6 +103,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
      *                          "initialControllerPad": Gamepad, the default game pad used to control the robot's chassis
      *                          "hardwareDriver" : HardwareDriver, the connection to the robot's hardware
      *                          "imu" : IMU, the connection to the built-in imu of the robot's board
+     *                          "positionCalculator" : RobotPositionCalculator_tmp, the position calculator of the robot
      */
     @Override
     public void init(
@@ -122,11 +133,26 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         this.imu = (IMU) dependentInstances.get("imu");
 
 
+        /* throw out an error if the dependent modules is given an empty map */
+        if (dependentModules.isEmpty()) throw new NullPointerException(
+                "an empty map of dependent modules given to this module, which requires at least one instant dependencies"
+        );
+        if (! dependentInstances.containsKey("positionCalculator")) throw new NullPointerException(
+                "dependent instance not given: " + "positionCalculator"
+        );
+        this.positionCalculator = (RobotPositionCalculator_tmp) dependentInstances.get("positionCalculator");
+
+
         /* calibrate the imu */
         Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
         imu.resetYaw();
+
+        /* calibrate the center of the controller pad */
+        this.pilotControllerPadZeroPosition[0] = gamepad.right_stick_x;
+        this.pilotControllerPadZeroPosition[1] = gamepad.right_stick_y;
+        this.pilotControllerPadZeroPosition[2] = gamepad.left_stick_x;
 
         this.slowMotionModeRequested = false;
         this.slowMotionModeSuggested = false;
@@ -146,13 +172,14 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double velocityYAW;
         double[] correctedMotion;
 
-        double yAxleMotion = linearMap(-gamepad.right_stick_y); // the left stick is reversed to match the vehicle
-        double xAxleMotion = linearMap(gamepad.right_stick_x);
+        /* get the controller pad input, and correct it according to the initial  */
+        double yAxleMotion = linearMap(-(gamepad.right_stick_y - this.pilotControllerPadZeroPosition[1])); // the left stick is reversed to match the vehicle
+        double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         /* double rotationalMotion = Math.copySign(
             linearMap(0.05, 1, 0, 1,
                     Math.abs(gamepad.left_stick_x)
             ), gamepad.left_stick_x); */
-        double rotationalMotion = linearMap(gamepad.left_stick_x) * 0.6;
+        double rotationalMotion = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]) * 0.6;
         if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.8;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
@@ -172,26 +199,28 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         } else if (yAxleReversedSwitch) yAxleMotion *= -1;
 
         if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
-        /* yAxleMotion = Range.clip(yAxleMotion, -1, 1);
-         * xAxleMotion = Range.clip(xAxleMotion, -1, 1);
-         * rotationalMotion = Range.clip(rotationalMotion, -1, 1);
-         * yAxleMotion *= -1;
-         * xAxleMotion *= -1;
-         * rotationalMotion *= -1; // flip the axles, to replace ground navigation mode temporarily
 
-         * System.out.print(xAxleMotion); System.out.print("  ");
-         * System.out.print(yAxleMotion); System.out.print("  ");
-         * System.out.print(rotationalMotion); System.out.print("  ");
-         * System.out.println(); */
+        /** correct the motion using encoder readings */
+        /* get the current moving direction according to the encoders, in radian */
+        double currentDirection = Math.acos(positionCalculator.getRawVelocity()[1] / positionCalculator.getRawVelocity()[0]);
+        /* using the current direction that the encoders gave us, determine the robot's current movement, in motor speed(not in encoder value) */
+        double motorSpeed = Math.sqrt(xAxleMotion*xAxleMotion + yAxleMotion*yAxleMotion);
+        double[] currentMotorVelocity = {motorSpeed * Math.cos(currentDirection), motorSpeed * Math.sin(currentDirection)};
+        /* using the current velocity computed above, correct the targeted velocity */
+        xAxleMotion -= currentMotorVelocity[0];
+        yAxleMotion -= currentMotorVelocity[1];
 
+        /** make the robot stick to the rotation where it is, when it's not asked to rotate */
+        if (rotationalMotion == 0) {
+            // TODO write here
+        }
 
         // control the Mecanum wheel
         driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
         driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
-
-        // TODO correct the motor power using the position calculator
+        System.out.println(xAxleMotion + ", " + yAxleMotion + ", " + rotationalMotion);
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion

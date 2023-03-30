@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.HardwareDriver;
@@ -58,6 +59,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
         HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
         armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
+        armModuleDependentInstances.put("initialControllerPad", new Gamepad());
         arm = new Arm();
         arm.init(armModuleDependentModules, armModuleDependentInstances, false);
 

@@ -41,6 +41,8 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     private double robotRotation = 0;
     /** stores the robot's current position, in encoder values */
     private double[] robotPosition = {0,0};
+    /** the velocity of the robot */
+    double[] rawVelocity = new double[2];
 
     /**
      * construct method of temporary robot position calculator
@@ -100,7 +102,6 @@ public class RobotPositionCalculator_tmp extends RobotModule {
         while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
 
         /** calculate the robot's velocity, in reference to itself */
-        double[] rawVelocity = new double[2];
         /* calculate the horizontal velocity of the robot by correcting the velocity of the horizontal encoder */
         rawVelocity[0] = correctThirdEncoderVelocity(encoderReader.getEncoderVelocity(3), angularVelocity);
         /*
@@ -192,4 +193,6 @@ public class RobotPositionCalculator_tmp extends RobotModule {
     public double getRobotRotation() {
         return robotRotation;
     }
+
+    public double[] getRawVelocity() { return rawVelocity; }
 }
