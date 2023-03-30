@@ -76,25 +76,48 @@ public class AutoStageRobotChassis_tmp {
             xAxisFieldDifference -= positionCalculator.getVelocity()[0] * timeForSlowDown;
             yAxisFieldDifference -= positionCalculator.getVelocity()[1] * timeForSlowDown;
 
-            System.out.println(xAxisFieldDifference + ","  + yAxisFieldDifference);
-
             /** calculates the velocity needed in reference to the ground, do a linear map to get the motor speed */
-            double xAxisFieldVelocity = Math.copySign(
-                    RobotChassis.linearMap(
-                            positionTolerance,
-                            positionStartsSlowingDown,
-                            minMovingMotorPower,
-                            maxMovingMotorPower,
-                            Math.abs(xAxisFieldDifference)
-                    ), xAxisFieldDifference);
-            double yAxisFieldVelocity = Math.copySign(
-                    RobotChassis.linearMap(
-                            positionTolerance,
-                            positionStartsSlowingDown,
-                            minMovingMotorPower,
-                            maxMovingMotorPower,
-                            Math.abs(yAxisFieldDifference)
-                    ), yAxisFieldDifference);
+            double xAxisFieldVelocity, yAxisFieldVelocity;
+            if (Math.abs(yAxisFieldDifference) > positionTolerance) {
+                /* if the robot is already moving along y axis, we don't need minimum power to keep it moving in the x-drection*/
+                xAxisFieldVelocity = Math.copySign(
+                        RobotChassis.linearMap(
+                                positionTolerance,
+                                positionStartsSlowingDown,
+                                0,
+                                maxMovingMotorPower,
+                                Math.abs(xAxisFieldDifference)
+                        ), xAxisFieldDifference);
+            } else {
+                /* else then, give it a minimum velocity in x-axis */
+                xAxisFieldVelocity = Math.copySign(
+                        RobotChassis.linearMap(
+                                positionTolerance,
+                                positionStartsSlowingDown,
+                                minMovingMotorPower,
+                                maxMovingMotorPower,
+                                Math.abs(xAxisFieldDifference)
+                        ), xAxisFieldDifference);
+            }
+            if (Math.abs(xAxisFieldDifference) > positionTolerance) {
+                yAxisFieldVelocity = Math.copySign(
+                        RobotChassis.linearMap(
+                                positionTolerance,
+                                positionStartsSlowingDown,
+                                0,
+                                maxMovingMotorPower,
+                                Math.abs(yAxisFieldDifference)
+                        ), yAxisFieldDifference);
+            } else {
+                yAxisFieldVelocity = Math.copySign(
+                        RobotChassis.linearMap(
+                                positionTolerance,
+                                positionStartsSlowingDown,
+                                minMovingMotorPower,
+                                maxMovingMotorPower,
+                                Math.abs(yAxisFieldDifference)
+                        ), yAxisFieldDifference);
+            } System.out.println(xAxisFieldVelocity + ", " + yAxisFieldVelocity);
 
             /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */
             double xAxisAbsoluteVelocity = xAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's x-axis velocity

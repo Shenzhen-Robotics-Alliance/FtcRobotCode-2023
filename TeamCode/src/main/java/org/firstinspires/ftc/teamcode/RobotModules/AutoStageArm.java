@@ -20,12 +20,12 @@ public class AutoStageArm {
     public void holdPreLoadedSleeve() {
         armModule.closeClaw();
         armModule.toGroundArmPosition();
-        while (armModule.getArmStatusCode() != 0) armModule.periodic();
+        while (armModule.getArmStatusCode() <= 0) armModule.periodic();
     }
 
     public void dropSleeve() {
         armModule.deactivateArm();
-        while (armModule.getArmStatusCode() != -1) armModule.periodic();
+        while (armModule.getArmStatusCode() <= -1) armModule.periodic();
         armModule.openClaw();
     }
 
@@ -33,12 +33,12 @@ public class AutoStageArm {
 
     public void goToHighestTower() {
         armModule.toHighArmPosition();
-        while (armModule.getArmStatusCode() != 0) armModule.periodic();
+        while (armModule.getArmStatusCode() <= 0) armModule.periodic();
     }
 
     public void grabFromSleevesStack() {
         armModule.elevateArm(sleevesStackPositions[sleevesCount]);
-        while (armModule.getArmStatusCode() != 0) armModule.periodic();
+        while (armModule.getArmStatusCode() <= 0) armModule.periodic();
         sleevesCount++;
     }
 }

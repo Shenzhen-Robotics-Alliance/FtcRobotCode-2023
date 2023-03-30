@@ -43,6 +43,9 @@ public class Roboseed_DualPilot extends LinearOpMode {
     /** whether dual-piloting mode is activated or not */
     private boolean dualPilotActivated;
 
+    /** to measure the delay of the program */
+    private final ElapsedTime programDelay = new ElapsedTime();
+
     /** connect to the robot modules */
     private Arm arm;
     private RobotChassis robotChassis;
@@ -146,6 +149,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         /* add telemetry line, TODO:use robot-debug-bridge to do it */
         telemetry.addLine("position");
+        telemetry.addLine("program-delay");
 
         waitForStart();
 
@@ -161,24 +165,27 @@ public class Roboseed_DualPilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop() throws InterruptedException {
+        telemetry.addData("program-delay", programDelay.seconds()*1000);
+        programDelay.reset();
+
         /** calls the periodic function of the modules TODO put the modules in a map and go through in every run loop */
-        ElapsedTime elapsedTime = new ElapsedTime();
-        elapsedTime.reset();
+        // ElapsedTime elapsedTime = new ElapsedTime();
+        // elapsedTime.reset();
         robotChassis.periodic();
         // System.out.println("<--chassis module delay: " + elapsedTime.seconds()*1000 + "-->");
-        elapsedTime.reset();
+        // elapsedTime.reset();
         arm.periodic();
         // System.out.println("<--arm module delay: " + elapsedTime.seconds()*1000 + "-->");
-        elapsedTime.reset();
+        // elapsedTime.reset();
         fieldNavigation.periodic();
         // System.out.println("<--visual navigation module delay: " + elapsedTime.seconds()*1000 + "-->");
-        elapsedTime.reset();
+        // elapsedTime.reset();
         imuReader.periodic();
         // System.out.println("<--imu reader module delay: " + elapsedTime.seconds()*1000 + "-->");
-        elapsedTime.reset();
+        // elapsedTime.reset();
         encoderReader.periodic();
         // System.out.println("<--encoder reader module delay: " + elapsedTime.seconds()*1000 + "-->");
-        elapsedTime.reset();
+        // elapsedTime.reset();
         positionCalculator.periodic();
         // System.out.println("<--position calculator module delay: " + elapsedTime.seconds()*1000 + "-->");
 
