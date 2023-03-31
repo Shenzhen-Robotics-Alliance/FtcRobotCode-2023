@@ -343,7 +343,7 @@ public class Arm extends RobotModule {
 
         /** the amount of motor power the system adjusts in every period, when it's running like what we want */
         final double powerAttemptingDifference = 0.02;
-        double armPower;
+        double armPower = 0;
         if (targetedArmPosition-currentPosition < -20) {
             /* decline the arms */
             final double armDecliningVelocity = -300;
