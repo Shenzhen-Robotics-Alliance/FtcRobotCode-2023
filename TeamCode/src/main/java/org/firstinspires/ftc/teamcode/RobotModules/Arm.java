@@ -10,8 +10,6 @@
  * */
 package org.firstinspires.ftc.teamcode.RobotModules;
 
-import static android.os.SystemClock.sleep;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -96,7 +94,7 @@ public class Arm extends RobotModule {
     /** the chassis module of robot */
     private RobotChassis robotChassis;
     /** whether to inform the robot chassis to slow down */
-    private boolean informRobotChassis;
+    private boolean inManualStage;
 
     /**
      * construct function of arm controlling methods
@@ -136,7 +134,7 @@ public class Arm extends RobotModule {
             this.robotChassis = (RobotChassis) dependentModules.get("robotChassis");
         }
 
-        this.informRobotChassis = informRobotChassis;
+        this.inManualStage = informRobotChassis;
 
         /* throw out an error if the dependentInstances is given an empty map */
         if (dependentInstances.isEmpty()) throw new NullPointerException(
@@ -196,6 +194,7 @@ public class Arm extends RobotModule {
     public void periodic() {
         /* no mater what, respond to the pilot's input first, so that the pilots have the control over their machine and can interrupt actions */
         reactToPilotInputs();
+        System.out.println(hardwareDriver.lift_left.getPower());
         /* proceed different instructions according to the status code */
         switch (armStatusCode) {
             case -1: {
@@ -205,6 +204,7 @@ public class Arm extends RobotModule {
                 break;
             } case 0: {
                 setArmStill();
+                if (inManualStage) powerSavingAndChassisStrategy();
                 break;
             }
             case 1: {
@@ -291,24 +291,27 @@ public class Arm extends RobotModule {
             this.lowerArm();
             PreviousElevatorActivation.reset();
         }
+    }
 
-        if (informRobotChassis) {
-            if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
-                hardwareDriver.lift_left.setPower(0);
-                hardwareDriver.lift_left.setPower(0);
-                System.out.println("saving battery...");
-                System.exit(0);
-            }
-            if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
-                System.out.println("cooling down the motors...");
-                this.deactivateArm(); // deactivate the arm to avoiding burning the motors
-                PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
-            }
-
-            // control slow motion automatically
-            if (this.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
-            else robotChassis.setSlowMotionModeActivationSwitch(false);
+    /**
+     * TODO edit explanations
+     * */
+    private void powerSavingAndChassisStrategy() {
+        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+            hardwareDriver.lift_left.setPower(0);
+            hardwareDriver.lift_left.setPower(0);
+            System.out.println("saving battery...");
+            System.exit(0);
         }
+        if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
+            System.out.println("cooling down the motors...");
+            this.deactivateArm(); // deactivate the arm to avoiding burning the motors
+            PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
+        }
+
+        // control slow motion automatically
+        if (this.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
+        else robotChassis.setSlowMotionModeActivationSwitch(false);
     }
 
     /**
@@ -325,7 +328,7 @@ public class Arm extends RobotModule {
         }
 
         /* use only one encoder to determine how the motors spin */
-        System.out.println(1);
+        System.out.println("<-- arm encoder not functioning --> ");
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -344,17 +347,17 @@ public class Arm extends RobotModule {
         if (targetedArmPosition-currentPosition < -20) {
             /* decline the arms */
             final double armDecliningVelocity = -300;
-            if (currentVelocity < armDecliningVelocity) armPower = currentPower + powerAttemptingDifference;
-            else armPower = currentPower - powerAttemptingDifference;
+            if (currentVelocity - armDecliningVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+            else if(currentVelocity - armDecliningVelocity > 20) armPower = currentPower - powerAttemptingDifference;
         } else if (targetedArmPosition-currentPosition > 20) {
             /* raise the arms */
             final double armIncliningVelocity = 300;
-            if (currentVelocity < armIncliningVelocity) armPower = currentPower + powerAttemptingDifference;
-            else armPower = currentPower - powerAttemptingDifference;
+            if (currentVelocity - armIncliningVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+            else if(currentVelocity - armIncliningVelocity > 20) armPower = currentPower - powerAttemptingDifference;
         } else {
             /* set the arms to be still */
-            if (currentVelocity < 0) armPower = currentPower + powerAttemptingDifference;
-            else armPower = currentPower - powerAttemptingDifference;
+            if (currentVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+            else if(currentVelocity > 20) armPower = currentPower - powerAttemptingDifference;
         }
 
         /* set the motor speed(almost forgot) */
@@ -400,12 +403,6 @@ public class Arm extends RobotModule {
                         Math.max(hardwareDriver.lift_left.getCurrentPosition(), hardwareDriver.lift_right.getCurrentPosition())
                                 - targetedArmPosition) < 20
         ) {
-            /* when the movement is completed, set the arm to stay still */
-            hardwareDriver.lift_left.setTargetPosition(targetedArmPosition);
-            hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            hardwareDriver.lift_right.setTargetPosition(targetedArmPosition);
-            hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
             /* update the status code of the arm telling that they are maintaining height at current position */
             armStatusCode = 0;
             /* do periodic immediately */
