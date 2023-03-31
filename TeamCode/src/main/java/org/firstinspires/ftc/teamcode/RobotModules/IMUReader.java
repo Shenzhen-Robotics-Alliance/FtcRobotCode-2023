@@ -25,6 +25,11 @@ import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
 
+/**
+ * the module that reads the data from imu
+ * @Deprecated use position calculator instead
+ * */
+@Deprecated
 public class IMUReader extends RobotModule {
     // The IMU sensor object
     BNO055IMU imu;

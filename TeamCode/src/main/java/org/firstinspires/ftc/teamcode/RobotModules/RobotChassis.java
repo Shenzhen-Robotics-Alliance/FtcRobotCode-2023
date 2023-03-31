@@ -44,7 +44,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** connects to the robot's hardware */
     private HardwareDriver driver;
     /** the robot's imu for navigation */
-    private IMU imu;
+   // private IMU imu;
     /** the module that calculates the robot's position and velocity */
     private RobotPositionCalculator_tmp positionCalculator;
 
@@ -106,7 +106,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
      * @param dependentInstances: the instance needed by the robot's chassis
      *                          "initialControllerPad": Gamepad, the default game pad used to control the robot's chassis
      *                          "hardwareDriver" : HardwareDriver, the connection to the robot's hardware
-     *                          "imu" : IMU, the connection to the built-in imu of the robot's board
      *                          "positionCalculator" : RobotPositionCalculator_tmp, the position calculator of the robot
      */
     @Override
@@ -130,11 +129,11 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
                 "dependent instance not given: " + "hardwareDriver"
         );
         this.driver = (HardwareDriver) dependentInstances.get("hardwareDriver");
-
-        if (! dependentInstances.containsKey("imu")) throw new NullPointerException(
-                "dependent instance not given: " + "imu"
-        );
-        this.imu = (IMU) dependentInstances.get("imu");
+//
+//        if (! dependentInstances.containsKey("imu")) throw new NullPointerException(
+//                "dependent instance not given: " + "imu"
+//        );
+//        this.imu = (IMU) dependentInstances.get("imu");
 
 
         /* throw out an error if the dependent modules is given an empty map */
@@ -147,11 +146,11 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         this.positionCalculator = (RobotPositionCalculator_tmp) dependentModules.get("positionCalculator");
 
 
-        /* calibrate the imu */
-        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
-        imu.initialize(new IMU.Parameters(orientationOnRobot));
-        imu.resetYaw();
+//        /* calibrate the imu */
+//        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
+//        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
+//        imu.initialize(new IMU.Parameters(orientationOnRobot));
+//        imu.resetYaw();
 
         /* calibrate the center of the controller pad */
         this.pilotControllerPadZeroPosition[0] = gamepad.right_stick_x;
@@ -188,13 +187,16 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
         if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
-            // get the rotation and angular velocity of the robot from imu
-            orientation = imu.getRobotYawPitchRollAngles();
-            angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
+//            // get the rotation and angular velocity of the robot from imu
+//            orientation = imu.getRobotYawPitchRollAngles();
+//            angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
+//
+//            // get the facing, and the angular velocity in YAW axle, of the robot
+//            facing = orientation.getYaw(AngleUnit.RADIANS);
+//            velocityYAW = angularVelocity.zRotationRate;
 
-            // get the facing, and the angular velocity in YAW axle, of the robot
-            facing = orientation.getYaw(AngleUnit.RADIANS);
-            velocityYAW = angularVelocity.zRotationRate;
+            /* use robot position calculator instead to calculate the rotation of the robot */
+            facing = positionCalculator.getRobotRotation();
 
             // correct xAxelMotion and yAxelMotion using the IMU
             correctedMotion = navigateGround(xAxleMotion, yAxleMotion, -facing);
@@ -240,7 +242,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             yAxleReversedSwitch = !yAxleReversedSwitch;
             previousYAxleReverseSwitchActivation.reset();
         } if (gamepad.dpad_right) { // debug the imu by resetting the heading
-            imu.resetYaw();
+            // imu.resetYaw();
         }
 
         slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot

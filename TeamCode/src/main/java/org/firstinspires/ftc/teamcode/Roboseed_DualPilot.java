@@ -118,19 +118,10 @@ public class Roboseed_DualPilot extends LinearOpMode {
         fieldNavigation.init(fieldNavigationDependentModules, fieldNavigationDependentInstances);
 
 
-        /** pass the hardware ports to the field navigation module */
-        HashMap<String, RobotModule> imuReaderDependentModules = null;
-        HashMap<String, Object> imuReaderDependentInstances = new HashMap<>(1);
-        imuReaderDependentInstances.put("hardwareMap", hardwareMap);
-        this.imuReader = new IMUReader();
-        this.imuReader.init(imuReaderDependentModules, imuReaderDependentInstances);
-        imuReader.calibrateIMU();
-
         /** pass the hardware ports, drivers and dependent modules to the auto stage chassis module, which is for testing */
         HashMap<String, RobotModule> autoStageRobotChassisDependentModules = new HashMap<>(1);
         HashMap<String, Object> autoStageRobotChassisDependentInstances = new HashMap<>(1);
         autoStageRobotChassisDependentModules.put("fieldNavigation", fieldNavigation);
-        autoStageRobotChassisDependentModules.put("imuReader", imuReader);
         autoStageRobotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
         autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
         autoStageRobotChassis = new AutoStageRobotChassis();
@@ -180,10 +171,10 @@ public class Roboseed_DualPilot extends LinearOpMode {
         arm.periodic();
         // System.out.println("<--arm module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
-        fieldNavigation.periodic();
+        // fieldNavigation.periodic();
         // System.out.println("<--visual navigation module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
-        imuReader.periodic();
+        // imuReader.periodic();
         // System.out.println("<--imu reader module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
         encoderReader.periodic();

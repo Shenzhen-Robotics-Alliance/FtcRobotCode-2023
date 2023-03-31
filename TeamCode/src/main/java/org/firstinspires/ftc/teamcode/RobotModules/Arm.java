@@ -338,6 +338,7 @@ public class Arm extends RobotModule {
 //        double fallingPower; if (currentPosition > 600) fallingPower = 0; else fallingPower = -0.1;
 //        /* the power that the motors need to  */
 
+        /** the amount of motor power the system adjusts in every period, when it's running like what we want */
         final double powerAttemptingDifference = 0.02;
         double armPower;
         if (targetedArmPosition-currentPosition < -20) {
