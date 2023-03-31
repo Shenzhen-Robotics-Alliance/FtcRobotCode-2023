@@ -136,7 +136,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         if (isStopRequested()) return;
 
         autoStageRobotChassis.calibrateEncoder();
-        imuReader.calibrateIMU();
+        // imuReader.calibrateIMU();
 
         /* add telemetry line, TODO:use robot-debug-bridge to do it */
         telemetry.addLine("<--start-up complete-->");

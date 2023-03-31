@@ -194,18 +194,17 @@ public class Arm extends RobotModule {
 
     @Override
     public void periodic() {
-        System.out.println(hardwareDriver.lift_right.getCurrentPosition());
+        /* no mater what, respond to the pilot's input first, so that the pilots have the control over their machine and can interrupt actions */
+        reactToPilotInputs();
         /* proceed different instructions according to the status code */
         switch (armStatusCode) {
             case -1: {
                 /* save battery and cool down the arms */
                 hardwareDriver.lift_left.setPower(0);
                 hardwareDriver.lift_right.setPower(0);
-                reactToPilotInputs();
                 break;
             } case 0: {
                 setArmStill();
-                reactToPilotInputs();
                 break;
             }
             case 1: {
@@ -326,6 +325,7 @@ public class Arm extends RobotModule {
         }
 
         /* use only one encoder to determine how the motors spin */
+        System.out.println(1);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -356,6 +356,10 @@ public class Arm extends RobotModule {
             if (currentVelocity < 0) armPower = currentPower + powerAttemptingDifference;
             else armPower = currentPower - powerAttemptingDifference;
         }
+
+        /* set the motor speed(almost forgot) */
+        hardwareDriver.lift_right.setPower(armPower);
+        hardwareDriver.lift_left.setPower(armPower);
     }
 
     /**
