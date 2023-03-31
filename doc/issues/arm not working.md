@@ -13,3 +13,6 @@ at first, one of the two motors that runs the arm is experiencing an encoder fai
 the controller hub broke down completedly, I tested it by tring to use controller hub to power motors orginally connected to expansion hub, or the reversed way, it turns out that neighter a controller hub's hardware works on the expanssion hub, nor does the other way round, so WTF is going on?
 oh it seems that the expanssion hub does give a votage on the motor, but the motor didn't turn, LOL
 
+Ok we know what happenend, the fucking line caused all of it, the fucking line was in bad condition
+I measured the votage around the motor port and it turns out to be that the port is functioning well
+
