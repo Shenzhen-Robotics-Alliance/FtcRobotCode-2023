@@ -194,7 +194,7 @@ public class Arm extends RobotModule {
     public void periodic() {
         /* no mater what, respond to the pilot's input first, so that the pilots have the control over their machine and can interrupt actions */
         reactToPilotInputs();
-        System.out.println(hardwareDriver.lift_left.getPower());
+        System.out.println(hardwareDriver.lift_left.getPower() + ", " + hardwareDriver.lift_right.getPower());
         /* proceed different instructions according to the status code */
         switch (armStatusCode) {
             case -1: {
@@ -344,25 +344,28 @@ public class Arm extends RobotModule {
         /** the amount of motor power the system adjusts in every period, when it's running like what we want */
         final double powerAttemptingDifference = 0.02;
         double armPower = 0;
-        if (targetedArmPosition-currentPosition < -20) {
-            /* decline the arms */
-            final double armDecliningVelocity = -300;
-            if (currentVelocity - armDecliningVelocity < -20) armPower = currentPower + powerAttemptingDifference;
-            else if(currentVelocity - armDecliningVelocity > 20) armPower = currentPower - powerAttemptingDifference;
-        } else if (targetedArmPosition-currentPosition > 20) {
-            /* raise the arms */
-            final double armIncliningVelocity = 300;
-            if (currentVelocity - armIncliningVelocity < -20) armPower = currentPower + powerAttemptingDifference;
-            else if(currentVelocity - armIncliningVelocity > 20) armPower = currentPower - powerAttemptingDifference;
-        } else {
-            /* set the arms to be still */
-            if (currentVelocity < -20) armPower = currentPower + powerAttemptingDifference;
-            else if(currentVelocity > 20) armPower = currentPower - powerAttemptingDifference;
-        }
+//        if (targetedArmPosition-currentPosition < -20) {
+//            /* decline the arms */
+//            final double armDecliningVelocity = -300;
+//            if (currentVelocity - armDecliningVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+//            else if(currentVelocity - armDecliningVelocity > 20) armPower = currentPower - powerAttemptingDifference;
+//        } else if (targetedArmPosition-currentPosition > 20) {
+//            /* raise the arms */
+//            final double armIncliningVelocity = 300;
+//            if (currentVelocity - armIncliningVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+//            else if(currentVelocity - armIncliningVelocity > 20) armPower = currentPower - powerAttemptingDifference;
+//        } else {
+//            /* set the arms to be still */
+//            if (currentVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+//            else if(currentVelocity > 20) armPower = currentPower - powerAttemptingDifference;
+//        }
+        if (currentVelocity < -20) armPower = currentPower + powerAttemptingDifference;
+        else if(currentVelocity > 20) armPower = currentPower - powerAttemptingDifference;
+        System.out.println(currentVelocity + ", " + armPower);
 
         /* set the motor speed(almost forgot) */
-        hardwareDriver.lift_right.setPower(armPower);
-        hardwareDriver.lift_left.setPower(armPower);
+//        hardwareDriver.lift_right.setPower(armPower);
+//        hardwareDriver.lift_left.setPower(armPower);
     }
 
     /**
@@ -403,6 +406,7 @@ public class Arm extends RobotModule {
                         Math.max(hardwareDriver.lift_left.getCurrentPosition(), hardwareDriver.lift_right.getCurrentPosition())
                                 - targetedArmPosition) < 20
         ) {
+            for (int i = 0; i < 100; i++) System.out.println("reached," + hardwareDriver.lift_left.getCurrentPosition() + ", " + hardwareDriver.lift_right.getCurrentPosition());
             /* update the status code of the arm telling that they are maintaining height at current position */
             armStatusCode = 0;
             /* do periodic immediately */
