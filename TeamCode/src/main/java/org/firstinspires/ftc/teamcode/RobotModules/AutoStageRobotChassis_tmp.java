@@ -37,6 +37,8 @@ public class AutoStageRobotChassis_tmp {
     private static final double maxMovingMotorPower = 0.45;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
     private static final double rotationPowerFactor = -0.6;
+    /** whether to flip the x-axis for left side operation */
+    private static final double xAxisPositionCorrectionFactor = 1;
 
 
     public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator_tmp positionCalculator) {
@@ -50,6 +52,7 @@ public class AutoStageRobotChassis_tmp {
     }
 
     public void setRobotPosition(int encoderPositionX, int encoderPositionY, double startingRotation) {
+        encoderPositionX *= xAxisPositionCorrectionFactor;
 
         /** whether the process is finished */
         boolean completed = false;
