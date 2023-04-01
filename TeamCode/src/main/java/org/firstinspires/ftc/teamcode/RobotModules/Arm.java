@@ -522,7 +522,7 @@ public class Arm extends RobotModule {
 
         if (isDecline) {
             /* set the power of the motor */
-            hardwareDriver.lift_left.setPower(armDeclineSpeed);
+            // hardwareDriver.lift_left.setPower(armDeclineSpeed);
             hardwareDriver.lift_right.setPower(armDeclineSpeed);
 
             /* if the arm is declining
@@ -531,7 +531,7 @@ public class Arm extends RobotModule {
             this.armStatusCode = 1;
         } else {
             /* set the power of the motor */
-            hardwareDriver.lift_left.setPower(armInclineSpeed);
+            // hardwareDriver.lift_left.setPower(armInclineSpeed);
             hardwareDriver.lift_right.setPower(armInclineSpeed);
 
             /* if the arm isn't declining
@@ -541,8 +541,8 @@ public class Arm extends RobotModule {
         }
 
         /* set the arms to be moving, towards the objective position */
-        hardwareDriver.lift_left.setTargetPosition(position);
-        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        // hardwareDriver.lift_left.setTargetPosition(position);
+        // hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hardwareDriver.lift_right.setTargetPosition(position);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 

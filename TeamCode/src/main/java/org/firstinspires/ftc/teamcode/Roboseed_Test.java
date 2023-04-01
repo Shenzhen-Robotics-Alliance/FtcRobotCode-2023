@@ -82,6 +82,8 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
+        hardwareDriver.lift_right.setPower(0.3); hardwareDriver.lift_left.setPower(0.3);
+
         while (opModeIsActive() && !isStopRequested()) {
             System.out.println(hardwareDriver.lift_left.getCurrentPosition() + ", " + hardwareDriver.lift_right.getCurrentPosition());
         }
