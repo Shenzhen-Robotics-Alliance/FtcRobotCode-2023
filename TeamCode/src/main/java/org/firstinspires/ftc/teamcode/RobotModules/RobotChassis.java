@@ -84,7 +84,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** whether the robot is asked to rotated at the last period */
     private boolean wasAskedToRotate = true;
     /** whether to use the encoders or not */
-    private static final boolean useEncoderCorrection = false;
+    private static final boolean useEncoderCorrection = true;
     /** the minimum speed when the encoder starts to correct the motion */
     private static final double useEncoderCorrectionSpeed = 0.3;
 
