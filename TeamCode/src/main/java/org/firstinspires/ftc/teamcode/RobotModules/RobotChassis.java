@@ -83,7 +83,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
     private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
-    private static final double rotationStartsSlowingDown = Math.toRadians(90);
+    private static final double rotationStartsSlowingDown = Math.toRadians(180);
     /** minimum power to make the robot move */
     private static final double minMotioningPower = 0.3;
     /** the maximum angular speed of the robot, in radian/s */
@@ -218,7 +218,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         /** rotate the robot to make it stick to the rotation where it's asked to be */
         double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(targetedRotation - positionCalculator.getRobotRotation());
         double rotationalMotion = Math.copySign(RobotChassis.linearMap(
-                rotationTolerance,rotationStartsSlowingDown,0,0.6,
+                rotationTolerance,rotationStartsSlowingDown,0,0.8,
                 Math.abs(rotationalDifference)
         ) , rotationalDifference);
 
