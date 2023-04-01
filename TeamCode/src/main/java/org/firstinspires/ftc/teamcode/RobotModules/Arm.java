@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 public class Arm extends RobotModule {
     /** highest position of the arm */
-    private final int highPos = 740;
+    private final int highPos = 700;
     /** midpoint position of the arm */
     private final int midPos = 480;
     /** lower position of the arm */

@@ -15,7 +15,7 @@ package org.firstinspires.ftc.teamcode.AutoStagePrograms;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 @Autonomous(name = "3_red_left")
-public class AutoStage_pos3 extends Roboseed_AutoStage{
+public class AutoStage_pos3 extends Roboseed_AutoStage_tmp {
     /** set the parking sector to be the selected */
     @Override
     short determineParkingSector() {

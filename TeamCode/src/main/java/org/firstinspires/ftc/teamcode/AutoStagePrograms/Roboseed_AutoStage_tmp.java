@@ -156,56 +156,63 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
      *
      * @throws InterruptedException if the process is interrupted by sytem
      * */
-    private void proceedAutoStageInstructions() throws InterruptedException {
-        /* grab the pre-loaded sleeve */
-        autoStageArm.holdPreLoadedSleeve();
-        /* step1, the robot moves out of the parking spot and go to the center of the starting region */
-        // TODO y+3650
-        robotChassis.setRobotPosition(0, 2000, 0);
-        robotChassis.setRobotPosition(-16000, 2000, 0);
+    private void proceedAutoStageInstructions_tmp() throws InterruptedException {
+//        /* grab the pre-loaded sleeve */
+//        autoStageArm.holdPreLoadedSleeve();
+//        /* step1, the robot moves out of the parking spot and go to the center of the starting region */
+//        robotChassis.setRobotPosition(0, 2000, 0);
+//        robotChassis.setRobotPosition(-16000, 2000, 0);
+//
+//        /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
+//        robotChassis.setRobotPosition(-16000, 17000, 0); // TODO set -3000 to be the encoder value when the robot reaches the center of the third region (counting from left right)
+//        /* place the pre-loaded sleeve onto it */
+//        autoStageArm.goToHighestTower();
+//        sleep(1500);
+//        robotChassis.setRobotPosition(-30000, 17000, 0);
+//        autoStageArm.dropSleeve();
 
-        /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
-        robotChassis.setRobotPosition(-16000, 17650, 0); // TODO set -3000 to be the encoder value when the robot reaches the center of the third region (counting from left right)
-        /* place the pre-loaded sleeve onto it */
-        autoStageArm.goToHighestTower();
-        sleep(1500);
-        robotChassis.setRobotPosition(-23500, 17000, 0);
-        autoStageArm.dropSleeve();
-
-        /* move back to the center of the region */
-        robotChassis.setRobotPosition(-23500, 16000, 0);
-
-        /* line up with the vertical path way */
-        robotChassis.setRobotPosition(-3000, 16000, 0);
-        /* line up horizontally with the sleeves stack */
-        robotChassis.setRobotPosition(-3000, 23650, 0);
-        /* rotate 90 degree clockwise to face the sleeves stack */
-        robotChassis.setRobotRotation(270);
+//        /* move back to the center of the region */
+//        robotChassis.setRobotPosition(-31000, 16000, 0);
+//
+//        /* line up with the vertical path way */
+//        robotChassis.setRobotPosition(-3000, 16000, 0);
+//        /* line up horizontally with the sleeves stack */
+//        robotChassis.setRobotPosition(-3000, 23650, 0);
+//        /* rotate 90 degree clockwise to face the sleeves stack */
+//        robotChassis.setRobotRotation(270);
         // robotChassis.setRobotPosition();
 
 
+
+
         // TODO finish the rest
+    }
+
+    private void proceedAutoStageInstructions() throws InterruptedException {
+        robotChassis.setRobotPosition(10000, 3000);
+        robotChassis.setRobotPosition(10000, 15000);
     }
 
     /**
      * go to sector 1 if the pilot asks to
      */
     private void proceedGoToSector1() {
-        robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(-800, 780);
+//        robotChassis.setRobotRotation(0);
+//        robotChassis.setRobotPosition(-800, 780);
+
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
-        robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(-50, 780);
+        robotChassis.setRobotPosition(-1000, 15000);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
-        robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(700, 780);
+//        robotChassis.setRobotRotation(0);
+//        robotChassis.setRobotPosition(700, 780);
+        robotChassis.setRobotPosition(-14000, 15000);
     }
 }
