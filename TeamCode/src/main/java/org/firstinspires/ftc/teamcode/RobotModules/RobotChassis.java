@@ -83,7 +83,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
     private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
-    private static final double rotationStartsSlowingDown = Math.toRadians(45);
+    private static final double rotationStartsSlowingDown = Math.toRadians(90);
     /** minimum power to make the robot move */
     private static final double minMotioningPower = 0.3;
     /** the maximum angular speed of the robot, in radian/s */
@@ -177,7 +177,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
         if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.8;
-        targetedRotation += rotationalAttempt * dt.seconds() * maxAngularVelocity;
+        targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
         if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -218,17 +218,17 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         /** rotate the robot to make it stick to the rotation where it's asked to be */
         double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(targetedRotation - positionCalculator.getRobotRotation());
         double rotationalMotion = Math.copySign(RobotChassis.linearMap(
-                rotationTolerance,rotationStartsSlowingDown,0,0.3,
+                rotationTolerance,rotationStartsSlowingDown,0,0.6,
                 Math.abs(rotationalDifference)
         ) , rotationalDifference);
 
-        System.out.println(targetedRotation);
+        System.out.println(targetedRotation + ", " + rotationalMotion);
 
         // control the Mecanum wheel
-//        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-//        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-//        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-//        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
