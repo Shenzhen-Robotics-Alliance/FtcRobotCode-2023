@@ -21,7 +21,7 @@ public class AutoStageRobotChassis_tmp {
     RobotPositionCalculator_tmp positionCalculator;
 
     /** accept any deviation in position less than 1000 encoder values */
-    private static final int positionTolerance = 500;
+    private static final int positionTolerance = 300;
     /** the positional deviation when the robot starts slowdown  */
     private static final int positionStartsSlowingDown = 6000;
 
@@ -37,7 +37,7 @@ public class AutoStageRobotChassis_tmp {
     private static final double maxMovingMotorPower = 0.45;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
     private static final double rotationPowerFactor = -0.6;
-    /** whether to flip the x-axis for left side operation */
+    /** whether to flip the x-axis for left side operation, currently -1 for left side */
     private static final double xAxisPositionCorrectionFactor = 1;
 
 
@@ -119,7 +119,8 @@ public class AutoStageRobotChassis_tmp {
                                 Math.abs(yAxisFieldDifference)
                         ), yAxisFieldDifference);
             }
-            System.out.println(rotationalDifference + ", " + rotationCorrectionMotorSpeed);
+            // System.out.println(positionCalculator.getRobotPosition()[0] + ", " + positionCalculator.getRobotPosition()[1]);
+            System.out.println(positionCalculator.getRobotRotation());
 
             /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */
             double xAxisAbsoluteVelocity = xAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's x-axis velocity
@@ -131,13 +132,14 @@ public class AutoStageRobotChassis_tmp {
             setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed * rotationPowerFactor * 0.8);
             /** jump out of the loop when the robot reaches the targeted area */
             completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
-            completed = Math.abs(xAxisFieldDifference) < positionTolerance*2 && Math.abs(yAxisFieldDifference) < positionTolerance*2;
+            completed = Math.abs(xAxisFieldDifference) < positionTolerance && Math.abs(yAxisFieldDifference) < positionTolerance;
+            if (completed) System.out.println("completed with" + Math.abs(xAxisFieldDifference));
         } while (!completed);
         /* set the motors to stop */
-        hardwareDriver.leftFront.setVelocity(0);
-        hardwareDriver.leftRear.setVelocity(0);
-        hardwareDriver.rightFront.setVelocity(0);
-        hardwareDriver.rightRear.setVelocity(0);
+        hardwareDriver.leftFront.setPower(0);
+        hardwareDriver.leftRear.setPower(0);
+        hardwareDriver.rightFront.setPower(0);
+        hardwareDriver.rightRear.setPower(0);
 
         /* wait until the robot is completely still */
         while (Math.abs(positionCalculator.getRawVelocity()[0]) > 200 || Math.abs(positionCalculator.getRawVelocity()[1]) > 200) {
