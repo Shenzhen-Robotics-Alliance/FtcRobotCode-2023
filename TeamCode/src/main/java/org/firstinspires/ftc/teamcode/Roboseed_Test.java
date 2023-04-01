@@ -82,11 +82,9 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
-        autoStageArm.grabFromSleevesStack();
-        robotChassis.setRobotPosition(0,10000);
-        autoStageArm.liftFromSleevesStack();
-        // robotChassis.setRobotPosition(-5000, -20000);
-        while (opModeIsActive() && !isStopRequested()) {}
+        while (opModeIsActive() && !isStopRequested()) {
+            System.out.println(hardwareDriver.lift_left.getCurrentPosition() + ", " + hardwareDriver.lift_right.getCurrentPosition());
+        }
     }
 
     private void configureRobot() {

@@ -1,1 +1,2 @@
-perhaps we can add a super sonic or inferred sensor that senses distance above
+perhaps we can add a super sonic or inferred sensor that senses distance of the obstacle ahead of the robot
+when the robot wants to place the sleeve, it should rotate near the tower and calculate the rotation
