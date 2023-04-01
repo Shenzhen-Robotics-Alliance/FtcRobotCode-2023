@@ -147,7 +147,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
 
     /**
      * the instruction given to the robot to make it score
-     *  the robot starts in the right corner of the field, with it's left side lining up with the righter border between the second and third region, counting from the right side
+     *  the robot starts in the right corner of the field, with it's right side lining up with the left border between the second and third region, counting from the right side, and it's back side wheel lining up with the third wave of the floor
      *  step1, the robot moves out of the parking spot and go to the center of the starting region
      *  step2, the robot moves to next region in the front, then to right behind the tower, and place the pre-loaded sleeve onto it
      *  step3, the robot goes back to the
@@ -161,15 +161,24 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         autoStageArm.holdPreLoadedSleeve();
         /* step1, the robot moves out of the parking spot and go to the center of the starting region */
         robotChassis.setRobotPosition(0, 2000);
-        robotChassis.setRobotPosition(-12250, 2000);
+        robotChassis.setRobotPosition(-3000, 2000);
 
-        /* step2, the robot moves to next region in the front, move to the right of the tower */
-        robotChassis.setRobotPosition(-12250, 17000);
+        /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
+        robotChassis.setRobotPosition(-3000, 14000); // TODO set -3000 to be the encoder value when the robot reaches the center of the third region (counting from left right)
         /* place the pre-loaded sleeve onto it */
-        // autoStageArm.goToHighestTower();
+        autoStageArm.goToHighestTower();
         sleep(1500);
-        robotChassis.setRobotPosition(-20000, 18000);
+        robotChassis.setRobotPosition(-23500, 14000);
         autoStageArm.dropSleeve();
+
+        /* move back to the center of the region */
+        robotChassis.setRobotPosition(-23500, 13000);
+
+        /* line up with the path way */
+        robotChassis.setRobotPosition(-3000, 13000);
+        /* rotate 90 degree clockwise to face the sleeves stack */
+        robotChassis.setRobotRotation(270);
+
 
         // TODO finish the rest
     }
