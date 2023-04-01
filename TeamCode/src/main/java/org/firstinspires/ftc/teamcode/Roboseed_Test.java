@@ -42,7 +42,6 @@ public class Roboseed_Test extends LinearOpMode {
     ElapsedTime elapsedTime = new ElapsedTime();
     HardwareDriver hardwareDriver = new HardwareDriver();
 
-    AutoStageRobotChassis autoStageRobotChassis;
     ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis_tmp robotChassis;
 
@@ -50,66 +49,71 @@ public class Roboseed_Test extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         configureRobot();
 
-//        /** pass the hardware ports to the arm module */
-//        HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
-//        HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
-//        armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
-//        armModuleDependentInstances.put("initialControllerPad", new Gamepad());
-//        Arm arm = new Arm();
-//        arm.init(armModuleDependentModules, armModuleDependentInstances, false);
-//
-//        /** the temporary arm module to operate the arm during auto stage */
-//        AutoStageArm autoStageArm = new AutoStageArm(arm);
-//
-//        /** pass the hardware ports to the encoder reader module */
-//        HashMap<String, RobotModule> encoderReaderDependentModules = null;
-//        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
-//        /* no enough ports, use the encoder ports of the driving motors instead */
-//        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
-//        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
-//        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
-//        Mini1024EncoderReader encoderReader = new Mini1024EncoderReader();
-//        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
-//
-//        /** pass the encoder reader to the temporary position calculator */
-//        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
-//        HashMap<String, Object> positionCalculatorDependentInstances = null;
-//        positionCalculatorDependentModules.put("encoderReader", encoderReader);
-//        RobotPositionCalculator_tmp positionCalculator = new RobotPositionCalculator_tmp();
-//        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
-//
-//        /** the temporary chassis module */
-//        this.robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
+        /** pass the hardware ports to the arm module */
+        HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
+        HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
+        armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
+        armModuleDependentInstances.put("initialControllerPad", new Gamepad());
+        Arm arm = new Arm();
+        arm.init(armModuleDependentModules, armModuleDependentInstances, false);
+
+        /** the temporary arm module to operate the arm during auto stage */
+        AutoStageArm autoStageArm = new AutoStageArm(arm);
+
+        /** pass the hardware ports to the encoder reader module */
+        HashMap<String, RobotModule> encoderReaderDependentModules = null;
+        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
+        /* no enough ports, use the encoder ports of the driving motors instead */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
+        Mini1024EncoderReader encoderReader = new Mini1024EncoderReader();
+        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
+
+        /** pass the encoder reader to the temporary position calculator */
+        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
+        HashMap<String, Object> positionCalculatorDependentInstances = null;
+        positionCalculatorDependentModules.put("encoderReader", encoderReader);
+        RobotPositionCalculator_tmp positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+
+        /** the temporary chassis module */
+        this.robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
 
         waitForStart();
 
-        hardwareMap.get(DcMotorEx.class, "lifterdis").setPower(0.5);
+//        hardwareMap.get(DcMotorEx.class, "lifter").setPower(0.5);
 
 
-        while (opModeIsActive() && !isStopRequested()) System.out.println(hardwareDriver.lift_left.getCurrentPosition());
+        autoStageArm.grabFromSleevesStack();
+        robotChassis.setRobotPosition(0,10000);
+        autoStageArm.liftFromSleevesStack();
+        while (opModeIsActive() && !isStopRequested()) {
+            System.out.println(hardwareDriver.lift_left.getCurrentPosition() + ", " + hardwareDriver.lift_right.getCurrentPosition());
+        }
     }
 
     private void configureRobot() {
-//        hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
-//        hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
-//        hardwareDriver.rightFront = hardwareMap.get(DcMotorEx.class, "rightfront");
-//        hardwareDriver.rightRear = hardwareMap.get(DcMotorEx.class, "rightrear");
-//
-//        hardwareDriver.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-//        hardwareDriver.rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
-//
-//        hardwareDriver.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        hardwareDriver.leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        hardwareDriver.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        hardwareDriver.rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.leftFront = hardwareMap.get(DcMotorEx.class, "leftfront");
+        hardwareDriver.leftRear = hardwareMap.get(DcMotorEx.class, "leftrear");
+        hardwareDriver.rightFront = hardwareMap.get(DcMotorEx.class, "rightfront");
+        hardwareDriver.rightRear = hardwareMap.get(DcMotorEx.class, "rightrear");
+
+        hardwareDriver.rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        hardwareDriver.rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        hardwareDriver.leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hardwareDriver.rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         try {
             hardwareDriver.claw = hardwareMap.get(Servo.class, "tipperhopper");
 
             hardwareDriver.lift_left = hardwareMap.get(DcMotorEx.class, "lifter");
-//            hardwareDriver.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
-//
-//            hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
+            hardwareDriver.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
+
+            hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
         } catch (NullPointerException e) {
             e.printStackTrace();
             System.exit(0);

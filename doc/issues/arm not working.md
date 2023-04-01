@@ -15,4 +15,5 @@ oh it seems that the expanssion hub does give a votage on the motor, but the mot
 
 Ok we know what happenend, the fucking line caused all of it, the fucking line was in bad condition
 I measured the votage around the motor port and it turns out to be that the port is functioning well
+So now I would have to write a PID or put the motors together
 
