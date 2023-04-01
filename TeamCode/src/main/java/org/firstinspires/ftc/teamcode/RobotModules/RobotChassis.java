@@ -1,15 +1,9 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
-import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
-
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
@@ -61,10 +55,11 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
     /** the times elapsed after the last time these mode buttons are pressed
      * so that it does not shift between the modes in one press */
-    private final ElapsedTime previousMotionModeButtonActivation;
-    private final ElapsedTime previousNavigationModeButtonActivation;
-    private final ElapsedTime previousYAxleReverseSwitchActivation;
-    private final ElapsedTime lastMovement;
+    private final ElapsedTime previousMotionModeButtonActivation = new ElapsedTime();
+    private final ElapsedTime previousNavigationModeButtonActivation = new ElapsedTime();
+    private final ElapsedTime previousYAxleReverseSwitchActivation = new ElapsedTime();
+    private final ElapsedTime lastMovement = new ElapsedTime();
+    private final ElapsedTime dt = new ElapsedTime();
 
     /** configuration of the robot's driving feelings */
     /** the minimum power needed to move the robot */
@@ -79,10 +74,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** calibrate the controller, store the initial state of the controller, in the order of x-axis, y axis and rotational axis */
     private double[] pilotControllerPadZeroPosition = {0, 0, 0};
 
-    /** the rotation of the robot after the last time the robot is asked to rotate, which is the rotation that the robot needs to stick to until the next rotation command */
-    private double startingRotation;
-    /** whether the robot is asked to rotated at the last period */
-    private boolean wasAskedToRotate = true;
+    /** the rotation that the pilot set it to be */
+    private double targetedRotation;
     /** whether to use the encoders or not */
     private static final boolean useEncoderCorrection = false;
     /** the minimum speed when the encoder starts to correct the motion */
@@ -92,16 +85,15 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(45);
     /** minimum power to make the robot move */
+    private static final double minMotioningPower = 0.3;
+    /** the maximum angular speed of the robot, in radian/s */
+    private static final double maxAngularVelocity = Math.PI * 3;
 
     /**
      * construct function of the robot chassis, use init() for further initialization
      */
     public RobotChassis() {
         super("RobotChassis");
-        this.previousMotionModeButtonActivation = new ElapsedTime();
-        this.previousNavigationModeButtonActivation = new ElapsedTime();
-        this.previousYAxleReverseSwitchActivation = new ElapsedTime();
-        this.lastMovement = new ElapsedTime();
     }
 
     /**
@@ -183,12 +175,9 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         /* get the controller pad input, and correct it according to the initial  */
         double yAxleMotion = linearMap(-(gamepad.right_stick_y - this.pilotControllerPadZeroPosition[1])); // the left stick is reversed to match the vehicle
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
-        /* double rotationalMotion = Math.copySign(
-            linearMap(0.05, 1, 0, 1,
-                    Math.abs(gamepad.left_stick_x)
-            ), gamepad.left_stick_x); */
-        double rotationalMotion = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]) * 0.6;
-        if (!slowMotionModeActivationSwitch) rotationalMotion *= 0.8;
+        double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
+        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.8;
+        targetedRotation += rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
         if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -209,7 +198,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             yAxleMotion = correctedMotion[1];
         } else if (yAxleReversedSwitch) yAxleMotion *= -1;
 
-        if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalMotion != 0) lastMovement.reset();
+        if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalAttempt != 0) lastMovement.reset();
 
         /** correct the motion using encoder readings */
         if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[1] != 0 && useEncoderCorrection) {
@@ -226,23 +215,14 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             // System.out.println(xAxleMotion + ", " + currentMotorVelocity[0] + "/ " + yAxleMotion + ", " + currentMotorVelocity[1]);
         }
 
-        /** make the robot stick to the rotation where it is, when it's not asked to rotate */
-        if (rotationalMotion == 0 && (!wasAskedToRotate)) {
-            double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation());
-            rotationalMotion += Math.copySign(RobotChassis.linearMap(
-                    rotationTolerance,rotationStartsSlowingDown,0,0.3,
-                    Math.abs(rotationalDifference)
-            ) , rotationalDifference);
-            /* remember whether it was asked to rotate */
-            wasAskedToRotate = rotationalMotion != 0;
-            System.out.println(Math.copySign(RobotChassis.linearMap(
-                    rotationTolerance,rotationStartsSlowingDown,0,0.3,
-                    Math.abs(rotationalDifference)
-            ) , rotationalDifference));
-        } else {
-            /* get the rotation by the end of the program */
-            startingRotation = positionCalculator.getRobotRotation();
-        }
+        /** rotate the robot to make it stick to the rotation where it's asked to be */
+        double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(targetedRotation - positionCalculator.getRobotRotation());
+        double rotationalMotion = Math.copySign(RobotChassis.linearMap(
+                rotationTolerance,rotationStartsSlowingDown,0,0.3,
+                Math.abs(rotationalDifference)
+        ) , rotationalDifference);
+
+        System.out.println(rotationalMotion);
 
         // control the Mecanum wheel
         driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
@@ -264,6 +244,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         }
 
         slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot
+
+        dt.reset();
     }
 
     public void setSlowMotionModeActivationSwitch(boolean suggested) {
