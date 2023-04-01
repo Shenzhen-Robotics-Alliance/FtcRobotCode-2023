@@ -194,7 +194,6 @@ public class Arm extends RobotModule {
     public void periodic() {
         /* no mater what, respond to the pilot's input first, so that the pilots have the control over their machine and can interrupt actions */
         reactToPilotInputs();
-        System.out.println(hardwareDriver.lift_left.getPower() + ", " + hardwareDriver.lift_right.getPower());
         /* proceed different instructions according to the status code */
         switch (armStatusCode) {
             case -1: {

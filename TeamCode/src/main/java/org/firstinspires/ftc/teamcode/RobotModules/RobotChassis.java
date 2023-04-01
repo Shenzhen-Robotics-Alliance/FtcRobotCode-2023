@@ -222,13 +222,13 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
                 Math.abs(rotationalDifference)
         ) , rotationalDifference);
 
-        System.out.println(rotationalMotion);
+        System.out.println(targetedRotation);
 
         // control the Mecanum wheel
-        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+//        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+//        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+//        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+//        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
