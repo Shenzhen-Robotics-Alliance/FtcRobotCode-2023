@@ -235,10 +235,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             ) , rotationalDifference);
             /* remember whether it was asked to rotate */
             wasAskedToRotate = rotationalMotion != 0;
-            System.out.println(Math.copySign(RobotChassis.linearMap(
-                    rotationTolerance,rotationStartsSlowingDown,0,0.3,
-                    Math.abs(rotationalDifference)
-            ) , rotationalDifference));
         } else {
             /* get the rotation by the end of the program */
             startingRotation = positionCalculator.getRobotRotation();

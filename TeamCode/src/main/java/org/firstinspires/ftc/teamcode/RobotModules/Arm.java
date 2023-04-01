@@ -21,13 +21,13 @@ import java.util.HashMap;
 
 public class Arm extends RobotModule {
     /** highest position of the arm */
-    private final int highPos = 700;
+    private final int highPos = 740;
     /** midpoint position of the arm */
-    private final int midPos = 450;
+    private final int midPos = 480;
     /** lower position of the arm */
-    private final int lowPos = 280;
+    private final int lowPos = 320;
     /** loading position of the arm */
-    private final int gndPos = 45;
+    private final int gndPos = 65;
     /**
      * power of the motor to lower the arm
      * 20% when it's going down, in considerate of the impulse of gravitation
