@@ -160,24 +160,28 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         /* grab the pre-loaded sleeve */
         autoStageArm.holdPreLoadedSleeve();
         /* step1, the robot moves out of the parking spot and go to the center of the starting region */
-        robotChassis.setRobotPosition(0, 2000);
-        robotChassis.setRobotPosition(-3000, 2000);
+        // TODO y+3650
+        robotChassis.setRobotPosition(0, 2000, 0);
+        robotChassis.setRobotPosition(-16000, 2000, 0);
 
         /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
-        robotChassis.setRobotPosition(-3000, 14000); // TODO set -3000 to be the encoder value when the robot reaches the center of the third region (counting from left right)
+        robotChassis.setRobotPosition(-16000, 17650, 0); // TODO set -3000 to be the encoder value when the robot reaches the center of the third region (counting from left right)
         /* place the pre-loaded sleeve onto it */
         autoStageArm.goToHighestTower();
         sleep(1500);
-        robotChassis.setRobotPosition(-23500, 14000);
+        robotChassis.setRobotPosition(-23500, 17000, 0);
         autoStageArm.dropSleeve();
 
         /* move back to the center of the region */
-        robotChassis.setRobotPosition(-23500, 13000);
+        robotChassis.setRobotPosition(-23500, 16000, 0);
 
-        /* line up with the path way */
-        robotChassis.setRobotPosition(-3000, 13000);
+        /* line up with the vertical path way */
+        robotChassis.setRobotPosition(-3000, 16000, 0);
+        /* line up horizontally with the sleeves stack */
+        robotChassis.setRobotPosition(-3000, 23650, 0);
         /* rotate 90 degree clockwise to face the sleeves stack */
         robotChassis.setRobotRotation(270);
+        // robotChassis.setRobotPosition();
 
 
         // TODO finish the rest

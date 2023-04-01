@@ -49,9 +49,7 @@ public class AutoStageRobotChassis_tmp {
         this.setRobotRotation(Math.toRadians(degrees));
     }
 
-    public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
-        /** get the rotation by the start of the move */
-        double startingRotation = positionCalculator.getRobotRotation();
+    public void setRobotPosition(int encoderPositionX, int encoderPositionY, double startingRotation) {
 
         /** whether the process is finished */
         boolean completed = false;
@@ -118,7 +116,7 @@ public class AutoStageRobotChassis_tmp {
                                 Math.abs(yAxisFieldDifference)
                         ), yAxisFieldDifference);
             }
-            System.out.println(xAxisFieldDifference + ", " + yAxisFieldDifference);
+            System.out.println(rotationalDifference + ", " + rotationCorrectionMotorSpeed);
 
             /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */
             double xAxisAbsoluteVelocity = xAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's x-axis velocity
@@ -143,6 +141,13 @@ public class AutoStageRobotChassis_tmp {
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
         }
+    }
+
+    public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
+        /** get the rotation by the start of the move */
+        double startingRotation = positionCalculator.getRobotRotation();
+
+        setRobotPosition(encoderPositionX, encoderPositionY, startingRotation);
     }
 
     private void setRobotRotation(double radians) {
