@@ -189,30 +189,28 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
     }
 
     private void proceedAutoStageInstructions() throws InterruptedException {
-        robotChassis.setRobotPosition(10000, 3000);
-        robotChassis.setRobotPosition(10000, 15000);
+        robotChassis.setRobotPosition(12000, 3000);
+        sleep(500);
+        robotChassis.setRobotPosition(12000, 19000);
+        robotChassis.setRobotRotation(0);
     }
 
     /**
      * go to sector 1 if the pilot asks to
      */
     private void proceedGoToSector1() {
-//        robotChassis.setRobotRotation(0);
-//        robotChassis.setRobotPosition(-800, 780);
 
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
-        robotChassis.setRobotPosition(-1000, 15000);
+        robotChassis.setRobotPosition(-2000, 16000);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
-//        robotChassis.setRobotRotation(0);
-//        robotChassis.setRobotPosition(700, 780);
-        robotChassis.setRobotPosition(-14000, 15000);
+        robotChassis.setRobotPosition(-16500, 16000);
     }
 }

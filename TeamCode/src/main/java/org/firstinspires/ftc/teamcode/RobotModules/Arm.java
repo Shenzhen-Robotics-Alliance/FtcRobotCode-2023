@@ -19,6 +19,8 @@ import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
 
+import dalvik.system.DelegateLastClassLoader;
+
 public class Arm extends RobotModule {
     /** highest position of the arm */
     private final int highPos = 700;
@@ -27,7 +29,7 @@ public class Arm extends RobotModule {
     /** lower position of the arm */
     private final int lowPos = 320;
     /** loading position of the arm */
-    private final int gndPos = 65;
+    private final int gndPos = 85;
     /**
      * power of the motor to lower the arm
      * 20% when it's going down, in considerate of the impulse of gravitation
@@ -95,7 +97,8 @@ public class Arm extends RobotModule {
     private RobotChassis robotChassis;
     /** whether to inform the robot chassis to slow down */
     private boolean inManualStage;
-
+    /** the time that the arm will maintain until falling down, if it's not holding stuff */
+    private double timeForRest = 1.5;
     /**
      * construct function of arm controlling methods
      * set the module's name to be "Arm"
@@ -303,7 +306,7 @@ public class Arm extends RobotModule {
             System.out.println("saving battery...");
             System.exit(0);
         }
-        if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
+        if (PreviousElevatorActivation.seconds() > timeForRest & this.getClaw()) {
             System.out.println("cooling down the motors...");
             this.deactivateArm(); // deactivate the arm to avoiding burning the motors
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
@@ -467,6 +470,7 @@ public class Arm extends RobotModule {
     public void toHighArmPosition() {
         armPositionCode = 3;
         armIsBusy = true;
+        timeForRest = 1.5;
         elevateArm(highPos);
     }
     /**
@@ -475,6 +479,7 @@ public class Arm extends RobotModule {
     public void toMidArmPosition() {
         armPositionCode = 2;
         armIsBusy = true;
+        timeForRest = 1.5;
         elevateArm(midPos);
     }
     /**
@@ -483,12 +488,18 @@ public class Arm extends RobotModule {
     public void toLowArmPosition() {
         armPositionCode = 1;
         armIsBusy = true;
+        timeForRest = 2;
         elevateArm(lowPos);
     }
 
     public void toGroundArmPosition() {
         armPositionCode = 0;
         armIsBusy = false;
+        timeForRest = 5;
+        elevateArm(lowPos);
+        // TODO use the periodic function and status code instead of this
+        ElapsedTime time = new ElapsedTime(); time.reset();
+        while (time.seconds() < 0.5) robotChassis.periodic();
         elevateArm(gndPos);
     }
 
