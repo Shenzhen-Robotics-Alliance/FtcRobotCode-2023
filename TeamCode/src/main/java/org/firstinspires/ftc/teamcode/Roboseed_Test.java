@@ -82,15 +82,11 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
-//        hardwareMap.get(DcMotorEx.class, "lifter").setPower(0.5);
-
-
         autoStageArm.grabFromSleevesStack();
         robotChassis.setRobotPosition(0,10000);
         autoStageArm.liftFromSleevesStack();
-        while (opModeIsActive() && !isStopRequested()) {
-            System.out.println(hardwareDriver.lift_left.getCurrentPosition() + ", " + hardwareDriver.lift_right.getCurrentPosition());
-        }
+        // robotChassis.setRobotPosition(-5000, -20000);
+        while (opModeIsActive() && !isStopRequested()) {}
     }
 
     private void configureRobot() {

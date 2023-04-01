@@ -9,7 +9,7 @@ package org.firstinspires.ftc.teamcode.RobotModules;
 public class AutoStageArm {
     // TODO set these configurations
     /** the sets of positions of the arm to match the sleeves stack with different amount of sleeves left */
-    private static final int[] sleevesStackPositions = {100,80,0,0};
+    private static final int[] sleevesStackPositions = {120,80,0,0};
     /** count the number of sleeves obtained already */
     private int sleevesCount = 0;
     Arm armModule;

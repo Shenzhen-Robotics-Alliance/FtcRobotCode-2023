@@ -88,6 +88,11 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the minimum speed when the encoder starts to correct the motion */
     private static final double useEncoderCorrectionSpeed = 0.3;
 
+    private static final double rotationTolerance = Math.toRadians(5);
+    /** the rotational deviation when the robot starts to decelerate */
+    private static final double rotationStartsSlowingDown = Math.toRadians(45);
+    /** minimum power to make the robot move */
+
     /**
      * construct function of the robot chassis, use init() for further initialization
      */
@@ -222,8 +227,21 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         }
 
         /** make the robot stick to the rotation where it is, when it's not asked to rotate */
-        if (rotationalMotion == 0) {
-            // TODO test the above and write here
+        if (rotationalMotion == 0 && (!wasAskedToRotate)) {
+            double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation());
+            rotationalMotion += Math.copySign(RobotChassis.linearMap(
+                    rotationTolerance,rotationStartsSlowingDown,0,0.3,
+                    Math.abs(rotationalDifference)
+            ) , rotationalDifference);
+            /* remember whether it was asked to rotate */
+            wasAskedToRotate = rotationalMotion != 0;
+            System.out.println(Math.copySign(RobotChassis.linearMap(
+                    rotationTolerance,rotationStartsSlowingDown,0,0.3,
+                    Math.abs(rotationalDifference)
+            ) , rotationalDifference));
+        } else {
+            /* get the rotation by the end of the program */
+            startingRotation = positionCalculator.getRobotRotation();
         }
 
         // control the Mecanum wheel
