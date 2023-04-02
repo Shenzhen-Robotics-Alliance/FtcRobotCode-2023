@@ -174,7 +174,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         /* place the pre-loaded sleeve onto it */
         autoStageArm.goToHighestTower();
         sleep(1500);
-        robotChassis.setRobotPosition(-18500, 16000, 0);
+        robotChassis.setRobotPosition(-18500, 15500, 0);
         robotChassis.setRobotRotation(0);
         autoStageArm.dropSleeve();
         sleep(300);
@@ -200,20 +200,20 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
      */
     private void proceedGoToSector1() {
         robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(-11000, 16000, 0);
+        robotChassis.setRobotPosition(15000, 15000, 0);
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
         robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(3000, 16000, 0);
+        robotChassis.setRobotPosition(2000, 15000, 0);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
         robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(16000, 16000,0);
+        robotChassis.setRobotPosition(-10000, 15000,0);
     }
 }
