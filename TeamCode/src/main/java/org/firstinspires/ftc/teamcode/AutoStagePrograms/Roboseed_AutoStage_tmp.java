@@ -160,23 +160,24 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
     private void proceedAutoStageInstructions() throws InterruptedException {
         /* grab the pre-loaded sleeve */
         autoStageArm.holdPreLoadedSleeve();
+        sleep(500);
         /* step1, the robot moves out of the parking spot and go to the center of the starting region */
 
         robotChassis.setRobotPosition(0, 2000, 0);
         robotChassis.setRobotPosition(-12000, 2000, 0);
         robotChassis.setRobotRotation(0);
-        while (opModeIsActive() && !isStopRequested())System.out.println(positionCalculator.getRobotPosition()[0] + ", " + positionCalculator.getRobotPosition()[1]);
-        // robotChassis.setRobotRotation(0);
 
-//
-//        /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
-//        robotChassis.setRobotPosition(-16000, 17650, 0); // TODO errors started occurring here
-//        robotChassis.setRobotRotation(0);
-//        /* place the pre-loaded sleeve onto it */
-//        autoStageArm.goToHighestTower();
-//        sleep(1500);
-//        robotChassis.setRobotPosition(-23500, 17000, 0);
-//        autoStageArm.dropSleeve();
+        /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
+        robotChassis.setRobotPosition(-12000, 16500, 0); // TODO errors started occurring here
+        robotChassis.setRobotRotation(0);
+
+        /* place the pre-loaded sleeve onto it */
+        autoStageArm.goToHighestTower();
+        sleep(1500);
+        robotChassis.setRobotPosition(-18500, 16000, 0);
+        robotChassis.setRobotRotation(0);
+        autoStageArm.dropSleeve();
+        sleep(300);
 //
 //        /* move back to the center of the region */
 //        robotChassis.setRobotPosition(-23500, 16000, 0);
@@ -190,6 +191,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
 //        // robotChassis.setRobotPosition();
 
 
+        arm.deactivateArm();
         // TODO finish the rest
     }
 
@@ -198,20 +200,20 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
      */
     private void proceedGoToSector1() {
         robotChassis.setRobotRotation(0);
-        // robotChassis.setRobotPosition(-800, 780);
+        robotChassis.setRobotPosition(-11000, 16000, 0);
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
         robotChassis.setRobotRotation(0);
-        // robotChassis.setRobotPosition(-50, 780);
+        robotChassis.setRobotPosition(3000, 16000, 0);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
         robotChassis.setRobotRotation(0);
-        // robotChassis.setRobotPosition(700, 780);
+        robotChassis.setRobotPosition(16000, 16000,0);
     }
 }
