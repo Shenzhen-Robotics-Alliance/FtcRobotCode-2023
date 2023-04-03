@@ -175,7 +175,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         autoStageArm.goToHighestTower();
         sleep(1500);
         robotChassis.setRobotPosition(-18500, 15500, 0);
-        robotChassis.setRobotRotation(0);
+        robotChassis.setRobotRotation(5);
         autoStageArm.dropSleeve();
         sleep(300);
 //
