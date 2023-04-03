@@ -60,7 +60,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private boolean yAxleReversedSwitch;
 
     /** the times elapsed after the last time these mode buttons are pressed
-     * so that it does not shift between the modes in one press */
+     * so that it does not shift between the modes inside one single press */
     private final ElapsedTime previousMotionModeButtonActivation;
     private final ElapsedTime previousNavigationModeButtonActivation;
     private final ElapsedTime previousYAxleReverseSwitchActivation;
