@@ -77,7 +77,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the rotation that the pilot set it to be */
     private double targetedRotation;
     /** whether to use the encoders or not */
-    private static final boolean useEncoderCorrection = false;
+    private static final boolean useEncoderCorrection = true;
     /** the minimum speed when the encoder starts to correct the motion */
     private static final double useEncoderCorrectionSpeed = 0.3;
 
@@ -212,7 +212,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
                 xAxleMotion += (xAxleMotion - currentMotorVelocity[0]);
                 yAxleMotion += (yAxleMotion - currentMotorVelocity[1]);
             }
-            // System.out.println(xAxleMotion + ", " + currentMotorVelocity[0] + "/ " + yAxleMotion + ", " + currentMotorVelocity[1]);
         }
 
         /** rotate the robot to make it stick to the rotation where it's asked to be */

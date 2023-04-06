@@ -19,7 +19,7 @@ public class AutoStageArm {
 
     public void holdPreLoadedSleeve() {
         armModule.closeClaw();
-        // armModule.toGroundArmPosition();
+        armModule.toGroundArmPosition();
         while (armModule.getArmStatusCode() <= 0) armModule.periodic();
     }
 

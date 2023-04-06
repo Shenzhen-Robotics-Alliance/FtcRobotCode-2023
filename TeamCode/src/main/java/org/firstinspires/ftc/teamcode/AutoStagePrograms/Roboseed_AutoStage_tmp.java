@@ -44,6 +44,8 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
     private AutoStageArm autoStageArm;
     /** the number of the sector the robot parks into by the end of auto stage */
     private short parkingSectorNum;
+    /** the module that calculates the robot's position */
+    private RobotPositionCalculator_tmp positionCalculator;
 
     /**
      * the main entry of the robot's program during auto stage
@@ -80,7 +82,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
         HashMap<String, Object> positionCalculatorDependentInstances = null;
         positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        RobotPositionCalculator_tmp positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator = new RobotPositionCalculator_tmp();
         positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** the temporary chassis module */
@@ -94,7 +96,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
 
         /** start of the auto stage scripts */
 
-        proceedAutoStageInstructions();
+        proceedAutoStageInstructions_right();
 
         /** determine where to park */
         switch (parkingSectorNum) {
@@ -147,29 +149,50 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
 
     /**
      * the instruction given to the robot to make it score
-     *  the robot starts in the right corner of the field, with it's left side lining up with the righter border between the second and third region, counting from the right side
+     *  * the robot starts in the right corner of the field, with it's right side lining up with the left border between the second and third region, counting from the right side, and it's back side wheel lining up with the third wave of the floor
      *  step1, the robot moves out of the parking spot and go to the center of the starting region
      *  step2, the robot moves to next region in the front, then to right behind the tower, and place the pre-loaded sleeve onto it
      *  step3, the robot goes back to the
-     *  the robot moves to position(according to camera) -1022, -782.
+     *  the robot moves to position(according to camera)
      *
      *
      * @throws InterruptedException if the process is interrupted by sytem
      * */
-    private void proceedAutoStageInstructions() throws InterruptedException {
+    private void proceedAutoStageInstructions_right() throws InterruptedException {
         /* grab the pre-loaded sleeve */
         autoStageArm.holdPreLoadedSleeve();
-        /* step1, the robot moves out of the parking spot and go to the center of the starting region */
-        robotChassis.setRobotPosition(0, 2000);
-        robotChassis.setRobotPosition(-12250, 2000);
+        sleep(500);
 
-        /* step2, the robot moves to next region in the front, move to the right of the tower */
-        robotChassis.setRobotPosition(-12250, 17000);
+        /* step1, the robot moves out of the parking spot and go to the center of the starting region */
+        robotChassis.setRobotPosition(0, 2000, 0);
+        robotChassis.setRobotPosition(-12000, 2000, 0);
+        robotChassis.setRobotRotation(0);
+
+        /* step2, the robot moves to next region in the front, and to the right side of the highest tower */
+        robotChassis.setRobotPosition(-12000, 16500, 0); // TODO errors started occurring here
+        robotChassis.setRobotRotation(0);
+
         /* place the pre-loaded sleeve onto it */
-        // autoStageArm.goToHighestTower();
+        autoStageArm.goToHighestTower();
         sleep(1500);
-        robotChassis.setRobotPosition(-20000, 18000);
+        robotChassis.setRobotPosition(-18500, 16000, 0);
+        robotChassis.setRobotRotation(0);
         autoStageArm.dropSleeve();
+        sleep(300);
+//
+//        /* move back to the center of the region */
+//        robotChassis.setRobotPosition(-23500, 16000, 0);
+//
+//        /* line up with the vertical path way */
+//        robotChassis.setRobotPosition(-3000, 16000, 0);
+//        /* line up horizontally with the sleeves stack */
+//        robotChassis.setRobotPosition(-3000, 23650, 0);
+//        /* rotate 90 degree clockwise to face the sleeves stack */
+//        robotChassis.setRobotRotation(270);
+//        // robotChassis.setRobotPosition();
+
+
+        arm.deactivateArm();
 
         // TODO finish the rest
     }
@@ -179,20 +202,20 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
      */
     private void proceedGoToSector1() {
         robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(-800, 780);
+        robotChassis.setRobotPosition(-11000, 16000, 0);
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
         robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(-50, 780);
+        robotChassis.setRobotPosition(3000, 16000, 0);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
         robotChassis.setRobotRotation(0);
-        robotChassis.setRobotPosition(700, 780);
+        robotChassis.setRobotPosition(16000, 16000,0);
     }
 }

@@ -21,7 +21,7 @@ public class AutoStageRobotChassis_tmp {
     RobotPositionCalculator_tmp positionCalculator;
 
     /** accept any deviation in position less than 1000 encoder values */
-    private static final int positionTolerance = 500;
+    private static final int positionTolerance = 300;
     /** the positional deviation when the robot starts slowdown  */
     private static final int positionStartsSlowingDown = 6000;
 
@@ -32,12 +32,13 @@ public class AutoStageRobotChassis_tmp {
     /** minimum power to make the robot move */
     private static final double minMovingMotorPower = 0.25;
     /** the amount of time that the robot needs to slow down */
-    private static final double timeForSlowDown = 0.3;
+    private static final double timeForSlowDown = 0.15; // TODO make this dynamic according to arm position
     /** maximum power during auto stage */
     private static final double maxMovingMotorPower = 0.45;
     /** the power needed to rotate the robot is slightly smaller than that needed to move it */
     private static final double rotationPowerFactor = -0.6;
-
+    /** whether to flip the x-axis for left side operation, currently -1 for left side */
+    private double xAxisPositionCorrectionFactor = 1;
 
     public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator_tmp positionCalculator) {
         this.hardwareDriver = hardwareDriver;
@@ -45,13 +46,15 @@ public class AutoStageRobotChassis_tmp {
         this.positionCalculator = positionCalculator;
     }
 
+    /** set the chassis to reflect the x axis */
+    public void setChassisReflected() { xAxisPositionCorrectionFactor = -1; }
+
     public void setRobotRotation(int degrees) {
         this.setRobotRotation(Math.toRadians(degrees));
     }
 
-    public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
-        /** get the rotation by the start of the move */
-        double startingRotation = positionCalculator.getRobotRotation();
+    public void setRobotPosition(int encoderPositionX, int encoderPositionY, double startingRotation) {
+        encoderPositionX *= xAxisPositionCorrectionFactor;
 
         /** whether the process is finished */
         boolean completed = false;
@@ -118,7 +121,7 @@ public class AutoStageRobotChassis_tmp {
                                 Math.abs(yAxisFieldDifference)
                         ), yAxisFieldDifference);
             }
-            System.out.println(xAxisFieldDifference + ", " + yAxisFieldDifference);
+            // System.out.println(positionCalculator.getRobotPosition()[0] + ", " + positionCalculator.getRobotPosition()[1]);
 
             /** determine, according to the robot's heading the velocity that the robot needs to move to achieve the field velocity */
             double xAxisAbsoluteVelocity = xAxisFieldVelocity * Math.cos(positionCalculator.getRobotRotation()) // the effect of x-axis field velocity on the robot's x-axis velocity
@@ -129,14 +132,15 @@ public class AutoStageRobotChassis_tmp {
             /** set the motors to run, correct the motor speed for rotation and scale it down a bit as we don't want it to shake */
             setRobotMotion(xAxisAbsoluteVelocity, yAxisAbsoluteVelocity, rotationCorrectionMotorSpeed * rotationPowerFactor * 0.8);
             /** jump out of the loop when the robot reaches the targeted area */
-            completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
-            completed = Math.abs(xAxisFieldDifference) < positionTolerance*2 && Math.abs(yAxisFieldDifference) < positionTolerance*2;
+            // completed = Math.sqrt(xAxisFieldDifference * xAxisFieldDifference + yAxisFieldDifference * yAxisFieldDifference) < positionTolerance;
+            completed = Math.abs(xAxisFieldDifference) < positionTolerance && Math.abs(yAxisFieldDifference) < positionTolerance;
         } while (!completed);
-        /* set the motors to stop */
-        hardwareDriver.leftFront.setVelocity(0);
-        hardwareDriver.leftRear.setVelocity(0);
-        hardwareDriver.rightFront.setVelocity(0);
-        hardwareDriver.rightRear.setVelocity(0);
+        /* set the motors to stop, no encoders as the encoders are plugged to mini1024 independent wheels */
+        setRobotMotion(0, 0, 0);
+//        hardwareDriver.leftFront.setVelocity(0);
+//        hardwareDriver.leftRear.setVelocity(0);
+//        hardwareDriver.rightFront.setVelocity(0);
+//        hardwareDriver.rightRear.setVelocity(0);
 
         /* wait until the robot is completely still */
         while (Math.abs(positionCalculator.getRawVelocity()[0]) > 200 || Math.abs(positionCalculator.getRawVelocity()[1]) > 200) {
@@ -145,7 +149,20 @@ public class AutoStageRobotChassis_tmp {
         }
     }
 
+    public void setRobotPosition(int encoderPositionX, int encoderPositionY) {
+        /* get the rotation by the start of the move */
+        double startingRotation = positionCalculator.getRobotRotation();
+
+        /* call to the set robot position function */
+        setRobotPosition(encoderPositionX, encoderPositionY, startingRotation);
+    }
+
     private void setRobotRotation(double radians) {
+        /* if the x axis is reversed */
+        if (xAxisPositionCorrectionFactor < 0) {
+            radians = Math.PI * 2 - radians;
+        }
+
         do {
             /* update sensor readings */
             positionCalculator.forceUpdateEncoderValue();
@@ -164,7 +181,9 @@ public class AutoStageRobotChassis_tmp {
             setRobotMotion(0,0,rotationalPower * rotationPowerFactor);
 
             System.out.println(radians - positionCalculator.getRobotRotation() + ", " + rotationalDifference);
-        } while (Math.abs(reformatRotationDifference(radians) - positionCalculator.getRobotRotation()) > rotationTolerance);
+        } while (Math.abs(reformatRotationDifference(radians - positionCalculator.getRobotRotation())) > rotationTolerance);
+
+        setRobotMotion(0, 0, 0);
     }
 
     /**
@@ -194,9 +213,9 @@ public class AutoStageRobotChassis_tmp {
      */
     public static double reformatRotationDifference(double rawDifference) {
         /* if the rotational difference is greater than 180 degree, and that the objective is in the clockwise direction of the current, go the other way around(turn counter-clockwise) */
-        if (rawDifference > Math.PI) return Math.PI*2 - rawDifference;
+        if (rawDifference > Math.PI) return (Math.PI*2 - rawDifference) * -1;
         /* if the rotation difference is greater than 180, and that the objective is in counter-clockwise, go clockwise */
-        if (rawDifference < -Math.PI) return Math.PI*2 + rawDifference;
+        if (rawDifference < -Math.PI) return Math.PI*2 + rawDifference; // not sure whether this is correct
         /* if the rotation difference is no greater than 180, just turn to the objective directly */
         return rawDifference;
     }
