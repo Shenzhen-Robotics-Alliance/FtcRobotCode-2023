@@ -76,10 +76,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
     /** the rotation that the pilot set it to be */
     private double targetedRotation;
-    /** whether to use the encoders or not */
-    private static final boolean useEncoderCorrection = true;
     /** the minimum speed when the encoder starts to correct the motion */
-    private static final double useEncoderCorrectionSpeed = 0.3;
+    private static final double useEncoderCorrectionSpeed = 1;
 
     private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
@@ -201,7 +199,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalAttempt != 0) lastMovement.reset();
 
         /** correct the motion using encoder readings */
-        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[1] != 0 && useEncoderCorrection) {
+        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[1] != 0) {
             /* get the current moving direction according to the encoders, in radian */
             double currentDirection = Math.atan(positionCalculator.getRawVelocity()[1] / positionCalculator.getRawVelocity()[0]);
             /* using the current direction that the encoders gave us, determine the robot's current movement, in motor speed(not in encoder value) */
@@ -325,6 +323,17 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
         return correctedMotion;
     }
+
+
+    /**
+     * TODO write and explain this method
+     * */
+    public double getRotationCorrectionMotorSpeed() {
+        double rotationCorrectionSpeed = 0; // TODO compute this value
+
+        return rotationCorrectionSpeed;
+    }
+
     private double linearMap(double value) {
         if (slowMotionModeActivationSwitch) { // when slow motion activated
             if (value > 0) return linearMapMethod(minStickValue, 1, minDrivingPower, maxCarryingPower, value);
