@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -82,10 +83,11 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
     private static final double rotationStartsSlowingDown = Math.toRadians(180);
-    /** minimum power to make the robot move */
-    private static final double minMotioningPower = 0.3;
-    /** the maximum angular speed of the robot, in radian/s */
-    private static final double maxAngularVelocity = Math.PI * 3;
+
+    /** minimum power during to rotate the robot */
+    private static final double minMovingMotorPower = 0.25;
+    /** motor speed limit */
+    private static final double maxMovingMotorPower = 0.45;
 
     /**
      * construct function of the robot chassis, use init() for further initialization
@@ -175,7 +177,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
         if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.8;
-        targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
+        // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
         if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
@@ -212,14 +214,13 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             }
         }
 
-        /** rotate the robot to make it stick to the rotation where it's asked to be */
-        double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(targetedRotation - positionCalculator.getRobotRotation());
-        double rotationalMotion = Math.copySign(RobotChassis.linearMap(
-                rotationTolerance,rotationStartsSlowingDown,0,0.8,
-                Math.abs(rotationalDifference)
-        ) , rotationalDifference);
-
-        System.out.println(targetedRotation + ", " + rotationalMotion);
+//        /** rotate the robot to make it stick to the rotation where it's asked to be */
+//        double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(targetedRotation - positionCalculator.getRobotRotation());
+//        double rotationalMotion = Math.copySign(RobotChassis.linearMap(
+//                rotationTolerance,rotationStartsSlowingDown,0,0.8,
+//                Math.abs(rotationalDifference)
+//        ) , rotationalDifference);
+        double rotationalMotion = getRotationMotorSpeed(rotationalAttempt);
 
         // control the Mecanum wheel
         driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
@@ -326,10 +327,35 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
 
     /**
-     * TODO write and explain this method
-     * */
-    public double getRotationCorrectionMotorSpeed() {
-        double rotationCorrectionSpeed = 0; // TODO compute this value
+     * rotate the robot to make it stick to the rotation where it's asked to be
+     * if the pilot asks to rotate, just rotate
+     * otherwise, the robot sticks to the rotation where it was during the last pilot command
+     *
+     * @param rotationalAttempt the rotational speed that the pilot inputs
+     * @return the required rotational motor speed to make the robot stick the pilot's commands
+     */
+    public double getRotationMotorSpeed(double rotationalAttempt) {
+        double rotationCorrectionSpeed;
+        if (Math.abs(rotationalAttempt) > 0.05) { /* if the pilot asks the robot to rotate */
+            /* update the robot's current position */
+            targetedRotation = positionCalculator.getRobotRotation();
+            /* do a linear map to shrink the motor speed into a set range */
+            rotationCorrectionSpeed = Math.copySign(
+                    linearMap(rotationalAttempt, 0.05, 1, 0, 0.8),
+                    rotationalAttempt
+            );
+        } else { /* if the pilot didn't do any rotation */
+            /* find the closest path do the original rotation */
+            double rotationDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(
+                    targetedRotation - positionCalculator.getRobotRotation());
+
+            /* do a linear map to find out what motor speed should be given */
+            rotationCorrectionSpeed  = Math.copySign(
+                    linearMap(rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
+                            Math.abs(rotationDifference)),
+                    rotationDifference
+            );
+        }
 
         return rotationCorrectionSpeed;
     }
