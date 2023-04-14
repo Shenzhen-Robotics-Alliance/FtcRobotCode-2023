@@ -85,9 +85,12 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private static final double rotationStartsSlowingDown = Math.toRadians(180);
 
     /** minimum power during to rotate the robot */
-    private static final double minMovingMotorPower = 0.25;
+    private static final double minMovingMotorPower = 0;
     /** motor speed limit */
     private static final double maxMovingMotorPower = 0.45;
+
+    /** the correction factor when using encoders to correct motor speed */
+    private static final double encoderRotationToMotorSpeedFactor = -1;
 
     /**
      * construct function of the robot chassis, use init() for further initialization
@@ -176,7 +179,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double yAxleMotion = linearMap(-(gamepad.right_stick_y - this.pilotControllerPadZeroPosition[1])); // the left stick is reversed to match the vehicle
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
-        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.8;
+        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.5;
         // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
@@ -335,13 +338,13 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
      * @return the required rotational motor speed to make the robot stick the pilot's commands
      */
     public double getRotationMotorSpeed(double rotationalAttempt) {
-        double rotationCorrectionSpeed;
+        double rotationMotorSpeed;
         if (Math.abs(rotationalAttempt) > 0.05) { /* if the pilot asks the robot to rotate */
             /* update the robot's current position */
             targetedRotation = positionCalculator.getRobotRotation();
             /* do a linear map to shrink the motor speed into a set range */
-            rotationCorrectionSpeed = Math.copySign(
-                    linearMap(rotationalAttempt, 0.05, 1, 0, 0.8),
+            rotationMotorSpeed = Math.copySign(
+                    linearMap(rotationalAttempt, 0.05, 1, 0, 0.6),
                     rotationalAttempt
             );
         } else { /* if the pilot didn't do any rotation */
@@ -350,14 +353,18 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
                     targetedRotation - positionCalculator.getRobotRotation());
 
             /* do a linear map to find out what motor speed should be given */
-            rotationCorrectionSpeed  = Math.copySign(
+            rotationMotorSpeed  = Math.copySign(
                     linearMap(rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
                             Math.abs(rotationDifference)),
                     rotationDifference
             );
+
+            rotationMotorSpeed *= encoderRotationToMotorSpeedFactor;
         }
 
-        return rotationCorrectionSpeed;
+        System.out.println(rotationMotorSpeed);
+
+        return rotationMotorSpeed;
     }
 
     private double linearMap(double value) {
