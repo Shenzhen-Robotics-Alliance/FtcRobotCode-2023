@@ -85,7 +85,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private static final double rotationStartsSlowingDown = Math.toRadians(180);
 
     /** minimum power during to rotate the robot */
-    private static final double minMovingMotorPower = 0;
+    private static final double minMovingMotorPower = 0.05;
     /** motor speed limit */
     private static final double maxMovingMotorPower = 0.45;
 
@@ -344,7 +344,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             targetedRotation = positionCalculator.getRobotRotation();
             /* do a linear map to shrink the motor speed into a set range */
             rotationMotorSpeed = Math.copySign(
-                    linearMap(rotationalAttempt, 0.05, 1, 0, 0.6),
+                    linearMap(minStickValue, 1, minMovingMotorPower, maxMovingMotorPower, Math.abs(rotationalAttempt)),
                     rotationalAttempt
             );
         } else { /* if the pilot didn't do any rotation */
