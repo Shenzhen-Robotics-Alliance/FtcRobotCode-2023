@@ -10,7 +10,6 @@ import java.util.HashMap;
  * FileName: RobotModule.java
  *
  * the class that contains some basic functions for a robot module
- * TODO write this method and imply it in all the modules
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.3.9

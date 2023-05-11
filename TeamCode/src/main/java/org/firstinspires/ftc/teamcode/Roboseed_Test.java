@@ -16,10 +16,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
@@ -45,8 +48,28 @@ public class Roboseed_Test extends LinearOpMode {
     ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis_tmp robotChassis;
 
+    private ColorSensor color;
+    private DistanceSensor distanceSensor;
+
     @Override
     public void runOpMode() throws InterruptedException {
+        configureRobot();
+
+         color = hardwareMap.get(ColorSensor.class, "color");
+         // distanceSensor = hardwareMap.get(DistanceSensor.class, "tof");
+
+         // Wait for the Play button to be pressed
+         waitForStart();
+
+         // While the Op Mode is running, update the telemetry values.
+         while (opModeIsActive()) {
+             // telemetry.addData("color sensor result", color.alpha());
+             telemetry.addData("color sensor result", color.red());
+             telemetry.update();
+         }
+    }
+
+    public void runOpMode_disabled() throws InterruptedException {
         configureRobot();
 
         /** pass the hardware ports to the arm module */
@@ -82,11 +105,14 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
-        autoStageArm.grabFromSleevesStack();
-        robotChassis.setRobotPosition(0,10000);
-        autoStageArm.liftFromSleevesStack();
+//        autoStageArm.grabFromSleevesStack();
+//        robotChassis.setRobotPosition(0,10000);
+//        autoStageArm.liftFromSleevesStack();
         // robotChassis.setRobotPosition(-5000, -20000);
-        while (opModeIsActive() && !isStopRequested()) {}
+        while (opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("encoder reading:", hardwareDriver.rightRear.getCurrentPosition());
+            telemetry.update();
+        }
     }
 
     private void configureRobot() {

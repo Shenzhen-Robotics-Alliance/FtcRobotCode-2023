@@ -87,7 +87,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** minimum power during to rotate the robot */
     private static final double minMovingMotorPower = 0.05;
     /** motor speed limit */
-    private static final double maxMovingMotorPower = 0.45;
+    private static final double maxMovingMotorPower = 0.65;
 
     /** the correction factor when using encoders to correct motor speed */
     private static final double encoderRotationToMotorSpeedFactor = -1;
