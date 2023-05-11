@@ -25,7 +25,6 @@ import java.util.HashMap;
  *
  * tele-operation program for two pilots to control
  * support single pilot still, but enable dual pilot mode if the second gamepad asks to plug in
- * TODO fit the program with the robot modules plugin (first priority)
  * TODO write "RobotPositionCalculator_v2_todo.java" and navigate with the encoders(to sense the chang in position) and imu (to sense the current direction and know where the robot is moving towards)
  *
  * @Author 四只爱写代码の猫

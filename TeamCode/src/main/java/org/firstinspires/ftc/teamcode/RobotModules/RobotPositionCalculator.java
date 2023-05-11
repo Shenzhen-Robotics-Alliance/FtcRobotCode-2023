@@ -38,9 +38,9 @@ public class RobotPositionCalculator extends RobotModule {
     private static final double angularVelocityPerThirdEncoderVelocity = 31.4 / 69865.0; // to get this data, I also make robot rotate 10 times on the field
 
     /** stores the robot's current facing, in radian */
-    private double robotRotation = 0;
+    private double robotRotation;
     /** stores the robot's current position, in encoder values */
-    private double[] robotPosition = {0,0};
+    private double[] robotPosition = new double[2];
     /** the velocity of the robot */
     double[] rawVelocity = new double[2];
 
@@ -48,7 +48,7 @@ public class RobotPositionCalculator extends RobotModule {
      * construct method of temporary robot position calculator
      */
     public RobotPositionCalculator() {
-        super("temporaryPositionCalculator");
+        super("positionCalculator");
     }
 
     /**
@@ -77,8 +77,7 @@ public class RobotPositionCalculator extends RobotModule {
         /* get the encoder reader module from the param */
         this.encoderReader = (Mini1024EncoderReader) dependentModules.get("encoderReader");
 
-        /* start the timer */
-        this.dt.reset();
+        this.reset();
     }
 
     /**
@@ -197,4 +196,18 @@ public class RobotPositionCalculator extends RobotModule {
     public double[] getRawVelocity() { return rawVelocity; }
 
     public double[] getVelocity() { return getActualVelocity(rawVelocity, robotRotation); }
+
+    /** reset the position calculator to initial stat */
+    public void reset() {
+        /* start the timer */
+        this.dt.reset();
+
+        /* set the robot to be in zero position */
+        robotPosition[0] = 0;
+        robotPosition[1] = 0;
+        robotRotation = 0;
+
+        rawVelocity[0] = 0;
+        rawVelocity[1] = 0;
+    }
 }

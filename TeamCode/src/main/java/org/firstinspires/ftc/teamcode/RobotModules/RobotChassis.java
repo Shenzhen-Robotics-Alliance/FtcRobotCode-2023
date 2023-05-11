@@ -52,6 +52,10 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private boolean groundNavigatingModeActivationSwitch;
     /** whether to reverse the y axis of the controller, according to the preference of the pilot */
     private boolean yAxleReversedSwitch;
+    /** whether to use the chassis module's auto system, or make it disabled, whenever the auto aim module is in use  */
+    private boolean chassisAutoEnabled = true;
+    /** whether the pilot is sending any instructions to the robot */
+    boolean pilotInUse = false;
 
     /** the times elapsed after the last time these mode buttons are pressed
      * so that it does not shift between the modes inside one single press */
@@ -77,7 +81,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the rotation that the pilot set it to be */
     private double targetedRotation;
     /** the minimum speed when the encoder starts to correct the motion */
-    private static final double useEncoderCorrectionSpeed = 1;
+    private static final double useEncoderCorrectionSpeed = Float.POSITIVE_INFINITY;
 
     private static final double rotationTolerance = Math.toRadians(5);
     /** the rotational deviation when the robot starts to decelerate */
@@ -162,9 +166,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     }
 
     @Override
-    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {
-
-    }
+    public void updateDependentInstances(String instanceName, Object newerInstance) throws NullPointerException {}
 
     @Override
     public void periodic() {
@@ -178,6 +180,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double yAxleMotion = linearMap(-(gamepad.right_stick_y - this.pilotControllerPadZeroPosition[1])); // the left stick is reversed to match the vehicle
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
+        pilotInUse = (Math.abs(yAxleMotion) + Math.abs(xAxleMotion) + Math.abs(rotationalAttempt)) > 0; // already linearly mapped, so greater than zero means it is in use
         if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.5;
         // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
@@ -202,7 +205,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
 
         if (yAxleMotion != 0 | xAxleMotion != 0 | rotationalAttempt != 0) lastMovement.reset();
 
-        /** correct the motion using encoder readings */
+        /** correct the motion using encoder readings TODO not in use yet */
         if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[1] != 0) {
             /* get the current moving direction according to the encoders, in radian */
             double currentDirection = Math.atan(positionCalculator.getRawVelocity()[1] / positionCalculator.getRawVelocity()[0]);
@@ -225,10 +228,12 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double rotationalMotion = getRotationMotorSpeed(rotationalAttempt);
 
         // control the Mecanum wheel
-        driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-        driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-        driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-        driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        if (chassisAutoEnabled || pilotInUse) {
+            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
+            driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
+            driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
+            driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        }
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
@@ -239,7 +244,9 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         } if(gamepad.dpad_left & previousYAxleReverseSwitchActivation.seconds() > 0.5) {
             yAxleReversedSwitch = !yAxleReversedSwitch;
             previousYAxleReverseSwitchActivation.reset();
-        } if (gamepad.dpad_right) { // debug the imu by resetting the heading
+        } if (gamepad.dpad_right) {
+            /* debug the position calculator by resetting the heading */
+            positionCalculator.reset();
             // imu.resetYaw();
         }
 
@@ -251,6 +258,13 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     public void setSlowMotionModeActivationSwitch(boolean suggested) {
         this.slowMotionModeSuggested = suggested;
     }
+
+    /** set the chassis module's auto system enabled */
+    public void setChassisAutoSystemEnabled() { chassisAutoEnabled = true; }
+    /** set the chassis module's auto system disabled */
+    public void setChassisAutoSystemDisabled() {chassisAutoEnabled = false; }
+    /** get whether the pilot is sending commands to the robot */
+    public boolean isPilotInUse() { return pilotInUse; }
 
     private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {
         double[] correctedMotion = new double[2];
