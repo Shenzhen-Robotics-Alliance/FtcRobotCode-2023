@@ -66,11 +66,24 @@ public class ColorDistanceSensor {
     }
 
     private void updateSensorReading() {
+        /* get the raw sensor reading */
         int sensorReading;
         if (redOrBlueSleeves == 1) sensorReading = colorSensor.red();
         else sensorReading = colorSensor.blue();
 
-        targetInRange = sensorReading > minActivateLuminosity;
-        // TODO process the distance to target using a linear mapping function
+        targetInRange = sensorReading > minActivateLuminosity+environmentLuminosity;
+        if (!targetInRange) return;
+
+        distanceToTarget = linearMap(sensorReading);
+    }
+
+    /**
+     * do a linear map and transform sensor reading into distance to target
+     * @return the distance value, 0 is the best position to grab, and 1 is the maximum distance
+     * */
+    private static double linearMap(int sensorReading) {
+        double distanceUnitPerLuminosity = 1 / (startCaptureLuminosity - minActivateLuminosity);
+        return 1 -
+                distanceUnitPerLuminosity * (sensorReading-minActivateLuminosity);
     }
 }

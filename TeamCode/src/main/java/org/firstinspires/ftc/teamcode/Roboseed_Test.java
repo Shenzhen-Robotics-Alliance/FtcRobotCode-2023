@@ -22,15 +22,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
-import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 
 import java.util.HashMap;
 
@@ -97,7 +94,7 @@ public class Roboseed_Test extends LinearOpMode {
         HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
         HashMap<String, Object> positionCalculatorDependentInstances = null;
         positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        RobotPositionCalculator_tmp positionCalculator = new RobotPositionCalculator_tmp();
+        RobotPositionCalculator positionCalculator = new RobotPositionCalculator();
         positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** the temporary chassis module */

@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -41,7 +40,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /** the robot's imu for navigation */
    // private IMU imu;
     /** the module that calculates the robot's position and velocity */
-    private RobotPositionCalculator_tmp positionCalculator;
+    private RobotPositionCalculator positionCalculator;
 
     /** whether the pilot asked for slow motion mode */
     private boolean slowMotionModeRequested;
@@ -143,7 +142,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         if (! dependentModules.containsKey("positionCalculator")) throw new NullPointerException(
                 "dependent instance not given: " + "positionCalculator"
         );
-        this.positionCalculator = (RobotPositionCalculator_tmp) dependentModules.get("positionCalculator");
+        this.positionCalculator = (RobotPositionCalculator) dependentModules.get("positionCalculator");
 
 
 //        /* calibrate the imu */

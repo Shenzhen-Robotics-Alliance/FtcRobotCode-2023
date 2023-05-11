@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.HardwareDriver;
 public class AutoStageRobotChassis_tmp {
     HardwareDriver hardwareDriver;
     HardwareMap hardwareMap;
-    RobotPositionCalculator_tmp positionCalculator;
+    RobotPositionCalculator positionCalculator;
 
     /** accept any deviation in position less than 1000 encoder values */
     private static final int positionTolerance = 300;
@@ -40,7 +40,7 @@ public class AutoStageRobotChassis_tmp {
     /** whether to flip the x-axis for left side operation, currently -1 for left side */
     private double xAxisPositionCorrectionFactor = 1;
 
-    public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator_tmp positionCalculator) {
+    public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator positionCalculator) {
         this.hardwareDriver = hardwareDriver;
         this.hardwareMap = hardwareMap;
         this.positionCalculator = positionCalculator;

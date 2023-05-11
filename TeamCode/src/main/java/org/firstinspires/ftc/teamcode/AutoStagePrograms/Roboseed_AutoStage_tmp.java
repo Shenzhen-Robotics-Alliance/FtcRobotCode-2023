@@ -11,12 +11,10 @@ import org.firstinspires.ftc.teamcode.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
-import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 
 import java.util.HashMap;
 
@@ -45,7 +43,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
     /** the number of the sector the robot parks into by the end of auto stage */
     private short parkingSectorNum;
     /** the module that calculates the robot's position */
-    private RobotPositionCalculator_tmp positionCalculator;
+    private RobotPositionCalculator positionCalculator;
 
     /**
      * the main entry of the robot's program during auto stage
@@ -82,7 +80,7 @@ public abstract class Roboseed_AutoStage_tmp extends LinearOpMode {
         HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
         HashMap<String, Object> positionCalculatorDependentInstances = null;
         positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator = new RobotPositionCalculator();
         positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** the temporary chassis module */

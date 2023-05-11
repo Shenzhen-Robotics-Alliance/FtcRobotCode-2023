@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator_tmp;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 
 import java.util.HashMap;
 
@@ -26,7 +26,7 @@ import java.util.HashMap;
  * tele-operation program for two pilots to control
  * support single pilot still, but enable dual pilot mode if the second gamepad asks to plug in
  * TODO fit the program with the robot modules plugin (first priority)
- * TODO write "RobotPositionCalculator.java" and navigate with the encoders(to sense the chang in position) and imu (to sense the current direction and know where the robot is moving towards)
+ * TODO write "RobotPositionCalculator_v2_todo.java" and navigate with the encoders(to sense the chang in position) and imu (to sense the current direction and know where the robot is moving towards)
  *
  * @Author 四只爱写代码の猫
  * @Date 2023.2.27
@@ -53,7 +53,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
     private AutoStageRobotChassis autoStageRobotChassis;
     private IMUReader imuReader;
     private Mini1024EncoderReader encoderReader;
-    private RobotPositionCalculator_tmp positionCalculator;
+    private RobotPositionCalculator positionCalculator;
 
     /**
      * the main entry of the robot's program during manual stage
@@ -83,7 +83,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
         HashMap<String, Object> positionCalculatorDependentInstances = null;
         positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        positionCalculator = new RobotPositionCalculator_tmp();
+        positionCalculator = new RobotPositionCalculator();
         positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** pass the hardware ports to the robot chassis */
