@@ -2,18 +2,21 @@ package org.firstinspires.ftc.teamcode.RobotModules;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
 import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 import org.firstinspires.ftc.teamcode.Sensors.TOFDistanceSensor;
 
 import java.util.HashMap;
-
+// TODO: add explanation
 public class RobotAuxiliarySystem extends RobotModule {
     /** the range at which the robot looks for the cone */
-    private static final double aimRange = Math.toRadians(60);
+    private static final double aimRange = Math.toRadians(120);
+    /** the rotational speed, in motor speed, of the aim */
+    private static final double aimSpeed = 0.2;
 
-    private HardwareDriver hardwareDriver;
+    private ChassisDriver chassisDriver;
     private ColorDistanceSensor colorDistanceSensor;
     private TOFDistanceSensor tofDistanceSensor;
     private RobotPositionCalculator positionCalculator;
@@ -44,7 +47,7 @@ public class RobotAuxiliarySystem extends RobotModule {
      * @param dependentModules
      *                          RobotPositionCalculator "positionCalculator"
      * @param dependentInstances
-     *                          HardwareDriver "hardwareDriver": connection to the robot's hardware
+     *                          ChassisDriver "chassisDriver": connection to the robot's hardware
      *                          ColorDistanceSensor "colorDistanceSensor": color sensor reader
      *                          TOFDistanceSensor "tofDistanceSensor": time-of-flight inferred distance sensor reader
      */
@@ -60,8 +63,8 @@ public class RobotAuxiliarySystem extends RobotModule {
         if (dependentModules.isEmpty()) throw new NullPointerException(
                 "an empty set of dependent modules given to the module<<" + this.getModuleName() + ">> which requires at least one module(s) as dependency"
         );
-        if (!dependentInstances.containsKey("hardwareDriver")) throw new NullPointerException(
-                "dependency <<" + "hardwareDriver" + ">> not specified for module <<" + this.getModuleName() + ">>"
+        if (!dependentInstances.containsKey("chassisDriver")) throw new NullPointerException(
+                "dependency <<" + "chassisDriver" + ">> not specified for module <<" + this.getModuleName() + ">>"
         );
         if (!dependentInstances.containsKey("colorDistanceSensor")) throw new NullPointerException(
                 "dependency <<" + "colorDistanceSensor" + ">> not specified for module <<" + this.getModuleName() + ">>"
@@ -73,7 +76,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 "dependency <<" + "positionCalculator" + ">> not specified for module <<" + this.getModuleName() + ">>");
 
         /* get the given instances */
-        hardwareDriver = (HardwareDriver) dependentInstances.get("hardwareDriver");
+        chassisDriver = (ChassisDriver) dependentInstances.get("chassisDriver");
         colorDistanceSensor = (ColorDistanceSensor) dependentInstances.get("colorDistanceSensor");
         tofDistanceSensor = (TOFDistanceSensor) dependentInstances.get("tofDistanceSensor");
         positionCalculator = (RobotPositionCalculator) dependentModules.get("positionCalculator");
@@ -89,15 +92,34 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void periodic() {
         switch (statusCode) {
             case 1: {
-                
+                chassisDriver.setRotationalMotion(-0.3);
+                double targetedDirection = startingRotation - (aimRange/2);
+                /* wait for the robot to turn left, until difference is negative */
+                if (getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) statusCode = 2;
+                // TODO: write for finding the sleeves
                 break;
             }
         }
     }
 
+    private static double getActualDifference(double currentRotation, double targetedRotation) {
+        while (targetedRotation > Math.PI*2) targetedRotation -= Math.PI*2;
+        while (targetedRotation < 0) targetedRotation += Math.PI*2
+        double rawDifference = targetedRotation - currentRotation;
+        double absoluteDifference = Math.min(
+                Math.abs(rawDifference),
+                2*Math.PI - Math.abs(rawDifference));
+
+        if (0 < rawDifference &&  rawDifference < Math.PI) {
+            absoluteDifference *= -1;
+        }
+        return absoluteDifference;
+    }
+
     /** call the system to start the aiming process */
     public void startAim() {
         // stopAim();
+        startingRotation = positionCalculator.getRobotRotation();
         if (statusCode != -1) statusCode = 1;
     }
 

@@ -207,7 +207,7 @@ public class Arm extends RobotModule {
                 break;
             }
             case 1: {
-                waitForDeclinedCompletion();
+                waitForDeclinedCompletion((short) 0);
                 break;
             } case 2: {
                 waitForInclinedCompletion();
@@ -232,7 +232,7 @@ public class Arm extends RobotModule {
                 break;
             } case 7: {
                 /* wait for the arm to move to the ground */
-                armDeactivation();
+                waitForDeclinedCompletion((short) -1);
                 break;
             }
         }
@@ -371,12 +371,8 @@ public class Arm extends RobotModule {
      * called when status code is 1,
      * meaning the arm is currently moving downward and should decelerate when the it's close to the objective position
      */
-    private void waitForDeclinedCompletion() {
-        if (
-                Math.abs(
-                        Math.max(hardwareDriver.lift_left.getCurrentPosition(), hardwareDriver.lift_right.getCurrentPosition())
-                        - targetedArmPosition) < 20
-        ) {
+    private void waitForDeclinedCompletion(short statusCodeAfterCompletion) {
+        if (Math.abs(hardwareDriver.lift_left.getCurrentPosition() - targetedArmPosition) < 200) {
             /* set the arms to be decelerating */
             hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -387,10 +383,7 @@ public class Arm extends RobotModule {
             // armStatusCode = 3;
 
             /* just stop the process, forget about the deceleration */
-            armStatusCode = 0;
-
-            /* do periodic immediately */
-            this.periodic();
+            armStatusCode = statusCodeAfterCompletion;
         }
     }
 
@@ -405,7 +398,6 @@ public class Arm extends RobotModule {
                         Math.max(hardwareDriver.lift_left.getCurrentPosition(), hardwareDriver.lift_right.getCurrentPosition())
                                 - targetedArmPosition) < 20
         ) {
-            for (int i = 0; i < 100; i++) System.out.println("reached," + hardwareDriver.lift_left.getCurrentPosition() + ", " + hardwareDriver.lift_right.getCurrentPosition());
             /* update the status code of the arm telling that they are maintaining height at current position */
             armStatusCode = 0;
             /* do periodic immediately */
@@ -420,16 +412,19 @@ public class Arm extends RobotModule {
      */
     private void waitForDecelerateCompletion() {
         hardwareDriver.lift_left.setVelocity(0);
-        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.lift_left.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hardwareDriver.lift_right.setVelocity(0);
-        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         /* wait until the slow-down is completed, accept any deviation less than 10
         * just do the whole process inside one period, it does not take much time */
-        while (Math.max(
-                Math.abs(hardwareDriver.lift_left.getVelocity()),
-                Math.abs(hardwareDriver.lift_right.getVelocity())
-        ) > 15) Thread.yield();
+        while (
+                Math.abs(hardwareDriver.lift_left.getVelocity()) > 15) {
+            double power = Math.min(
+                    0.2,
+                    Math.abs(hardwareDriver.lift_left.getVelocity()) / 2000
+            );
+        }
 
         /* update the status code of the arm telling that the slow-down is completed and they are maintaining height at current position  */
         armStatusCode = 0;
@@ -551,7 +546,7 @@ public class Arm extends RobotModule {
 
     public void armDeactivation() {
         /* wait until the arm goes below the lowest position */
-        if (hardwareDriver.lift_right.getCurrentPosition() > lowPos || hardwareDriver.lift_left.getCurrentPosition() > lowPos) return;
+        if (hardwareDriver.lift_left.getCurrentPosition() > gndPos) return;
         hardwareDriver.lift_left.setPower(0);
         hardwareDriver.lift_right.setPower(0);
         openClaw();
@@ -566,11 +561,9 @@ public class Arm extends RobotModule {
         hardwareDriver.lift_right.setTargetPosition(gndPos);
         hardwareDriver.lift_right.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        /* give the motor some power to make it slow down */
-        // hardwareDriver.lift_left.setPower(0.1);
-        // hardwareDriver.lift_right.setPower(0.1);
+        /* update the targeted position */
+        this.targetedArmPosition = gndPos;
 
-        armPositionCode = 0;
         armStatusCode = 7;
     }
 

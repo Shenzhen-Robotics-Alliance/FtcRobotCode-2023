@@ -31,6 +31,7 @@ import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 
 import java.util.HashMap;
+import java.util.Timer;
 
 /*
  * the robot starts in the corner of the field.
@@ -49,8 +50,7 @@ public class Roboseed_Test extends LinearOpMode {
     private ColorSensor color;
     private DistanceSensor distanceSensor;
 
-    @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode_disabled() throws InterruptedException {
         configureRobot();
 
          color = hardwareMap.get(ColorSensor.class, "color");
@@ -67,7 +67,8 @@ public class Roboseed_Test extends LinearOpMode {
          }
     }
 
-    public void runOpMode_disabled() throws InterruptedException {
+    @Override
+    public void runOpMode() throws InterruptedException {
         configureRobot();
 
         /** pass the hardware ports to the arm module */
@@ -103,13 +104,13 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
-//        autoStageArm.grabFromSleevesStack();
-//        robotChassis.setRobotPosition(0,10000);
-//        autoStageArm.liftFromSleevesStack();
-        // robotChassis.setRobotPosition(-5000, -20000);
+        double current = 0;
+
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("encoder reading:", hardwareDriver.rightRear.getCurrentPosition());
+            telemetry.addData("arm position:", hardwareDriver.lift_left.getVelocity());
             telemetry.update();
+            hardwareDriver.lift_right.setPower(0.3);
+            hardwareDriver.lift_left.setPower(0.3);
         }
     }
 

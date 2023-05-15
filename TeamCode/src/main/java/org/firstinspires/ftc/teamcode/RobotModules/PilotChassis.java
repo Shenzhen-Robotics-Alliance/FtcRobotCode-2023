@@ -344,8 +344,6 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             rotationMotorSpeed *= encoderRotationToMotorSpeedFactor;
         }
 
-        System.out.println(rotationMotorSpeed);
-
         return rotationMotorSpeed;
     }
 

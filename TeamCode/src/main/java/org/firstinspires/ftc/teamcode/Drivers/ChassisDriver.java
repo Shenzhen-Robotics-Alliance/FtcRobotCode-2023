@@ -14,10 +14,12 @@ public class ChassisDriver {
     public void setRobotTranslationalMotion(double xAxleMotion, double yAxleMotion) {
         this.xAxleMotion = xAxleMotion;
         this.yAxleMotion = yAxleMotion;
+        sendCommandsToMotors();
     }
 
     public void setRotationalMotion(double rotationalMotion) {
         this.rotationalMotion = rotationalMotion;
+        sendCommandsToMotors();
     }
 
     public void pilotInterruption() {
