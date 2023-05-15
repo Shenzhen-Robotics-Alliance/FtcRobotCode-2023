@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
@@ -251,7 +251,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getMotioningEncoderVelocity(double encoderDifference) {
         if (Math.abs(encoderDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningEncoderVelocity,
@@ -261,7 +261,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getMotioningPower(double encoderDifference) {
         if (Math.abs(encoderDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningPower,
@@ -271,7 +271,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getRotatingEncoderVelocity(double rotationDifference) {
         if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotationEncoderVelocity,
@@ -281,7 +281,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getRotatingPower(double rotationDifference) {
         if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotatingPower,
@@ -291,7 +291,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getRotatingCorrectionPower(double rotationDifference) {
         if (Math.abs(rotationDifference) < rotationDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 rotationDeviationTolerance * minDifferenceToToleranceRatio,
                 rotationDifferenceStartDecelerating,
                 minRotatingCorrectionPower,
@@ -468,7 +468,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getVisualGuidanceMotioningEncoderVelocity(double visualNavigationDifference) {
         if (Math.abs(visualNavigationDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningEncoderVelocity,
@@ -479,7 +479,7 @@ public class AutoStageRobotChassis extends RobotModule {
 
     private double getVisualGuidanceMotioningPower(double visualNavigationDifference) {
         if (Math.abs(visualNavigationDifference) < positionDeviationTolerance) return 0; // debug the auto correction
-        return RobotChassis.linearMap(
+        return PilotChassis.linearMap(
                 positionDeviationTolerance * minDifferenceToToleranceRatio,
                 distanceStartDecelerating,
                 minMotioningPower,

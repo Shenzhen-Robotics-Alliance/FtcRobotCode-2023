@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import java.util.HashMap;
  * @Date 2023.2.27
  * @Version v0.1.0
  */
-public class RobotChassis extends RobotModule { // controls the moving of the robot
+public class PilotChassis extends RobotModule { // controls the moving of the robot
     /** the rotation of the control hub, in reference to the chassis, see https://ftc-docs.firstinspires.org/programming_resources/imu/imu.html */
     final double xRotation = 0;
     final double yRotation = 145.64;
@@ -35,8 +35,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
      * dpad right button: reset IMU YAW direction,
      * */
     private Gamepad gamepad;
-    /** connects to the robot's hardware */
-    private HardwareDriver driver;
+    /** connects to the robot's chassis */
+    private ChassisDriver chassisDriver;
     /** the robot's imu for navigation */
    // private IMU imu;
     /** the module that calculates the robot's position and velocity */
@@ -54,8 +54,8 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     private boolean yAxleReversedSwitch;
     /** whether to use the chassis module's auto system, or make it disabled, whenever the auto aim module is in use  */
     private boolean chassisAutoEnabled = true;
-    /** whether the pilot is sending any instructions to the robot */
-    boolean pilotInUse = false;
+    /** whether the pilot is sending instructions to the robot's rotational motion, notice translational motion is not counted */
+    boolean pilotInterrupting = false;
 
     /** the times elapsed after the last time these mode buttons are pressed
      * so that it does not shift between the modes inside one single press */
@@ -98,7 +98,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     /**
      * construct function of the robot chassis, use init() for further initialization
      */
-    public RobotChassis() {
+    public PilotChassis() {
         super("RobotChassis");
     }
 
@@ -108,7 +108,7 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
      * @param dependentModules: null should be given as this module does not depend on any other modules
      * @param dependentInstances: the instance needed by the robot's chassis
      *                          "initialControllerPad": Gamepad, the default game pad used to control the robot's chassis
-     *                          "hardwareDriver" : HardwareDriver, the connection to the robot's hardware
+     *                          "chassisDriver" : ChassisDriver, the connection to the robot's chassis
      *                          "positionCalculator" : RobotPositionCalculator_tmp, the position calculator of the robot
      */
     @Override
@@ -128,16 +128,10 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         );
         this.gamepad = (Gamepad) dependentInstances.get("initialControllerPad");
 
-        if (! dependentInstances.containsKey("hardwareDriver")) throw new NullPointerException(
-                "dependent instance not given: " + "hardwareDriver"
+        if (! dependentInstances.containsKey("chassisDriver")) throw new NullPointerException(
+                "dependent instance not given: " + "chassisDriver"
         );
-        this.driver = (HardwareDriver) dependentInstances.get("hardwareDriver");
-//
-//        if (! dependentInstances.containsKey("imu")) throw new NullPointerException(
-//                "dependent instance not given: " + "imu"
-//        );
-//        this.imu = (IMU) dependentInstances.get("imu");
-
+        this.chassisDriver = (ChassisDriver) dependentInstances.get("chassisDriver");
 
         /* throw out an error if the dependent modules is given an empty map */
         if (dependentModules.isEmpty()) throw new NullPointerException(
@@ -147,13 +141,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
                 "dependent instance not given: " + "positionCalculator"
         );
         this.positionCalculator = (RobotPositionCalculator) dependentModules.get("positionCalculator");
-
-
-//        /* calibrate the imu */
-//        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
-//        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
-//        imu.initialize(new IMU.Parameters(orientationOnRobot));
-//        imu.resetYaw();
 
         /* calibrate the center of the controller pad */
         this.pilotControllerPadZeroPosition[0] = gamepad.right_stick_x;
@@ -180,19 +167,12 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
         double yAxleMotion = linearMap(-(gamepad.right_stick_y - this.pilotControllerPadZeroPosition[1])); // the left stick is reversed to match the vehicle
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
-        pilotInUse = (Math.abs(yAxleMotion) + Math.abs(xAxleMotion) + Math.abs(rotationalAttempt)) > 0; // already linearly mapped, so greater than zero means it is in use
+        pilotInterrupting = (Math.abs(yAxleMotion) + Math.abs(xAxleMotion)) > 0; // already linearly mapped, so greater than zero means it is in use
         if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.5;
         // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
         if (groundNavigatingModeActivationSwitch & movement) { // when the pilot chooses to navigate according to the ground, don't apply when the robot is still
-//            // get the rotation and angular velocity of the robot from imu
-//            orientation = imu.getRobotYawPitchRollAngles();
-//            angularVelocity = imu.getRobotAngularVelocity(AngleUnit.RADIANS);
-//
-//            // get the facing, and the angular velocity in YAW axle, of the robot
-//            facing = orientation.getYaw(AngleUnit.RADIANS);
-//            velocityYAW = angularVelocity.zRotationRate;
 
             /* use robot position calculator instead to calculate the rotation of the robot */
             facing = positionCalculator.getRobotRotation();
@@ -219,21 +199,12 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
             }
         }
 
-//        /** rotate the robot to make it stick to the rotation where it's asked to be */
-//        double rotationalDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(targetedRotation - positionCalculator.getRobotRotation());
-//        double rotationalMotion = Math.copySign(RobotChassis.linearMap(
-//                rotationTolerance,rotationStartsSlowingDown,0,0.8,
-//                Math.abs(rotationalDifference)
-//        ) , rotationalDifference);
         double rotationalMotion = getRotationMotorSpeed(rotationalAttempt);
 
-        // control the Mecanum wheel
-        if (chassisAutoEnabled || pilotInUse) {
-            driver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
-            driver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
-            driver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
-            driver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
-        }
+        /* sends commands to the chassis */
+        chassisDriver.setRobotTranslationalMotion(xAxleMotion, yAxleMotion); // the translational commands are always sent
+        if (pilotInterrupting || // if the pilot interrupted the process, or if the RAS is not activated
+                (! chassisDriver.isRASActivated())) chassisDriver.setRotationalMotion(rotationalMotion); // send the rotational commands
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
@@ -263,8 +234,6 @@ public class RobotChassis extends RobotModule { // controls the moving of the ro
     public void setChassisAutoSystemEnabled() { chassisAutoEnabled = true; }
     /** set the chassis module's auto system disabled */
     public void setChassisAutoSystemDisabled() {chassisAutoEnabled = false; }
-    /** get whether the pilot is sending commands to the robot */
-    public boolean isPilotInUse() { return pilotInUse; }
 
     private double[] navigateGround(double objectiveXMotion, double objectiveYMotion, double facing) {
         double[] correctedMotion = new double[2];

@@ -9,9 +9,11 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
+import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.PilotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
@@ -35,6 +37,7 @@ import java.util.HashMap;
 public class Roboseed_DualPilot extends LinearOpMode {
     /** the interface that connects the robot's hardware */
     private final HardwareDriver hardwareDriver = new HardwareDriver();
+    private ChassisDriver chassis;
 
     /** whether the program will switch to slow motion mode automatically when using the arm */
     private final boolean PreviousSlowMotionModeAutoActivation = false;
@@ -47,7 +50,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
     /** connect to the robot modules */
     private Arm arm;
-    private RobotChassis robotChassis;
+    private PilotChassis pilotChassis;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis autoStageRobotChassis;
     private IMUReader imuReader;
@@ -93,15 +96,15 @@ public class Roboseed_DualPilot extends LinearOpMode {
         /* give the first pilot's controller pad as the initial controller pad for robot's movement to the chassis module */
         robotChassisDependentInstances.put("initialControllerPad", gamepad1);
         /* give the connection to the hardware to the module */
-        robotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
+        robotChassisDependentInstances.put("chassisDriver", chassis);
         /* give the back up imu module of the extension hub to the chassis module*/
         robotChassisDependentInstances.put("imu", hardwareMap.get(IMU.class, "imu2"));
-        robotChassis = new RobotChassis();
-        robotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
+        pilotChassis = new PilotChassis();
+        pilotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
 
         /** pass the dependent modules to the arm module */
         HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
-        armModuleDependentModules.put("robotChassis", robotChassis);
+        armModuleDependentModules.put("robotChassis", pilotChassis);
         /** pass the hardware ports to the arm module */
         HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
         armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
@@ -164,7 +167,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         /** calls the periodic function of the modules TODO put the modules in a map and go through in every run loop */
         // ElapsedTime elapsedTime = new ElapsedTime();
         // elapsedTime.reset();
-        robotChassis.periodic();
+        pilotChassis.periodic();
         // System.out.println("<--chassis module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
         arm.periodic();
@@ -230,6 +233,8 @@ public class Roboseed_DualPilot extends LinearOpMode {
         hardwareDriver.lift_right = hardwareMap.get(DcMotorEx.class, "lifter_right");
 
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        chassis = new ChassisDriver(hardwareDriver);
     }
 }
 

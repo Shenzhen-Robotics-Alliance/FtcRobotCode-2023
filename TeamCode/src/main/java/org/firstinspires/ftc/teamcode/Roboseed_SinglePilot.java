@@ -9,8 +9,9 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
-import org.firstinspires.ftc.teamcode.RobotModules.RobotChassis;
+import org.firstinspires.ftc.teamcode.RobotModules.PilotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
@@ -41,7 +42,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
     /* connect to the modules */
 
     private Arm arm;
-    private RobotChassis robotChassis;
+    private PilotChassis pilotChassis;
     private ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis autoStageRobotChassis;
     private IMUReader imuReader;
@@ -73,8 +74,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         robotChassisDependentInstances.put("hardwareDriver", hardwareDriver);
         /* give the back up imu module of the extension hub to the chassis module*/
         robotChassisDependentInstances.put("imu", hardwareMap.get(IMU.class, "imu2"));
-        robotChassis = new RobotChassis();
-        robotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
+        pilotChassis = new PilotChassis();
+        pilotChassis.init(robotChassisDependentModules, robotChassisDependentInstances);
 
         /** pass the hardware ports to the field navigation module */
         HashMap<String, RobotModule> fieldNavigationDependentModules = null;
@@ -150,7 +151,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
             telemetry.addData("This is the loop", "------------------------------");
-            runLoop(arm, robotChassis);
+            runLoop(arm, pilotChassis);
         }
     }
 
@@ -159,7 +160,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
      *
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
-    private void runLoop(Arm arm, RobotChassis robotChassis) throws InterruptedException {
+    private void runLoop(Arm arm, PilotChassis pilotChassis) throws InterruptedException {
         double[] robotCurrentPosition = fieldNavigation.getRobotPosition();
         String cameraPositionString = robotCurrentPosition[0] + " " + robotCurrentPosition[1] + " " + String.valueOf(robotCurrentPosition[2]);
         telemetry.addData("robotCurrentPosition(Camera)", cameraPositionString);
@@ -210,7 +211,7 @@ public class Roboseed_SinglePilot extends LinearOpMode {
             PreviousElevatorActivation.reset();
         }
 
-        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+        if (PreviousElevatorActivation.seconds() > 30 & pilotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
             hardwareDriver.lift_left.setPower(0);
             hardwareDriver.lift_left.setPower(0);
             System.exit(0);
@@ -221,8 +222,8 @@ public class Roboseed_SinglePilot extends LinearOpMode {
         }
 
         // control slow motion automatically
-        if (arm.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
-        else robotChassis.setSlowMotionModeActivationSwitch(false);
+        if (arm.getArmIsBusy()) pilotChassis.setSlowMotionModeActivationSwitch(true);
+        else pilotChassis.setSlowMotionModeActivationSwitch(false);
         telemetry.update();
     }
 

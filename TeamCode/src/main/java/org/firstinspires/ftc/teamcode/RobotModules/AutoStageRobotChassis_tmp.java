@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.RobotModules;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 
 /**
  * Copyright © 2023 SCCSC-Robotics-Club
@@ -66,7 +66,7 @@ public class AutoStageRobotChassis_tmp {
 
             /** calculate bias between the current and the starting rotation */
             double rotationalDifference = reformatRotationDifference(startingRotation - positionCalculator.getRobotRotation());
-            double rotationCorrectionMotorSpeed = Math.copySign(RobotChassis.linearMap(
+            double rotationCorrectionMotorSpeed = Math.copySign(PilotChassis.linearMap(
                     rotationTolerance,rotationStartsSlowingDown,0,maxMovingMotorPower,
                     Math.abs(rotationalDifference)
             ) , rotationalDifference);
@@ -84,7 +84,7 @@ public class AutoStageRobotChassis_tmp {
             if (Math.abs(yAxisFieldDifference) > positionTolerance*2 && Math.abs(xAxisFieldDifference) < positionTolerance*2) {
                 /* if the robot is already moving along y axis, we don't need minimum power to keep it moving in the x-drection*/
                 xAxisFieldVelocity = Math.copySign(
-                        RobotChassis.linearMap(
+                        PilotChassis.linearMap(
                                 positionTolerance,
                                 positionStartsSlowingDown,
                                 0,
@@ -94,7 +94,7 @@ public class AutoStageRobotChassis_tmp {
             } else {
                 /* else then, give it a minimum velocity in x-axis */
                 xAxisFieldVelocity = Math.copySign(
-                        RobotChassis.linearMap(
+                        PilotChassis.linearMap(
                                 positionTolerance,
                                 positionStartsSlowingDown,
                                 minMovingMotorPower,
@@ -104,7 +104,7 @@ public class AutoStageRobotChassis_tmp {
             }
             if (Math.abs(xAxisFieldDifference) > positionTolerance*2 && Math.abs(yAxisFieldDifference) < positionTolerance*2) {
                 yAxisFieldVelocity = Math.copySign(
-                        RobotChassis.linearMap(
+                        PilotChassis.linearMap(
                                 positionTolerance,
                                 positionStartsSlowingDown,
                                 0,
@@ -113,7 +113,7 @@ public class AutoStageRobotChassis_tmp {
                         ), yAxisFieldDifference);
             } else {
                 yAxisFieldVelocity = Math.copySign(
-                        RobotChassis.linearMap(
+                        PilotChassis.linearMap(
                                 positionTolerance,
                                 positionStartsSlowingDown,
                                 minMovingMotorPower,
@@ -172,7 +172,7 @@ public class AutoStageRobotChassis_tmp {
             double rotationalDifference = reformatRotationDifference(radians - positionCalculator.getRobotRotation());
 
             /* do a linear map do determine how much motor power is used to rotate the robot  */
-            double rotationalPower = Math.copySign(RobotChassis.linearMap(
+            double rotationalPower = Math.copySign(PilotChassis.linearMap(
                     rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
                     Math.abs(rotationalDifference)
             ) , rotationalDifference);

@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
@@ -92,7 +92,7 @@ public class Arm extends RobotModule {
     private final ElapsedTime lastGrabbingDelay = new ElapsedTime();
 
     /** the chassis module of robot */
-    private RobotChassis robotChassis;
+    private PilotChassis pilotChassis;
     /** whether to inform the robot chassis to slow down */
     private boolean inManualStage;
 
@@ -121,7 +121,7 @@ public class Arm extends RobotModule {
             HashMap<String, Object> dependentInstances,
             boolean informRobotChassis
     ) throws NullPointerException {
-        this.robotChassis = null;
+        this.pilotChassis = null;
         if (informRobotChassis) {
             /* throw out an error if the dependent module is given an empty map */
             if (dependentModules.isEmpty()) throw new NullPointerException(
@@ -131,7 +131,7 @@ public class Arm extends RobotModule {
             if (! dependentModules.containsKey("robotChassis")) throw new NullPointerException(
                     "dependent module not given: " + "robotChassis"
             );
-            this.robotChassis = (RobotChassis) dependentModules.get("robotChassis");
+            this.pilotChassis = (PilotChassis) dependentModules.get("robotChassis");
         }
 
         this.inManualStage = informRobotChassis;
@@ -296,7 +296,7 @@ public class Arm extends RobotModule {
      * TODO edit explanations
      * */
     private void powerSavingAndChassisStrategy() {
-        if (PreviousElevatorActivation.seconds() > 30 & robotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
+        if (PreviousElevatorActivation.seconds() > 30 & pilotChassis.getLastMovementTime() > 30 & PreviousClawActivation.seconds() > 30) { // no operation after 30s
             hardwareDriver.lift_left.setPower(0);
             hardwareDriver.lift_left.setPower(0);
             System.out.println("saving battery...");
@@ -309,8 +309,8 @@ public class Arm extends RobotModule {
         }
 
         // control slow motion automatically
-        if (this.getArmIsBusy()) robotChassis.setSlowMotionModeActivationSwitch(true);
-        else robotChassis.setSlowMotionModeActivationSwitch(false);
+        if (this.getArmIsBusy()) pilotChassis.setSlowMotionModeActivationSwitch(true);
+        else pilotChassis.setSlowMotionModeActivationSwitch(false);
     }
 
     /**
