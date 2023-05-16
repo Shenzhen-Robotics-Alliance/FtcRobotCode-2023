@@ -10,7 +10,7 @@ public class ChassisDriver {
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
     private final double maxRotatingPower = 0.5;
     private final double rotationDifferenceStartDecelerate = Math.toRadians(20);
-    private final double motorPowerPerRotationDifference = (maxRotatingPower / rotationDifferenceStartDecelerate);
+    private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
     private final double velocityDebugTime = 0.15;
     private final double integralCoefficient = 0.3;
 

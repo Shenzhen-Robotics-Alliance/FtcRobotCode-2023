@@ -135,7 +135,7 @@ public class Roboseed_Test extends LinearOpMode {
 //            chassisDriver.sendCommandsToMotors();
 //            telemetry.addData("rotation", Math.toDegrees(positionCalculator.getRobotRotation()));
 //            telemetry.update();
-//            telemetry.addData("distance", color.getDistanceToTarget());
+//            telemetry.addData("distance", sensor.red());
 //            telemetry.update();
         }
     }

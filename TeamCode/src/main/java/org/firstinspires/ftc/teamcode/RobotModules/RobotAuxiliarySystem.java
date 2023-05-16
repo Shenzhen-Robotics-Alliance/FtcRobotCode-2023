@@ -104,6 +104,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     @Override
     public void periodic() {
+        System.out.println(statusCode);
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
