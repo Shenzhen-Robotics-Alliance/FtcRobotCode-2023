@@ -119,19 +119,24 @@ public class Roboseed_Test extends LinearOpMode {
         robotAuxiliarySystemDependentInstances.put("colorDistanceSensor", color);
         robotAuxiliarySystemDependentInstances.put("tofDistanceSensor", null);
         robotAuxiliarySystemDependentInstances.put("chassisDriver", chassisDriver);
+        robotAuxiliarySystemDependentModules.put("arm", arm);
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances);
-        robotAuxiliarySystem.statusCode = 4;
+        robotAuxiliarySystem.startAim();
 
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
         while (opModeIsActive() && !isStopRequested()) {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            robotAuxiliarySystem.periodic();
+
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            chassisDriver.sendCommandsToMotors();
 //            telemetry.addData("rotation", Math.toDegrees(positionCalculator.getRobotRotation()));
 //            telemetry.update();
-            telemetry.addData("distance", color.getDistanceToTarget());
-            telemetry.update();
+//            telemetry.addData("distance", color.getDistanceToTarget());
+//            telemetry.update();
         }
     }
 

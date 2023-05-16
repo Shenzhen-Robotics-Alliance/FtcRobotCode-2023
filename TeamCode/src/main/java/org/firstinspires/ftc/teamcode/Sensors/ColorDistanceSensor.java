@@ -73,7 +73,6 @@ public class ColorDistanceSensor {
 
         targetInRange = sensorReading > minActivateLuminosity+environmentLuminosity;
         if (!targetInRange) return;
-        System.out.println(sensorReading);
 
         distanceToTarget = linearMap(sensorReading);
     }

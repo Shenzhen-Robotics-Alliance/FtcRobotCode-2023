@@ -114,12 +114,13 @@ public class ChassisDriver {
     public static double getActualDifference(double currentRotation, double targetedRotation) {
         while (targetedRotation > Math.PI*2) targetedRotation -= Math.PI*2;
         while (targetedRotation < 0) targetedRotation += Math.PI*2;
+
         double rawDifference = targetedRotation - currentRotation;
         double absoluteDifference = Math.min(
                 Math.abs(rawDifference),
                 2*Math.PI - Math.abs(rawDifference));
 
-        if (0 < rawDifference &&  rawDifference < Math.PI) {
+        if ((rawDifference > Math.PI) || (-Math.PI < rawDifference && rawDifference < 0))  {
             absoluteDifference *= -1;
         }
         return absoluteDifference;

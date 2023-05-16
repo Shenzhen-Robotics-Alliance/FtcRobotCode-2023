@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
 import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
+import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 import org.firstinspires.ftc.teamcode.Sensors.TOFDistanceSensor;
@@ -15,6 +16,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the rotation tolerance when trying to face the sleeve */
     private static final double rotationTolerance = Math.toRadians(5);
 
+    private Arm arm;
     private ChassisDriver chassisDriver;
     private ColorDistanceSensor colorDistanceSensor;
     private TOFDistanceSensor tofDistanceSensor;
@@ -53,8 +55,9 @@ public class RobotAuxiliarySystem extends RobotModule {
      *
      * @param dependentModules
      *                          RobotPositionCalculator "positionCalculator"
+     *                          Arm "arm": connection to the robot's arm and claw
      * @param dependentInstances
-     *                          ChassisDriver "chassisDriver": connection to the robot's hardware
+     *                          ChassisDriver "chassisDriver": connection to the robot's chassis
      *                          ColorDistanceSensor "colorDistanceSensor": color sensor reader
      *                          TOFDistanceSensor "tofDistanceSensor": time-of-flight inferred distance sensor reader
      */
@@ -70,6 +73,9 @@ public class RobotAuxiliarySystem extends RobotModule {
         if (dependentModules.isEmpty()) throw new NullPointerException(
                 "an empty set of dependent modules given to the module<<" + this.getModuleName() + ">> which requires at least one module(s) as dependency"
         );
+        if (!dependentModules.containsKey("arm")) throw new NullPointerException(
+                "dependency <<" + "arn" + ">> not specified for module <<" + this.getModuleName() + ">>"
+        );
         if (!dependentInstances.containsKey("chassisDriver")) throw new NullPointerException(
                 "dependency <<" + "chassisDriver" + ">> not specified for module <<" + this.getModuleName() + ">>"
         );
@@ -83,6 +89,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 "dependency <<" + "positionCalculator" + ">> not specified for module <<" + this.getModuleName() + ">>");
 
         /* get the given instances */
+        arm = (Arm) dependentModules.get("arm");
         chassisDriver = (ChassisDriver) dependentInstances.get("chassisDriver");
         colorDistanceSensor = (ColorDistanceSensor) dependentInstances.get("colorDistanceSensor");
         tofDistanceSensor = (TOFDistanceSensor) dependentInstances.get("tofDistanceSensor");
@@ -109,6 +116,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 }
                 /* wait for the robot to turn left, until difference is negative */
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
+                chassisDriver.setRotationalMotion(0);
                 if (targetFound) statusCode = 3;
                 else statusCode = 2;
                 break;
@@ -124,6 +132,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                 }
                 /* wait for the robot to turn right, until difference is positive */
+                chassisDriver.setRotationalMotion(0);
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop if not reached yet
                 if (targetFound) statusCode = 3;
                 else statusCode = 0;
@@ -146,10 +155,10 @@ public class RobotAuxiliarySystem extends RobotModule {
             }
 
             case 4: {
-                chassisDriver.setRobotTranslationalMotion(0, aimSpeed);
-                if (colorDistanceSensor.getDistanceToTarget() <= 0) {
+                chassisDriver.setRobotTranslationalMotion(0, 0.35);
+                if (colorDistanceSensor.getDistanceToTarget() <= 0.15) {
                     chassisDriver.setRobotTranslationalMotion(0, 0);
-                    // TODO close the claw here
+                    arm.closeClaw();
                     statusCode = 0;
                 }
                 break;
