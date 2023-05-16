@@ -18,10 +18,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
+import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
 import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
@@ -29,6 +31,7 @@ import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
+import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
 import java.util.Timer;
@@ -104,13 +107,14 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
-        double current = 0;
+        ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
+        ColorSensor sensor = hardwareMap.get(ColorSensor.class, "color");
+        ChassisDriver chassisDriver = new ChassisDriver(hardwareDriver, positionCalculator);
 
+        chassisDriver.setTargetedRotation(Math.toRadians(90));
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("arm position:", hardwareDriver.lift_left.getVelocity());
-            telemetry.update();
-            hardwareDriver.lift_right.setPower(0.3);
-            hardwareDriver.lift_left.setPower(0.3);
+            positionCalculator.periodic();
+            chassisDriver.sendCommandsToMotors();
         }
     }
 

@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  * */
 public class ColorDistanceSensor {
     /** whether the sensor is looking for a blue or red sleeve, 1 for red and 0 for blue */
-    private static short redOrBlueSleeves;
+    private static int redOrBlueSleeves;
     /** the strength of the current environment light */
     private static final int environmentLuminosity = 30;
     /** the minimum amount of extra light(in comparison to the environment light) for the sensor to think that it detected an object */
@@ -39,20 +39,20 @@ public class ColorDistanceSensor {
      * @param colorSensor the specified color sensor instance
      * @param redOrBlueSleeves whether the sensor is looking for a blue or red sleeve, 1 for red and 0 for blue
      * */
-    public ColorDistanceSensor(ColorSensor colorSensor, short redOrBlueSleeves) {
+    public ColorDistanceSensor(ColorSensor colorSensor, int redOrBlueSleeves) {
         this.colorSensor = colorSensor;
-        redOrBlueSleeves = redOrBlueSleeves;
+        this.redOrBlueSleeves = redOrBlueSleeves;
         targetInRange = false;
         distanceToTarget = 0;
     }
     /** automatically select color sensor */
-    public ColorDistanceSensor(HardwareMap hardwareMap, short redOrBlueSleeves) {
+    public ColorDistanceSensor(HardwareMap hardwareMap, int redOrBlueSleeves) {
         ColorSensor defaultColorSensor = hardwareMap.get(ColorSensor.class, "color");
         new ColorDistanceSensor(defaultColorSensor, redOrBlueSleeves);
     }
 
     /** get whether the target is in visible, indicated using the result from the sensor */
-    public boolean isTargetInRange() {
+    public boolean targetInRange() {
         updateSensorReading();
         return targetInRange;
     }
@@ -73,6 +73,7 @@ public class ColorDistanceSensor {
 
         targetInRange = sensorReading > minActivateLuminosity+environmentLuminosity;
         if (!targetInRange) return;
+        System.out.println(redOrBlueSleeves);
 
         distanceToTarget = linearMap(sensorReading);
     }

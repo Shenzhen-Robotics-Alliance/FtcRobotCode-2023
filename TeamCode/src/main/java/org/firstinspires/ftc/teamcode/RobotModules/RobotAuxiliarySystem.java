@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-
 import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
-import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 import org.firstinspires.ftc.teamcode.Sensors.TOFDistanceSensor;
@@ -33,6 +30,12 @@ public class RobotAuxiliarySystem extends RobotModule {
     private short statusCode = -1;
     /** the robot's rotation the moment the pilot sends the start-aiming command */
     private double startingRotation;
+    /** minimum distance location */
+    private double minDistanceSpot;
+    /** minimum distance to target */
+    private double minDistance;
+    /** whether any target locked in this scan */
+    private boolean targetFound;
 
     /**
      * construction method of robot auxiliary system
@@ -92,11 +95,35 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void periodic() {
         switch (statusCode) {
             case 1: {
-                chassisDriver.setRotationalMotion(-0.3);
-                double targetedDirection = startingRotation - (aimRange/2);
+                chassisDriver.setRotationalMotion(-0.6);
+                double targetedDirection = startingRotation + (aimRange/2);
+                /* if the color distance captured anything */
+                if (colorDistanceSensor.targetInRange()) {
+                    targetFound = true;
+                    minDistance = Math.min(colorDistanceSensor.getDistanceToTarget(), minDistance);
+                    minDistanceSpot = positionCalculator.getRobotRotation();
+                }
                 /* wait for the robot to turn left, until difference is negative */
-                if (getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) statusCode = 2;
-                // TODO: write for finding the sleeves
+                if (getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
+                if (targetFound) statusCode = 3;
+                else statusCode = 2;
+                break;
+            }
+
+            case 2: {
+                chassisDriver.setRotationalMotion(0.6);
+                double targetedDirection = startingRotation - (aimRange/2);
+                /* if the color distance captured anything */
+                if (colorDistanceSensor.targetInRange()) {
+                    targetFound = true;
+                    minDistance = Math.min(colorDistanceSensor.getDistanceToTarget(), minDistance);
+                    minDistanceSpot = positionCalculator.getRobotRotation();
+                }
+                /* wait for the robot to turn right, until difference is positive */
+                if (getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop if not reached yet
+                if (targetFound) statusCode = 3;
+                else statusCode = 0;
+                chassisDriver.aimStopped();
                 break;
             }
         }
@@ -104,7 +131,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     private static double getActualDifference(double currentRotation, double targetedRotation) {
         while (targetedRotation > Math.PI*2) targetedRotation -= Math.PI*2;
-        while (targetedRotation < 0) targetedRotation += Math.PI*2
+        while (targetedRotation < 0) targetedRotation += Math.PI*2;
         double rawDifference = targetedRotation - currentRotation;
         double absoluteDifference = Math.min(
                 Math.abs(rawDifference),
@@ -121,6 +148,9 @@ public class RobotAuxiliarySystem extends RobotModule {
         // stopAim();
         startingRotation = positionCalculator.getRobotRotation();
         if (statusCode != -1) statusCode = 1;
+        minDistance = 1;
+        targetFound = false;
+        chassisDriver.newAimStarted();
     }
 
     /** cancel the aiming process */

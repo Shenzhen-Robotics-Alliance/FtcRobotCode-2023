@@ -41,8 +41,10 @@ public class RobotPositionCalculator extends RobotModule {
     private double robotRotation;
     /** stores the robot's current position, in encoder values */
     private double[] robotPosition = new double[2];
+    /** stores the angular velocity of the robot */
+    private double angularVelocity = 0;
     /** the velocity of the robot */
-    double[] rawVelocity = new double[2];
+    private double[] rawVelocity = new double[2];
 
     /**
      * construct method of temporary robot position calculator
@@ -91,7 +93,7 @@ public class RobotPositionCalculator extends RobotModule {
     @Override
     public void periodic() {
         /** calculate the angular velocity of the robot */
-        double angularVelocity = getAngularVelocity(encoderReader.getEncoderVelocity(1), encoderReader.getEncoderVelocity(2));
+        this.angularVelocity = getAngularVelocity(encoderReader.getEncoderVelocity(1), encoderReader.getEncoderVelocity(2));
 
         /** update the robot's current rotation */
         /* take the integral of angular velocity to time */
@@ -194,6 +196,8 @@ public class RobotPositionCalculator extends RobotModule {
     }
 
     public double[] getRawVelocity() { return rawVelocity; }
+
+    public double getAngularVelocity() { return angularVelocity; }
 
     public double[] getVelocity() { return getActualVelocity(rawVelocity, robotRotation); }
 

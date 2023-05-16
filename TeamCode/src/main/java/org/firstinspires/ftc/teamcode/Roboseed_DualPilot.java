@@ -234,7 +234,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        chassis = new ChassisDriver(hardwareDriver);
+        chassis = new ChassisDriver(hardwareDriver, positionCalculator);
     }
 }
 
