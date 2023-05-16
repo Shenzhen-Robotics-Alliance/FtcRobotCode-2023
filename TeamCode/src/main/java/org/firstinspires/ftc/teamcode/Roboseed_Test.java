@@ -30,6 +30,7 @@ import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis_tmp;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotAuxiliarySystem;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
@@ -49,6 +50,7 @@ public class Roboseed_Test extends LinearOpMode {
 
     ComputerVisionFieldNavigation_v2 fieldNavigation;
     private AutoStageRobotChassis_tmp robotChassis;
+    private RobotAuxiliarySystem robotAuxiliarySystem;
 
     private ColorSensor color;
     private DistanceSensor distanceSensor;
@@ -107,14 +109,29 @@ public class Roboseed_Test extends LinearOpMode {
 
         waitForStart();
 
+        /** the RAS */
         ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
-        ColorSensor sensor = hardwareMap.get(ColorSensor.class, "color");
         ChassisDriver chassisDriver = new ChassisDriver(hardwareDriver, positionCalculator);
+        ColorSensor sensor = hardwareMap.get(ColorSensor.class, "color");
+        HashMap<String, RobotModule> robotAuxiliarySystemDependentModules = new HashMap<>(1);
+        HashMap<String, Object> robotAuxiliarySystemDependentInstances = new HashMap<>(1);
+        robotAuxiliarySystemDependentModules.put("positionCalculator", positionCalculator);
+        robotAuxiliarySystemDependentInstances.put("colorDistanceSensor", color);
+        robotAuxiliarySystemDependentInstances.put("tofDistanceSensor", null);
+        robotAuxiliarySystemDependentInstances.put("chassisDriver", chassisDriver);
+        this.robotAuxiliarySystem = new RobotAuxiliarySystem();
+        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances);
+        robotAuxiliarySystem.statusCode = 4;
 
-        chassisDriver.setTargetedRotation(Math.toRadians(90));
+        // chassisDriver.setTargetedRotation(Math.toRadians(25));
         while (opModeIsActive() && !isStopRequested()) {
-            positionCalculator.periodic();
-            chassisDriver.sendCommandsToMotors();
+//            positionCalculator.forceUpdateEncoderValue();
+//            positionCalculator.periodic();
+//            chassisDriver.sendCommandsToMotors();
+//            telemetry.addData("rotation", Math.toDegrees(positionCalculator.getRobotRotation()));
+//            telemetry.update();
+            telemetry.addData("distance", color.getDistanceToTarget());
+            telemetry.update();
         }
     }
 

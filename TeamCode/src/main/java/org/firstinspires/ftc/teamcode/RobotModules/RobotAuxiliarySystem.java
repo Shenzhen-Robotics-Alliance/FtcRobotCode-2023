@@ -11,7 +11,9 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the range at which the robot looks for the cone */
     private static final double aimRange = Math.toRadians(120);
     /** the rotational speed, in motor speed, of the aim */
-    private static final double aimSpeed = 0.2;
+    private static final double aimSpeed = 0.5;
+    /** the rotation tolerance when trying to face the sleeve */
+    private static final double rotationTolerance = Math.toRadians(5);
 
     private ChassisDriver chassisDriver;
     private ColorDistanceSensor colorDistanceSensor;
@@ -24,10 +26,12 @@ public class RobotAuxiliarySystem extends RobotModule {
      * 0: the robot auxiliary system is disabled as the pilot didn't ask it to turn on yet or the pilot interrupted it
      * 1: no targets found in the middle, the robot should spin left to find it; if found target, go to 3; if not, go to 2;
      * 2: after no targets found on the left, the robot should seek it on the right; if found, go to 3; if not, stop the process and go to -1;
-     * 3: found a target, the robot should move forward until the target lands inside the intake spot; then, when the target lands in the intake spot, it closes the claw
-     * IMPORTANT: the robot can only be interrupted at stage 1 and 2; at stage 3, pushing the aim bottom is required to stop the process
+     * 3: found a target, the robot should turn to face the target
+     * 4: the robot's claw is lined up with the target, the robot should move forward until the target lands inside the intake spot; then, when the target lands in the intake spot, it closes the claw
+     * IMPORTANT: the robot can only be interrupted at stage 1, 2 and 3; at stage 4, pushing the aim bottom is required to stop the process
      * */
-    private short statusCode = -1;
+    // private short statusCode = -1;
+    public short statusCode = -1;
     /** the robot's rotation the moment the pilot sends the start-aiming command */
     private double startingRotation;
     /** minimum distance location */
@@ -95,7 +99,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void periodic() {
         switch (statusCode) {
             case 1: {
-                chassisDriver.setRotationalMotion(-0.6);
+                chassisDriver.setRotationalMotion(-aimSpeed);
                 double targetedDirection = startingRotation + (aimRange/2);
                 /* if the color distance captured anything */
                 if (colorDistanceSensor.targetInRange()) {
@@ -104,14 +108,14 @@ public class RobotAuxiliarySystem extends RobotModule {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                 }
                 /* wait for the robot to turn left, until difference is negative */
-                if (getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
                 if (targetFound) statusCode = 3;
                 else statusCode = 2;
                 break;
             }
 
             case 2: {
-                chassisDriver.setRotationalMotion(0.6);
+                chassisDriver.setRotationalMotion(aimSpeed);
                 double targetedDirection = startingRotation - (aimRange/2);
                 /* if the color distance captured anything */
                 if (colorDistanceSensor.targetInRange()) {
@@ -120,27 +124,37 @@ public class RobotAuxiliarySystem extends RobotModule {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                 }
                 /* wait for the robot to turn right, until difference is positive */
-                if (getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop if not reached yet
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop if not reached yet
                 if (targetFound) statusCode = 3;
                 else statusCode = 0;
                 chassisDriver.aimStopped();
                 break;
             }
-        }
-    }
 
-    private static double getActualDifference(double currentRotation, double targetedRotation) {
-        while (targetedRotation > Math.PI*2) targetedRotation -= Math.PI*2;
-        while (targetedRotation < 0) targetedRotation += Math.PI*2;
-        double rawDifference = targetedRotation - currentRotation;
-        double absoluteDifference = Math.min(
-                Math.abs(rawDifference),
-                2*Math.PI - Math.abs(rawDifference));
+            case 3: {
+                chassisDriver.setTargetedRotation(minDistanceSpot);
+                double rotationalError;
+                rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), minDistanceSpot);
+                /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
+                chassisDriver.sendCommandsToMotors();
+                if (Math.abs(rotationalError) < rotationTolerance) {
+                    chassisDriver.switchToManualMode();
+                    chassisDriver.setRotationalMotion(0);
+                    statusCode = 4;
+                }
+                break;
+            }
 
-        if (0 < rawDifference &&  rawDifference < Math.PI) {
-            absoluteDifference *= -1;
+            case 4: {
+                chassisDriver.setRobotTranslationalMotion(0, aimSpeed);
+                if (colorDistanceSensor.getDistanceToTarget() <= 0) {
+                    chassisDriver.setRobotTranslationalMotion(0, 0);
+                    // TODO close the claw here
+                    statusCode = 0;
+                }
+                break;
+            }
         }
-        return absoluteDifference;
     }
 
     /** call the system to start the aiming process */

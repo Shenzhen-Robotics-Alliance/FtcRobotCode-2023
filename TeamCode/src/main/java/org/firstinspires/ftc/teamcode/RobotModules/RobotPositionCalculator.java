@@ -97,7 +97,7 @@ public class RobotPositionCalculator extends RobotModule {
 
         /** update the robot's current rotation */
         /* take the integral of angular velocity to time */
-        this.robotRotation += angularVelocity * this.dt.seconds();
+        this.robotRotation += angularVelocity * this.dt.seconds(); // TODO use the difference between the rwo parallel sensor reading to determine rotation will be more precise
         /* format the rotation value */
         while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
         while (this.robotRotation < 0) this.robotRotation += Math.PI*2;

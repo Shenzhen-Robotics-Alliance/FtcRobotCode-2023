@@ -9,10 +9,10 @@ public class ChassisDriver {
     private final double encoderDistanceStartDecelerate = 15000;
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
     private final double maxRotatingPower = 0.5;
-    private final double rotationDifferenceStartDecelerate = Math.toRadians(40);
+    private final double rotationDifferenceStartDecelerate = Math.toRadians(20);
     private final double motorPowerPerRotationDifference = (maxRotatingPower / rotationDifferenceStartDecelerate);
-    private final double velocityDebugTime = 0.2;
-    private final double integralCoefficient = 0.01;
+    private final double velocityDebugTime = 0.15;
+    private final double integralCoefficient = 0.3;
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -89,6 +89,7 @@ public class ChassisDriver {
         hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         hardwareDriver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
+        // TODO make the robot stick to the rotation it was when pilot not sending commands on rotation
     }
 
     private void updateMotorSpeed() {
@@ -98,15 +99,29 @@ public class ChassisDriver {
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
         double futureRotation = currentRotation + velocityDebugTime * positionCalculator.getAngularVelocity();
 
-        double rotationalRawError = targetedRotation - currentRotation;
-        double rotationalError = targetedRotation - futureRotation;
+        double rotationalRawError = getActualDifference(currentRotation, targetedRotation);
+        double rotationalError = getActualDifference(futureRotation, targetedRotation);
 
         integration += rotationalRawError * dt.seconds();
 
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + integration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
         // rotationalMotion *= -1;
-        System.out.println("raw error:" + rotationalRawError);
+        System.out.println("rotation:" + positionCalculator.getRobotRotation() + ";raw error:" + rotationalRawError + "; error:" + rotationalError + "; power" + rotationalMotion);
         dt.reset();
+    }
+
+    public static double getActualDifference(double currentRotation, double targetedRotation) {
+        while (targetedRotation > Math.PI*2) targetedRotation -= Math.PI*2;
+        while (targetedRotation < 0) targetedRotation += Math.PI*2;
+        double rawDifference = targetedRotation - currentRotation;
+        double absoluteDifference = Math.min(
+                Math.abs(rawDifference),
+                2*Math.PI - Math.abs(rawDifference));
+
+        if (0 < rawDifference &&  rawDifference < Math.PI) {
+            absoluteDifference *= -1;
+        }
+        return absoluteDifference;
     }
 }

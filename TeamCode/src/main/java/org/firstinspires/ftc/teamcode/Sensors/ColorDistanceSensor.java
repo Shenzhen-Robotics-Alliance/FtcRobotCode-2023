@@ -29,10 +29,10 @@ public class ColorDistanceSensor {
     private static ColorSensor colorSensor;
 
     /** whether the target is in visible, indicated using the result from the sensor */
-    private boolean targetInRange;
+    private boolean targetInRange = false;
 
     /** the distance to the targeted, from the best distance to grab the sleeve to the current distance between the robot and the sleeve, positive direction is to the front, 0 is the best position to grab */
-    private double distanceToTarget;
+    private double distanceToTarget = Float.POSITIVE_INFINITY;
 
     /**
      * create a color distance sensor reader, given a color sensor instance
@@ -73,7 +73,7 @@ public class ColorDistanceSensor {
 
         targetInRange = sensorReading > minActivateLuminosity+environmentLuminosity;
         if (!targetInRange) return;
-        System.out.println(redOrBlueSleeves);
+        System.out.println(sensorReading);
 
         distanceToTarget = linearMap(sensorReading);
     }
@@ -83,7 +83,7 @@ public class ColorDistanceSensor {
      * @return the distance value, 0 is the best position to grab, and 1 is the maximum distance
      * */
     private static double linearMap(int sensorReading) {
-        double distanceUnitPerLuminosity = 1 / (startCaptureLuminosity - minActivateLuminosity);
+        double distanceUnitPerLuminosity = 1 / (double) (startCaptureLuminosity - minActivateLuminosity);
         return 1 -
                 distanceUnitPerLuminosity * (sensorReading-minActivateLuminosity);
     }

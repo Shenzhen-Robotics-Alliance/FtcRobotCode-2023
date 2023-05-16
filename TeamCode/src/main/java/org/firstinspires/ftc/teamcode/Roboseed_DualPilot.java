@@ -146,6 +146,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         waitForStart();
         telemetry.addLine("position");
+        telemetry.addLine("rotation");
         telemetry.addLine("program-delay");
 
         while (opModeIsActive() && !isStopRequested()) { // main loop
@@ -206,6 +207,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         telemetry.addData("position", positionCalculator.getRobotPosition()[0] + ", " + positionCalculator.getRobotPosition()[1]);
         // System.out.println("arm position code: " + arm.getArmStatusCode());
+        telemetry.addData("rotation", Math.toDegrees(positionCalculator.getRobotRotation()));
 
         telemetry.update();
     }
