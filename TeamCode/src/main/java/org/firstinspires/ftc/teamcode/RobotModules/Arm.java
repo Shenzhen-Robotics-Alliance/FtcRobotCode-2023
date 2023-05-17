@@ -45,7 +45,7 @@ public class Arm extends RobotModule {
     /** connects to the game pad that's used to control the arm */
     private Gamepad gamepad;
 
-    /** whether the claw is opened */
+    /** whether the claw is closed */
     private boolean claw;
 
     /** the position code for the arm
@@ -302,7 +302,7 @@ public class Arm extends RobotModule {
             System.out.println("saving battery...");
             System.exit(0);
         }
-        if (PreviousElevatorActivation.seconds() > 1.5 & this.getClaw()) {
+        if (PreviousElevatorActivation.seconds() > 1.5 & !this.getClaw()) {
             System.out.println("cooling down the motors...");
             this.deactivateArm(); // deactivate the arm to avoiding burning the motors
             PreviousElevatorActivation.reset(); // so that it does not proceed deactivate all the time
@@ -586,7 +586,7 @@ public class Arm extends RobotModule {
      */
     public void openClaw() {
         // System.out.println("opening");
-        claw = true;
+        claw = false;
         hardwareDriver.claw.setPosition(0); // open grabber
         armIsBusy = false;
     }
@@ -595,7 +595,7 @@ public class Arm extends RobotModule {
      */
     public void closeClaw() {
         // System.out.println("closing");
-        claw = false;
+        claw = true;
         hardwareDriver.claw.setPosition(0.6); // close grabber
         armIsBusy = true;
     }

@@ -13,6 +13,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -23,6 +24,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
 import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
@@ -124,19 +126,27 @@ public class Roboseed_Test extends LinearOpMode {
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances);
         robotAuxiliarySystem.startAim();
 
+        DistanceSensor sensor1 = hardwareMap.get(DistanceSensor.class, "distance");
+        ElapsedTime dt = new ElapsedTime();
+
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
+        double minDistance = 100;
         while (opModeIsActive() && !isStopRequested()) {
-            positionCalculator.forceUpdateEncoderValue();
-            positionCalculator.periodic();
-            robotAuxiliarySystem.periodic();
+//            positionCalculator.forceUpdateEncoderValue();
+//            positionCalculator.periodic();
+//            robotAuxiliarySystem.periodic();
 
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            chassisDriver.sendCommandsToMotors();
 //            telemetry.addData("rotation", Math.toDegrees(positionCalculator.getRobotRotation()));
 //            telemetry.update();
-//            telemetry.addData("distance", sensor.red());
+//            telemetry.addData("distance", sensor1.getDistance(DistanceUnit.CM));
 //            telemetry.update();
+            dt.reset();
+            sensor1.getDistance(DistanceUnit.CM);
+            minDistance = Math.min(minDistance, sensor1.getDistance(DistanceUnit.CM));
+            System.out.println(minDistance);
         }
     }
 

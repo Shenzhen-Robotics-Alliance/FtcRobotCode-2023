@@ -33,7 +33,9 @@ public class RobotAuxiliarySystem extends RobotModule {
      * IMPORTANT: the robot can only be interrupted at stage 1, 2 and 3; at stage 4, pushing the aim bottom is required to stop the process
      * */
     // private short statusCode = -1;
-    public short statusCode = -1;
+    private short statusCode = -1;
+    /** the code of the target, 0 for sleeves and 1 for towers */
+    private short targetCode = 0;
     /** the robot's rotation the moment the pilot sends the start-aiming command */
     private double startingRotation;
     /** minimum distance location */
@@ -104,7 +106,11 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     @Override
     public void periodic() {
-        System.out.println(statusCode);
+        if (targetCode == 0) aimCone();
+        else aimTower();
+    }
+
+    private void aimCone() {
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
@@ -167,11 +173,24 @@ public class RobotAuxiliarySystem extends RobotModule {
         }
     }
 
+    private void aimTower() {
+        switch (statusCode)
+    }
+
     /** call the system to start the aiming process */
     public void startAim() {
+        if (statusCode == -1) return;
         // stopAim();
         startingRotation = positionCalculator.getRobotRotation();
-        if (statusCode != -1) statusCode = 1;
+        if (arm.getClaw()) targetCode = 1; // if the claw is closed
+        else {
+            targetCode = 0; // the default target is sleeve
+            if (colorDistanceSensor.targetInRange()) { // if the target is already ahead
+                statusCode = 4;
+                return;
+            }
+        }
+        statusCode = 1;
         minDistance = 1;
         targetFound = false;
         chassisDriver.newAimStarted();
