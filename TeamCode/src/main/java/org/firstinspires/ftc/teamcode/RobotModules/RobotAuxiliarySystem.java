@@ -142,6 +142,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     @Override
     public void periodic() {
+        System.out.println(statusCode + "," + targetCode);
         if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
         if (targetCode == 0) aimCone();
         else aimTower();
@@ -176,8 +177,8 @@ public class RobotAuxiliarySystem extends RobotModule {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                 }
                 /* wait for the robot to turn right, until difference is positive */
-                chassisDriver.setRotationalMotion(0);
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop if not reached yet
+                chassisDriver.setRotationalMotion(0);
                 if (targetFound) statusCode = 3;
                 else statusCode = 0;
                 chassisDriver.aimStopped();

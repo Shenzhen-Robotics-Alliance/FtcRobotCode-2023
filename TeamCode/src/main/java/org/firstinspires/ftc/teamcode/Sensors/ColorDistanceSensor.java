@@ -19,7 +19,7 @@ public class ColorDistanceSensor {
     /** whether the sensor is looking for a blue or red sleeve, 1 for red and 0 for blue */
     private static int redOrBlueSleeves;
     /** the strength of the current environment light */
-    private static final int environmentLuminosity = 35;
+    private static final int environmentLuminosity = 25;
     /** the minimum amount of extra light(in comparison to the environment light) for the sensor to think that it detected an object */
     private static final int minActivateLuminosity = 10;
     /** the  amount of extra light received(in comparison to the environment light) for the sensor to think that the object is close enough for capturing */

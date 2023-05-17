@@ -8,11 +8,11 @@ public class ChassisDriver {
     /* private final double maxPower = 0.6;
     private final double encoderDistanceStartDecelerate = 15000;
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
-    private final double maxRotatingPower = 0.5;
-    private final double rotationDifferenceStartDecelerate = Math.toRadians(20);
+    private final double maxRotatingPower = 0.6;
+    private final double rotationDifferenceStartDecelerate = Math.toRadians(15);
     private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
-    private final double velocityDebugTime = 0.15;
-    private final double integralCoefficient = 0.3;
+    private final double velocityDebugTime = 0.05;
+    private final double integralCoefficient = 0; // not needed yet
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -110,7 +110,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + integration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
         // rotationalMotion *= -1;
-        System.out.println("rotation:" + positionCalculator.getRobotRotation() + ";raw error:" + rotationalRawError + "; error:" + rotationalError + "; power" + rotationalMotion);
+        System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
         dt.reset();
     }
 
