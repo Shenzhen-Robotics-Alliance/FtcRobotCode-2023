@@ -249,7 +249,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 break;
             }
             case 4: {
-                if
+                
             }
         }
     }

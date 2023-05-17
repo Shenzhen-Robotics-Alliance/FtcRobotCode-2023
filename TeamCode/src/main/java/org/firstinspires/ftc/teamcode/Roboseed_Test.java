@@ -145,10 +145,8 @@ public class Roboseed_Test extends LinearOpMode {
 //            telemetry.update();
 //            telemetry.addData("distance", sensor1.getDistance(DistanceUnit.CM));
 //            telemetry.update();
-            dt.reset();
-            distance.getDistance(DistanceUnit.CM);
-            minDistance = Math.min(minDistance, distance.getDistance(DistanceUnit.CM));
-            System.out.println(minDistance);
+            telemetry.addData("distance sensor reading(cm) ",distance.getDistance(DistanceUnit.CM));
+            telemetry.update();
         }
     }
 
