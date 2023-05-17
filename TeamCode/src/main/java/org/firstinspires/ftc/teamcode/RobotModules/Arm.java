@@ -496,7 +496,7 @@ public class Arm extends RobotModule {
         // go to the arm position to load the sleeves
         int loadingPos = 360;
         elevateArm(loadingPos);
-        armPositionCode = 1;
+        armPositionCode = 0;
         armIsBusy = false;
     }
 
@@ -565,6 +565,7 @@ public class Arm extends RobotModule {
         this.targetedArmPosition = gndPos;
 
         armStatusCode = 7;
+        armPositionCode = -1;
     }
 
 

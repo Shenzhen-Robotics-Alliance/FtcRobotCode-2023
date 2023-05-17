@@ -57,6 +57,8 @@ public class Roboseed_Test extends LinearOpMode {
     private ColorSensor color;
     private DistanceSensor distanceSensor;
 
+    public boolean programAlive;
+
     public void runOpMode_disabled() throws InterruptedException {
         configureRobot();
 
@@ -113,20 +115,20 @@ public class Roboseed_Test extends LinearOpMode {
 
         /** the RAS */
         ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
+        DistanceSensor distance = hardwareMap.get(DistanceSensor.class, "distance");
         ChassisDriver chassisDriver = new ChassisDriver(hardwareDriver, positionCalculator);
         ColorSensor sensor = hardwareMap.get(ColorSensor.class, "color");
         HashMap<String, RobotModule> robotAuxiliarySystemDependentModules = new HashMap<>(1);
         HashMap<String, Object> robotAuxiliarySystemDependentInstances = new HashMap<>(1);
         robotAuxiliarySystemDependentModules.put("positionCalculator", positionCalculator);
         robotAuxiliarySystemDependentInstances.put("colorDistanceSensor", color);
-        robotAuxiliarySystemDependentInstances.put("tofDistanceSensor", null);
+        robotAuxiliarySystemDependentInstances.put("tofDistanceSensor", distance);
         robotAuxiliarySystemDependentInstances.put("chassisDriver", chassisDriver);
         robotAuxiliarySystemDependentModules.put("arm", arm);
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
-        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances);
+        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this);
         robotAuxiliarySystem.startAim();
 
-        DistanceSensor sensor1 = hardwareMap.get(DistanceSensor.class, "distance");
         ElapsedTime dt = new ElapsedTime();
 
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
@@ -144,8 +146,8 @@ public class Roboseed_Test extends LinearOpMode {
 //            telemetry.addData("distance", sensor1.getDistance(DistanceUnit.CM));
 //            telemetry.update();
             dt.reset();
-            sensor1.getDistance(DistanceUnit.CM);
-            minDistance = Math.min(minDistance, sensor1.getDistance(DistanceUnit.CM));
+            distance.getDistance(DistanceUnit.CM);
+            minDistance = Math.min(minDistance, distance.getDistance(DistanceUnit.CM));
             System.out.println(minDistance);
         }
     }

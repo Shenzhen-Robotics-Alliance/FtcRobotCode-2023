@@ -1,10 +1,15 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
-import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
+import org.firstinspires.ftc.teamcode.Roboseed_DualPilot;
+import org.firstinspires.ftc.teamcode.Roboseed_Test;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
-import org.firstinspires.ftc.teamcode.Sensors.TOFDistanceSensor;
 
 import java.util.HashMap;
 // TODO: add explanation
@@ -19,11 +24,15 @@ public class RobotAuxiliarySystem extends RobotModule {
     private Arm arm;
     private ChassisDriver chassisDriver;
     private ColorDistanceSensor colorDistanceSensor;
-    private TOFDistanceSensor tofDistanceSensor;
+    private DistanceSensor tofDistanceSensor;
     private RobotPositionCalculator positionCalculator;
+    /** the creator of the aux */
+    private OpMode creator;
 
     /**
      * the status code of the robot
+     *
+     * (for sleeves aiming)
      * -1: the system is not started yet
      * 0: the robot auxiliary system is disabled as the pilot didn't ask it to turn on yet or the pilot interrupted it
      * 1: no targets found in the middle, the robot should spin left to find it; if found target, go to 3; if not, go to 2;
@@ -31,11 +40,22 @@ public class RobotAuxiliarySystem extends RobotModule {
      * 3: found a target, the robot should turn to face the target
      * 4: the robot's claw is lined up with the target, the robot should move forward until the target lands inside the intake spot; then, when the target lands in the intake spot, it closes the claw
      * IMPORTANT: the robot can only be interrupted at stage 1, 2 and 3; at stage 4, pushing the aim bottom is required to stop the process
+     *
+     * (for tower aiming)
+     * (-1, 0, 1, 2, 3: same as above)
+     * 4: the robot will raise its arm and go to the target, and drop the sleeve, the robot goes for the high tower by default, the pilot can select which tower by pressing a, b, x and aim buttom at the same time
+     *
      * */
     // private short statusCode = -1;
     private short statusCode = -1;
     /** the code of the target, 0 for sleeves and 1 for towers */
     private short targetCode = 0;
+
+    /** an independent thread that reads the tof distance sensor, as it takes a bit long, 30ms */
+    private Thread tofSensorReadingThread;
+    /** whether the tof distance sensor reading thread is running */
+    private boolean tofDistanceSensorReadingThreadActivated = false;
+
     /** the robot's rotation the moment the pilot sends the start-aiming command */
     private double startingRotation;
     /** minimum distance location */
@@ -44,12 +64,20 @@ public class RobotAuxiliarySystem extends RobotModule {
     private double minDistance;
     /** whether any target locked in this scan */
     private boolean targetFound;
+    /** the reading of the tof distance sensor */
+    private double tofDistanceSensorReading;
 
     /**
      * construction method of robot auxiliary system
      */
     public RobotAuxiliarySystem() {
         super("Robot-Auxiliary-System");
+    }
+
+    /** @Deprecated: this is not going to work as not opmode is running it */
+    @Override @Deprecated
+    public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException {
+        init(dependentModules, dependentInstances, new Roboseed_DualPilot());
     }
 
     /**
@@ -62,12 +90,13 @@ public class RobotAuxiliarySystem extends RobotModule {
      *                          ChassisDriver "chassisDriver": connection to the robot's chassis
      *                          ColorDistanceSensor "colorDistanceSensor": color sensor reader
      *                          TOFDistanceSensor "tofDistanceSensor": time-of-flight inferred distance sensor reader
+     * @param creator the op-mode that created this module, so that the thread can be stopped when the program ends
      */
-    @Override
     public void init(
             HashMap<String, RobotModule> dependentModules,
-            HashMap<String, Object> dependentInstances
-    ) throws NullPointerException {
+            HashMap<String, Object> dependentInstances,
+            LinearOpMode creator) throws NullPointerException
+    {
         /* throw out exceptions if dependencies not specified */
         if (dependentInstances.isEmpty()) throw new NullPointerException (
                 "an empty set of dependent instances given to the module<<" + this.getModuleName() + ">> which requires at least one instance(s) as dependency"
@@ -94,10 +123,17 @@ public class RobotAuxiliarySystem extends RobotModule {
         arm = (Arm) dependentModules.get("arm");
         chassisDriver = (ChassisDriver) dependentInstances.get("chassisDriver");
         colorDistanceSensor = (ColorDistanceSensor) dependentInstances.get("colorDistanceSensor");
-        tofDistanceSensor = (TOFDistanceSensor) dependentInstances.get("tofDistanceSensor");
+        tofDistanceSensor = (DistanceSensor) dependentInstances.get("tofDistanceSensor");
         positionCalculator = (RobotPositionCalculator) dependentModules.get("positionCalculator");
 
         statusCode = 0;
+
+        this.tofSensorReadingThread = new Thread(new Runnable() {
+            @Override public void run() {
+                tofDistanceSensorReadingThreadActivated = true;
+                while (creator.opModeIsActive() && !creator.isStopRequested()) tofDistanceSensorReading = tofDistanceSensor.getDistance(DistanceUnit.CM);
+            }
+        });
     }
 
     /** not supported yet */
@@ -106,6 +142,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     @Override
     public void periodic() {
+        if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
         if (targetCode == 0) aimCone();
         else aimTower();
     }
@@ -149,8 +186,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
             case 3: {
                 chassisDriver.setTargetedRotation(minDistanceSpot);
-                double rotationalError;
-                rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), minDistanceSpot);
+                double rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), minDistanceSpot);
                 /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
                 chassisDriver.sendCommandsToMotors();
                 if (Math.abs(rotationalError) < rotationTolerance) {
@@ -174,7 +210,48 @@ public class RobotAuxiliarySystem extends RobotModule {
     }
 
     private void aimTower() {
-        switch (statusCode)
+        switch (statusCode) {
+            case 1: {
+                chassisDriver.setRotationalMotion(-aimSpeed);
+                double targetedDirection = startingRotation + (aimRange/2);
+                if (tofDistanceSensor.getDistance(DistanceUnit.CM) < 30) {
+                    minDistanceSpot = positionCalculator.getRobotRotation();
+                    statusCode = 3;
+                }
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
+                chassisDriver.setRotationalMotion(0);
+                statusCode = 2;
+                break;
+            }
+            case 2: {
+                chassisDriver.setRotationalMotion(aimSpeed);
+                double targetedDirection = startingRotation - (aimRange/2);
+                if (tofDistanceSensor.getDistance(DistanceUnit.CM) < 30) {
+                    minDistanceSpot = positionCalculator.getRobotRotation();
+                    statusCode = 3;
+                }
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop
+                /* end the aiming process */
+                chassisDriver.setRotationalMotion(0);
+                statusCode = 0;
+                break;
+            }
+            case 3: {
+                chassisDriver.setTargetedRotation(minDistanceSpot);
+                double rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), minDistanceSpot);
+                /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
+                chassisDriver.sendCommandsToMotors();
+                if (Math.abs(rotationalError) < rotationTolerance) {
+                    chassisDriver.switchToManualMode();
+                    chassisDriver.setRotationalMotion(0);
+                    statusCode = 4;
+                }
+                break;
+            }
+            case 4: {
+                if
+            }
+        }
     }
 
     /** call the system to start the aiming process */
@@ -182,7 +259,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         if (statusCode == -1) return;
         // stopAim();
         startingRotation = positionCalculator.getRobotRotation();
-        if (arm.getClaw()) targetCode = 1; // if the claw is closed
+        if (arm.getClaw()) targetCode = 1; // if the claw is closed, look for the tower
         else {
             targetCode = 0; // the default target is sleeve
             if (colorDistanceSensor.targetInRange()) { // if the target is already ahead

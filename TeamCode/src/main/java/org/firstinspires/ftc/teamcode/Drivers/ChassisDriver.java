@@ -27,9 +27,12 @@ public class ChassisDriver {
     private double targetedRotation = 0;
     private boolean RASActivation = false;
 
-    private final int goToPositionMode = 1;
+    private final int goToRotationMode = 1;
     private final int manualMode = 0;
-    private int mode = manualMode;
+    private int rotationMode = manualMode;
+    private final int gotoPositionMode = 2;
+    private final int driverUsingTOFSensorMode = 3;
+    private int translationalMode = manualMode;
 
     private double integration;
 
@@ -59,6 +62,7 @@ public class ChassisDriver {
     }
 
     public void setRotationalMotion(double rotationalMotion) {
+        switchToManualMode();
         this.rotationalMotion = rotationalMotion;
         dt.reset();
         integration = 0;
@@ -75,16 +79,17 @@ public class ChassisDriver {
 
     public void aimStopped() {RASActivation = false; }
 
-    public void switchToManualMode() { mode = manualMode; }
+    public void switchToManualMode() { rotationMode = manualMode; }
 
-    private void switchToGoToPositionMode() { mode = goToPositionMode; }
+    private void switchToGoToPositionMode() { rotationMode = goToRotationMode; }
 
     public boolean isRASActivated() {
         return RASActivation;
     }
 
     public void sendCommandsToMotors() {
-        if (mode == goToPositionMode) updateMotorSpeed();
+        if (rotationMode == goToRotationMode) updateRotationalMotorSpeed();
+        if (translationalMode == driverUsingTOFSensorMode)
         hardwareDriver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
         hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
@@ -92,9 +97,7 @@ public class ChassisDriver {
         // TODO make the robot stick to the rotation it was when pilot not sending commands on rotation
     }
 
-    private void updateMotorSpeed() {
-        // TODO: translation is not considered yet as it not needed
-
+    private void updateRotationalMotorSpeed() {
         double currentRotation = positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
         double futureRotation = currentRotation + velocityDebugTime * positionCalculator.getAngularVelocity();
@@ -109,6 +112,10 @@ public class ChassisDriver {
         // rotationalMotion *= -1;
         System.out.println("rotation:" + positionCalculator.getRobotRotation() + ";raw error:" + rotationalRawError + "; error:" + rotationalError + "; power" + rotationalMotion);
         dt.reset();
+    }
+
+    private void updateTranslationalMotionUsingTOFDistanceSensor(double tofDistanceSensorReading) {
+
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {
