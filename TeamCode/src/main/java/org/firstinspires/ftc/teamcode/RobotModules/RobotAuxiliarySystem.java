@@ -307,8 +307,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         // stopAim();
         startingRotation = positionCalculator.getRobotRotation();
         this.targetCode = targetCode;
-        if (targetCode != 0) {
-            targetCode = 0; // the default target is sleeve
+        if (targetCode == 0) {
             if (colorDistanceSensor.targetInRange()) { // if the target is already ahead
                 statusCode = 4;
                 return;
@@ -321,8 +320,10 @@ public class RobotAuxiliarySystem extends RobotModule {
     }
 
     public void startAim() {
+        int targetCode;
         if (arm.getClaw()) targetCode = 3; // go for high tower by default
         else targetCode = 0;
+        startAim(targetCode);
     }
 
     /** cancel the aiming process */

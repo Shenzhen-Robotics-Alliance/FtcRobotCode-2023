@@ -136,11 +136,10 @@ public class Roboseed_Test extends LinearOpMode {
             // System.out.println("delay:" + dt.seconds()*1000);
             dt.reset();
 
-            robotAuxiliarySystem.periodic();
-
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
             chassisDriver.sendCommandsToMotors();
+            robotAuxiliarySystem.periodic();
 
 
 //            positionCalculator.forceUpdateEncoderValue();
