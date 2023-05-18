@@ -14,10 +14,10 @@ public class ChassisDriver {
     private final double velocityDebugTimeRotation = 0.05;
     private final double integralCoefficientRotation = 0; // not needed yet
 
-    private final double maxMotioningPower = 0.5;
-    private final double encoderDifferenceStartDecelerate = 10;
+    private final double maxMotioningPower = 0.6;
+    private final double encoderDifferenceStartDecelerate = 3000;
     private final double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
-    private final double velocityDebugTimeTranslation = 0.1;
+    private final double velocityDebugTimeTranslation = 0.14;
     private final double integrationCoefficientTranslation = 0; // not needed yet
 
     private HardwareDriver hardwareDriver;

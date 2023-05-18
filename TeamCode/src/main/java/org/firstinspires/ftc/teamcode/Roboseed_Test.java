@@ -133,12 +133,14 @@ public class Roboseed_Test extends LinearOpMode {
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
         double minDistance = 100;
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
-        chassisDriver.setTargetedTranslation(0, 2000);
+        chassisDriver.setTargetedTranslation(0, 20000);
         // arm.toMidArmPosition();
         while (opModeIsActive() && !isStopRequested()) {
             // System.out.println("delay:" + dt.seconds()*1000);
             dt.reset();
 
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
             chassisDriver.sendCommandsToMotors();
 
 
