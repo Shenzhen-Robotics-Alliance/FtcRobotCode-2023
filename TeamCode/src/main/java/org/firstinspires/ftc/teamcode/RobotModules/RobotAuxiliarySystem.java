@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
 import org.firstinspires.ftc.teamcode.Roboseed_DualPilot;
-import org.firstinspires.ftc.teamcode.Roboseed_Test;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
@@ -205,7 +204,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
                 chassisDriver.sendCommandsToMotors();
                 if (Math.abs(rotationalError) < rotationTolerance) {
-                    chassisDriver.switchToManualMode();
+                    chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
                     statusCode = 4;
                 }
@@ -257,7 +256,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
                 chassisDriver.sendCommandsToMotors();
                 if (Math.abs(rotationalError) < rotationTolerance) {
-                    chassisDriver.switchToManualMode();
+                    chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
                     statusCode = 4;
                 }

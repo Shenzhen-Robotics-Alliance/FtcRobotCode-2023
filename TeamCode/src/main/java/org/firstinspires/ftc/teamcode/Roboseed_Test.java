@@ -59,8 +59,7 @@ public class Roboseed_Test extends LinearOpMode {
 
     public boolean programAlive;
 
-    @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode_disabled() throws InterruptedException {
         configureRobot();
 
          // Wait for the Play button to be pressed
@@ -76,7 +75,8 @@ public class Roboseed_Test extends LinearOpMode {
          }
     }
 
-    public void runOpMode_disabled() throws InterruptedException {
+    @Override
+    public void runOpMode() throws InterruptedException {
         configureRobot();
 
         /** pass the hardware ports to the arm module */
@@ -133,11 +133,13 @@ public class Roboseed_Test extends LinearOpMode {
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
         double minDistance = 100;
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
-        chassisDriver.setTargetedTranslation(200, 100);
-        arm.toMidArmPosition();
+        chassisDriver.setTargetedTranslation(0, 2000);
+        // arm.toMidArmPosition();
         while (opModeIsActive() && !isStopRequested()) {
-            System.out.println("delay:" + dt.seconds()*1000);
+            // System.out.println("delay:" + dt.seconds()*1000);
             dt.reset();
+
+            chassisDriver.sendCommandsToMotors();
 
 
 //            positionCalculator.forceUpdateEncoderValue();

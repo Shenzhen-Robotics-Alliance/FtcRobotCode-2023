@@ -58,7 +58,7 @@ public class ChassisDriver {
     public void setTargetedTranslation(double xAxleTranslation, double yAxleTranslation) {
         this.xAxleTranslationTarget = xAxleTranslation;
         this.yAxleTranslationTarget = yAxleTranslation;
-        switchToGoToPositionMode();
+        switchToGoToPositionMode();;
         translationalIntegration[0] = 0;
         translationalIntegration[1] = 0;
     }
@@ -66,15 +66,14 @@ public class ChassisDriver {
     /** in radian */
     public void setTargetedRotation(double targetedRotation) {
         this.targetedRotation = targetedRotation;
-        switchToGoToPositionMode();
+        switchToGoToRotationMode();
         rotationalIntegration = 0;
     }
 
     public void setRotationalMotion(double rotationalMotion) {
-        switchToManualMode();
+        switchToManualRotationMode();
         this.rotationalMotion = rotationalMotion;
         dt.reset();
-        rotationalIntegration = 0;
         sendCommandsToMotors();
     }
 
@@ -88,19 +87,19 @@ public class ChassisDriver {
 
     public void aimStopped() {RASActivation = false; }
 
-    public void switchToManualMode() { rotationMode = manualMode; }
+    public void switchToManualRotationMode() { rotationMode = manualMode;}
+    private void switchToGoToRotationMode() { rotationMode = goToRotationMode; }
 
-    private void switchToGoToPositionMode() { rotationMode = goToRotationMode; }
-
-    public boolean isRASActivated() {
-        return RASActivation;
+    public void switchToManualPositionMode() { translationalMode = manualMode; }
+    private void switchToGoToPositionMode() {
+        translationalMode = gotoPositionMode;
+        this.targetedRotation = positionCalculator.getRobotRotation();
+        switchToGoToRotationMode();
     }
+
+    public boolean isRASActivated() { return RASActivation; }
 
     public void sendCommandsToMotors() {
-        sendCommandsToMotors(Float.POSITIVE_INFINITY); // if the tof is not used
-    }
-
-    public void sendCommandsToMotors(double tofDistanceSensorReading) {
         if (rotationMode == goToRotationMode) updateRotationalMotorSpeed(dt.seconds());
         if (translationalMode == gotoPositionMode) updateTranslationalMotionUsingEncoder(dt.seconds());
         hardwareDriver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
@@ -123,7 +122,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
         // rotationalMotion *= -1;
-        System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        // System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder(double dt) {
@@ -157,6 +156,8 @@ public class ChassisDriver {
 
         xAxleMotion = (xAxleMotionToGround / Math.cos(currentRotation)) + (yAxleMotionToGround / Math.sin(currentRotation));
         yAxleMotion = (xAxleMotionToGround / Math.sin(currentRotation)) + (yAxleMotionToGround / Math.cos(currentRotation));
+
+        System.out.println(positionRawError[0] + "," + positionRawError[1]);
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {
