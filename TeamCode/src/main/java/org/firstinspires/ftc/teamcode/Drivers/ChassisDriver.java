@@ -154,10 +154,10 @@ public class ChassisDriver {
                 yAxleMotionToGround
         );
 
-        xAxleMotion = (xAxleMotionToGround / Math.cos(currentRotation)) + (yAxleMotionToGround / Math.sin(currentRotation));
-        yAxleMotion = (xAxleMotionToGround / Math.sin(currentRotation)) + (yAxleMotionToGround / Math.cos(currentRotation));
+        xAxleMotion = (xAxleMotionToGround * Math.cos(currentRotation)) + (yAxleMotionToGround * Math.sin(currentRotation));
+        yAxleMotion = (xAxleMotionToGround * Math.sin(currentRotation)) + (yAxleMotionToGround * Math.cos(currentRotation));
 
-        System.out.println(positionRawError[0] + "," + positionRawError[1]);
+        System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {
