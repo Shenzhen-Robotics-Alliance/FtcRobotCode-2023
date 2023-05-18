@@ -11,8 +11,13 @@ public class ChassisDriver {
     private final double maxRotatingPower = 0.6;
     private final double rotationDifferenceStartDecelerate = Math.toRadians(15);
     private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
-    private final double velocityDebugTime = 0.05;
-    private final double integralCoefficient = 0; // not needed yet
+    private final double velocityDebugTimeRotation = 0.05;
+    private final double integralCoefficientRotation = 0; // not needed yet
+
+    private final double maxMotioningPower = 0.5;
+    private final double cmStartDecelerate = 10;
+    private final double motorPowerPerTranslationDifference = (maxMotioningPower / cmStartDecelerate);
+    private final double velocityDebugTimeTranslation = 0.1;
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -59,6 +64,7 @@ public class ChassisDriver {
     public void setTargetedRotation(double targetedRotation) {
         this.targetedRotation = targetedRotation;
         switchToGoToPositionMode();
+        integration = 0;
     }
 
     public void setRotationalMotion(double rotationalMotion) {
@@ -88,8 +94,12 @@ public class ChassisDriver {
     }
 
     public void sendCommandsToMotors() {
+        sendCommandsToMotors(Float.POSITIVE_INFINITY); // if the tof is not used
+    }
+
+    public void sendCommandsToMotors(double tofDistanceSensorReading) {
         if (rotationMode == goToRotationMode) updateRotationalMotorSpeed();
-        if (translationalMode == driverUsingTOFSensorMode)
+        if (translationalMode == driverUsingTOFSensorMode) updateTranslationalMotionUsingTOFDistanceSensor(tofDistanceSensorReading);
         hardwareDriver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
         hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
@@ -100,14 +110,14 @@ public class ChassisDriver {
     private void updateRotationalMotorSpeed() {
         double currentRotation = positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
-        double futureRotation = currentRotation + velocityDebugTime * positionCalculator.getAngularVelocity();
+        double futureRotation = currentRotation + velocityDebugTimeRotation * positionCalculator.getAngularVelocity();
 
         double rotationalRawError = getActualDifference(currentRotation, targetedRotation);
         double rotationalError = getActualDifference(futureRotation, targetedRotation);
 
         integration += rotationalRawError * dt.seconds();
 
-        rotationalMotion = rotationalError * motorPowerPerRotationDifference + integration * integralCoefficient;
+        rotationalMotion = rotationalError * motorPowerPerRotationDifference + integration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
         // rotationalMotion *= -1;
         System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
@@ -115,7 +125,10 @@ public class ChassisDriver {
     }
 
     private void updateTranslationalMotionUsingTOFDistanceSensor(double tofDistanceSensorReading) {
+        double yAxlePosition = tofDistanceSensorReading;
+        double xAxlePosition = positionCalculator.getRobotPosition()[0];
 
+        double positionPrediction
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {

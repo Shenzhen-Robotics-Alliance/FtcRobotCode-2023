@@ -21,6 +21,20 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the rotation tolerance when trying to face the sleeve */
     private static final double rotationTolerance = Math.toRadians(5);
 
+    /** the range to look for the high tower, in cm */
+    private static final double highTowerSearchRange = 80;
+    /** the range to look for the mid tower, in cm */
+    private static final double midTowerSearchRange = 110; // the arm is farther away when reaching for middle
+    /** the range to look for the low tower, in cm */
+    private static final double lowTowerSearchRange = 40;
+
+    /** the best dropping spot for the high tower, in cm */
+    private static final double highTowerDroppingSpot = 50;
+    /** the best dropping spot for the mid tower, in cm */
+    private static final double midTowerDroppingSpot = 45; // the arm is farther away when reaching for middle
+    /** the best dropping spot for the low tower, in cm */
+    private static final double lowTowerDroppingSpot = 00; // TODO find this value
+
     private Arm arm;
     private ChassisDriver chassisDriver;
     private ColorDistanceSensor colorDistanceSensor;

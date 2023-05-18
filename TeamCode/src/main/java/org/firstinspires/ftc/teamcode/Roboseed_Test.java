@@ -59,25 +59,24 @@ public class Roboseed_Test extends LinearOpMode {
 
     public boolean programAlive;
 
-    public void runOpMode_disabled() throws InterruptedException {
+    @Override
+    public void runOpMode() throws InterruptedException {
         configureRobot();
-
-         color = hardwareMap.get(ColorSensor.class, "color");
-         // distanceSensor = hardwareMap.get(DistanceSensor.class, "tof");
 
          // Wait for the Play button to be pressed
          waitForStart();
 
+        hardwareDriver.lift_left.setPower(0.5);
+
          // While the Op Mode is running, update the telemetry values.
          while (opModeIsActive()) {
              // telemetry.addData("color sensor result", color.alpha());
-             telemetry.addData("color sensor result", color.red());
+             telemetry.addData("left_lifter:", hardwareDriver.lift_left.getCurrentPosition());
              telemetry.update();
          }
     }
 
-    @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode_disabled() throws InterruptedException {
         configureRobot();
 
         /** pass the hardware ports to the arm module */
@@ -127,22 +126,27 @@ public class Roboseed_Test extends LinearOpMode {
         robotAuxiliarySystemDependentModules.put("arm", arm);
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this);
-        robotAuxiliarySystem.startAim();
+        // robotAuxiliarySystem.startAim();
 
         ElapsedTime dt = new ElapsedTime();
 
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
         double minDistance = 100;
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
+        arm.toMidArmPosition();
         while (opModeIsActive() && !isStopRequested()) {
-            positionCalculator.forceUpdateEncoderValue();
-            positionCalculator.periodic();
-            robotAuxiliarySystem.periodic();
+            System.out.println("delay:" + dt.seconds()*1000);
+            dt.reset();
+//            positionCalculator.forceUpdateEncoderValue();
+//            positionCalculator.periodic();
+//            robotAuxiliarySystem.periodic();
+            arm.periodic();
+            arm.closeClaw();
 
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            chassisDriver.sendCommandsToMotors();
-            telemetry.addData("color sensor reading: ",sensor.red());
+            telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
             telemetry.update();
         }
     }
