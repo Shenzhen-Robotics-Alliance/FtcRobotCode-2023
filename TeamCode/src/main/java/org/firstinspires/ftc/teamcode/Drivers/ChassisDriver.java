@@ -141,17 +141,22 @@ public class ChassisDriver {
         translationalIntegration[0] += dt * positionRawError[0];
         translationalIntegration[1] += dt * positionRawError[1];
 
-        xAxleMotion = positionError[0] * motorPowerPerEncoderDifference + translationalIntegration[0] * integrationCoefficientTranslation;
-        yAxleMotion = positionError[1] * motorPowerPerEncoderDifference + translationalIntegration[1] * integrationCoefficientTranslation;
+        double xAxleMotionToGround;
+        double yAxleMotionToGround;
+        xAxleMotionToGround = positionError[0] * motorPowerPerEncoderDifference + translationalIntegration[0] * integrationCoefficientTranslation;
+        yAxleMotionToGround = positionError[1] * motorPowerPerEncoderDifference + translationalIntegration[1] * integrationCoefficientTranslation;
 
-        xAxleMotion = Math.copySign(
-                Math.min(Math.abs(xAxleMotion), maxMotioningPower),
-                xAxleMotion
+        xAxleMotionToGround = Math.copySign(
+                Math.min(Math.abs(xAxleMotionToGround), maxMotioningPower),
+                xAxleMotionToGround
         );
-        yAxleMotion = Math.copySign(
-                Math.min(Math.abs(xAxleMotion), maxMotioningPower),
-                yAxleMotion
+        yAxleMotionToGround = Math.copySign(
+                Math.min(Math.abs(yAxleMotionToGround), maxMotioningPower),
+                yAxleMotionToGround
         );
+
+        xAxleMotion = (xAxleMotionToGround / Math.cos(currentRotation)) + (yAxleMotionToGround / Math.sin(currentRotation));
+        yAxleMotion = (xAxleMotionToGround / Math.sin(currentRotation)) + (yAxleMotionToGround / Math.cos(currentRotation));
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {

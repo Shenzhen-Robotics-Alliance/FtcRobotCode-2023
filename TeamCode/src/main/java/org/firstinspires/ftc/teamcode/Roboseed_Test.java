@@ -133,21 +133,24 @@ public class Roboseed_Test extends LinearOpMode {
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
         double minDistance = 100;
         // chassisDriver.setTargetedRotation(Math.toRadians(25));
+        chassisDriver.setTargetedTranslation(200, 100);
         arm.toMidArmPosition();
         while (opModeIsActive() && !isStopRequested()) {
             System.out.println("delay:" + dt.seconds()*1000);
             dt.reset();
+
+
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            robotAuxiliarySystem.periodic();
-            arm.periodic();
-            arm.closeClaw();
+//            arm.periodic();
+//            arm.closeClaw();
 
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            chassisDriver.sendCommandsToMotors();
-            telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
-            telemetry.update();
+//            telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
+//            telemetry.update();
         }
     }
 
