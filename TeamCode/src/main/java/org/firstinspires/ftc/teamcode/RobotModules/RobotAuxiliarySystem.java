@@ -13,14 +13,12 @@ import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
 
-import dalvik.system.DelegateLastClassLoader;
-
 // TODO: add explanation
 public class RobotAuxiliarySystem extends RobotModule {
     /** the range at which the robot looks for the cone */
     private static final double aimRange = Math.toRadians(120);
     /** the rotational speed, in motor speed, of the aim */
-    private static final double aimSpeed = 0.5;
+    private static final double aimSpeed = 0.35;
     /** the rotation tolerance when trying to face the sleeve */
     private static final double rotationTolerance = Math.toRadians(5);
 
@@ -33,6 +31,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double midTowerSearchRange = 110; // the arm is farther away when reaching for middle
     /** the range to look for the low tower, in cm */
     private static final double lowTowerSearchRange = 40;
+    private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
     private static final double highTowerDroppingSpot = 50;
@@ -165,7 +164,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     @Override
     public void periodic() {
-        System.out.println(statusCode + "," + targetCode);
+        System.out.println(tofDistanceSensorReading);
         if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
 
         if (targetCode == 0) aimCone();
@@ -176,7 +175,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
-                double targetedDirection = startingRotation + (aimRange/2);
+                double targetedDirection = startingRotation + (aimRange /2);
                 /* if the color distance captured anything */
                 if (colorDistanceSensor.targetInRange()) {
                     targetFound = true;
@@ -193,7 +192,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
             case 2: {
                 chassisDriver.setRotationalMotion(aimSpeed);
-                double targetedDirection = startingRotation - (aimRange/2);
+                double targetedDirection = startingRotation - (aimRange /2);
                 /* if the color distance captured anything */
                 if (colorDistanceSensor.targetInRange()) {
                     targetFound = true;
@@ -238,9 +237,10 @@ public class RobotAuxiliarySystem extends RobotModule {
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
-                double targetedDirection = startingRotation + (aimRange/2);
-                if (tofDistanceSensor.getDistance(DistanceUnit.CM) < 30) {
+                double targetedDirection = startingRotation + (aimRange /2);
+                if (tofDistanceSensor.getDistance(DistanceUnit.CM) < searchRangeList[targetCode]) {
                     minDistanceSpot = positionCalculator.getRobotRotation();
+                    minDistance = tofDistanceSensorReading;
                     statusCode = 3;
                 }
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
@@ -250,8 +250,8 @@ public class RobotAuxiliarySystem extends RobotModule {
             }
             case 2: {
                 chassisDriver.setRotationalMotion(aimSpeed);
-                double targetedDirection = startingRotation - (aimRange/2);
-                if (tofDistanceSensorReading < 30) {
+                double targetedDirection = startingRotation - (aimRange /2);
+                if (tofDistanceSensorReading < searchRangeList[targetCode]) {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                     minDistance = tofDistanceSensorReading;
                     statusCode = 3;
