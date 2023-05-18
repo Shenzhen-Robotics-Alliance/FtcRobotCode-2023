@@ -42,6 +42,7 @@ public class ChassisDriver {
     private double integration;
 
     private ElapsedTime dt = new ElapsedTime();
+    private ElapsedTime dt1 = new ElapsedTime();
 
     public ChassisDriver(HardwareDriver hardwareDriver, RobotPositionCalculator positionCalculator) {
         this.hardwareDriver = hardwareDriver;
@@ -126,9 +127,11 @@ public class ChassisDriver {
 
     private void updateTranslationalMotionUsingTOFDistanceSensor(double tofDistanceSensorReading) {
         double yAxlePosition = tofDistanceSensorReading;
-        double xAxlePosition = positionCalculator.getRobotPosition()[0];
+        double
 
-        double positionPrediction
+        double yAxlePositionPrediction = dt1.seconds() * ;
+
+        dt1.reset();
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {
