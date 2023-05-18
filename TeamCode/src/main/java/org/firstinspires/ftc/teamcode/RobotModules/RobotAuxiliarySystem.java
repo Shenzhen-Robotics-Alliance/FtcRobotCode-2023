@@ -41,6 +41,8 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
 
+    private static final double encoderValuePerCM = 0.0; // TODO find this value
+
     private Arm arm;
     private ChassisDriver chassisDriver;
     private ColorDistanceSensor colorDistanceSensor;
@@ -271,7 +273,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
 
-                    double distanceToDroppingSpot = tofDistanceSensorReading - droppingSpotList[targetCode];
+                    double distanceToDroppingSpot = (tofDistanceSensorReading - droppingSpotList[targetCode]) * encoderValuePerCM;
                     towerPosition[0] = positionCalculator.getRobotPosition()[0] - Math.sin(positionCalculator.getRobotRotation()) * distanceToDroppingSpot;
                     towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.cos(positionCalculator.getRobotRotation()) * distanceToDroppingSpot;
                     chassisDriver.setTargetedTranslation(towerPosition[0], towerPosition[1]);
@@ -280,7 +282,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 break;
             }
             case 4: {
-                // TODO if the robot is not moving at all, stop the dead loop
+                // TODO if the robot is not moving at all, stop the dead loop; adjust the PIDs, the robot is stuck when being told to move to a nearby position
 
                 double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
