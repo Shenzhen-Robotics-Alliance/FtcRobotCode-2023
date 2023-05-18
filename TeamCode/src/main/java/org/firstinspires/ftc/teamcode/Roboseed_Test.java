@@ -130,14 +130,13 @@ public class Roboseed_Test extends LinearOpMode {
 
         ElapsedTime dt = new ElapsedTime();
 
-        // chassisDriver.setTargetedRotation(Math.toRadians(25));
-        double minDistance = 100;
-        // chassisDriver.setTargetedRotation(Math.toRadians(25));
-        chassisDriver.setTargetedTranslation(0, 20000);
-        // arm.toMidArmPosition();
+        arm.closeClaw();
+        robotAuxiliarySystem.startAim();
         while (opModeIsActive() && !isStopRequested()) {
             // System.out.println("delay:" + dt.seconds()*1000);
             dt.reset();
+
+            robotAuxiliarySystem.periodic();
 
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.RobotModules;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
@@ -11,6 +12,9 @@ import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
+
+import dalvik.system.DelegateLastClassLoader;
+
 // TODO: add explanation
 public class RobotAuxiliarySystem extends RobotModule {
     /** the range at which the robot looks for the cone */
@@ -19,6 +23,9 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double aimSpeed = 0.5;
     /** the rotation tolerance when trying to face the sleeve */
     private static final double rotationTolerance = Math.toRadians(5);
+
+    /** the tolerance for translational error, in encoder values */
+    private static final double encoderErrorTolerance = 50;
 
     /** the range to look for the high tower, in cm */
     private static final double highTowerSearchRange = 80;
@@ -33,6 +40,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double midTowerDroppingSpot = 45; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
+    private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -56,13 +64,13 @@ public class RobotAuxiliarySystem extends RobotModule {
      *
      * (for tower aiming)
      * (-1, 0, 1, 2, 3: same as above)
-     * 4: the robot will raise its arm and go to the target, and drop the sleeve, the robot goes for the high tower by default, the pilot can select which tower by pressing a, b, x and aim buttom at the same time
-     *
+     * 4: the robot will raise its arm and go to the target, and lower it's arm to score sleeves and open claw once the towers holds the sleeves,
+     * IMPORTANT: the robot goes for the high tower by default, the pilot can select which tower by pressing a, b, x and aim bottom at the same time
      * */
     // private short statusCode = -1;
-    private short statusCode = -1;
+    private int statusCode = -1;
     /** the code of the target, 0 for sleeves and 1 for towers */
-    private short targetCode = 0;
+    private int targetCode = 0;
 
     /** an independent thread that reads the tof distance sensor, as it takes a bit long, 30ms */
     private Thread tofSensorReadingThread;
@@ -73,6 +81,8 @@ public class RobotAuxiliarySystem extends RobotModule {
     private double startingRotation;
     /** minimum distance location */
     private double minDistanceSpot;
+    /** the spot of the tower */
+    private double[] towerPosition = new double[2];
     /** minimum distance to target */
     private double minDistance;
     /** whether any target locked in this scan */
@@ -157,6 +167,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void periodic() {
         System.out.println(statusCode + "," + targetCode);
         if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
+
         if (targetCode == 0) aimCone();
         else aimTower();
     }
@@ -240,8 +251,9 @@ public class RobotAuxiliarySystem extends RobotModule {
             case 2: {
                 chassisDriver.setRotationalMotion(aimSpeed);
                 double targetedDirection = startingRotation - (aimRange/2);
-                if (tofDistanceSensor.getDistance(DistanceUnit.CM) < 30) {
+                if (tofDistanceSensorReading < 30) {
                     minDistanceSpot = positionCalculator.getRobotRotation();
+                    minDistance = tofDistanceSensorReading;
                     statusCode = 3;
                 }
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop
@@ -258,23 +270,44 @@ public class RobotAuxiliarySystem extends RobotModule {
                 if (Math.abs(rotationalError) < rotationTolerance) {
                     chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
+
+                    double distanceToDroppingSpot = tofDistanceSensorReading - droppingSpotList[targetCode];
+                    towerPosition[0] = positionCalculator.getRobotPosition()[0] - Math.sin(positionCalculator.getRobotRotation()) * distanceToDroppingSpot;
+                    towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.cos(positionCalculator.getRobotRotation()) * distanceToDroppingSpot;
+                    chassisDriver.setTargetedTranslation(towerPosition[0], towerPosition[1]);
                     statusCode = 4;
                 }
                 break;
             }
             case 4: {
-                
+                // TODO if the robot is not moving at all, stop the dead loop
+
+                double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
+                double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
+                if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
+                /* if the robot reached the tower */
+                arm.lowerArm();
+                ElapsedTime descendTime = new ElapsedTime();
+                while (descendTime.milliseconds() < 300) {
+                    arm.periodic();
+                }
+                arm.openClaw();
+                statusCode = 0;
+                break;
             }
         }
     }
 
-    /** call the system to start the aiming process */
-    public void startAim() {
+    /**
+     * call the system to start the aiming process
+     * @param targetCode the code of the target, 0 for sleeves, 1 2 3 for low to high towers
+     * */
+    public void startAim(int targetCode) {
         if (statusCode == -1) return;
         // stopAim();
         startingRotation = positionCalculator.getRobotRotation();
-        if (arm.getClaw()) targetCode = 1; // if the claw is closed, look for the tower
-        else {
+        this.targetCode = targetCode;
+        if (targetCode != 0) {
             targetCode = 0; // the default target is sleeve
             if (colorDistanceSensor.targetInRange()) { // if the target is already ahead
                 statusCode = 4;
@@ -285,6 +318,11 @@ public class RobotAuxiliarySystem extends RobotModule {
         minDistance = 1;
         targetFound = false;
         chassisDriver.newAimStarted();
+    }
+
+    public void startAim() {
+        if (arm.getClaw()) targetCode = 3; // go for high tower by default
+        else targetCode = 0;
     }
 
     /** cancel the aiming process */
