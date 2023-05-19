@@ -31,14 +31,16 @@ public class RobotPositionCalculator extends RobotModule {
     /** to calculate the difference in time */
     private static final ElapsedTime dt = new ElapsedTime();
 
-    /** some configurations of the robot TODO:measure these values */
+    /** some configurations of the robot */
     /** the ratio between the angular velocity(in rad/s) to the difference in the velocity of the two parallel encoders (in encoder value) */
-    private static final double angularVelocityPerParallelEncoderVelocityDifference = 10*Math.PI * 2 / 202520.56922511634; // to get this data I rotated the robot 10 rounds on the field and get the difference in encoder value
+    private static final double angularVelocityPerParallelEncoderVelocityDifference = 10*Math.PI * 2 / 202520.56922511634; // to get this data I rotated the robot 10 rounds on the field and get the difference in encoder value TODO: not accurate, needs an update
     /** the ratio between the angular velocity(in rad/s) to the velocity of the third encoder, assuming that the robot's rotating center is still */
     private static final double angularVelocityPerThirdEncoderVelocity = 31.4 / 69865.0; // to get this data, I also make robot rotate 10 times on the field
 
     /** stores the robot's current facing, in radian */
     private double robotRotation;
+    /** the difference between the encoder value of the two parallel encoders during init */
+    private double startingEncoderDifference;
     /** stores the robot's current position, in encoder values */
     private double[] robotPosition = new double[2];
     /** stores the angular velocity of the robot */
@@ -97,7 +99,8 @@ public class RobotPositionCalculator extends RobotModule {
 
         /** update the robot's current rotation */
         /* take the integral of angular velocity to time */
-        this.robotRotation += angularVelocity * this.dt.seconds(); // TODO use the difference between the rwo parallel sensor reading to determine rotation will be more precise
+        // this.robotRotation += angularVelocity * this.dt.seconds();
+        this.robotRotation = (encoderReader.getEncoderPosition(2) - encoderReader.getEncoderPosition(1) - startingEncoderDifference) * angularVelocityPerParallelEncoderVelocityDifference; // use the difference between two encoders to determine the heading of the robot
         /* format the rotation value */
         while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
         while (this.robotRotation < 0) this.robotRotation += Math.PI*2;
@@ -213,5 +216,7 @@ public class RobotPositionCalculator extends RobotModule {
 
         rawVelocity[0] = 0;
         rawVelocity[1] = 0;
+
+        startingEncoderDifference = encoderReader.getEncoderPosition(2) - encoderReader.getEncoderPosition(1);
     }
 }

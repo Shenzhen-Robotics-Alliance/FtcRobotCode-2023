@@ -298,7 +298,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     towerPosition[0] = positionCalculator.getRobotPosition()[0] + Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     System.out.println(Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot + "," + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot);
-                    chassisDriver.setTargetedTranslation_fixedPosition(towerPosition[0], towerPosition[1]);
+                    chassisDriver.setTargetedTranslation_fixedRotation(towerPosition[0], towerPosition[1]);
                     statusCode = 4;
                 }
                 break;

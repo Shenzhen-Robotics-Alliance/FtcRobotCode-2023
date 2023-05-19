@@ -13,13 +13,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -37,7 +35,6 @@ import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
-import java.util.Timer;
 
 /*
  * the robot starts in the corner of the field.
@@ -110,7 +107,6 @@ public class Roboseed_Test extends LinearOpMode {
         /** the temporary chassis module */
         this.robotChassis = new AutoStageRobotChassis_tmp(hardwareMap, hardwareDriver, positionCalculator);
 
-        waitForStart();
 
         /** the RAS */
         ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
@@ -127,17 +123,19 @@ public class Roboseed_Test extends LinearOpMode {
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this);
 
+        waitForStart();
         ElapsedTime dt = new ElapsedTime();
 
         arm.closeClaw();
-        robotAuxiliarySystem.startAim();
+        // robotAuxiliarySystem.startAim();
+        chassisDriver.setTargetedRotation(Math.toRadians(90));
+        boolean flag = true;
         while (opModeIsActive() && !isStopRequested()) {
             // System.out.println("delay:" + dt.seconds()*1000);
-            dt.reset();
 
-            positionCalculator.forceUpdateEncoderValue();
-            positionCalculator.periodic();
-            robotAuxiliarySystem.periodic();
+//            positionCalculator.forceUpdateEncoderValue();
+//            positionCalculator.periodic();
+            // robotAuxiliarySystem.periodic();
 
 
 //            positionCalculator.forceUpdateEncoderValue();
@@ -146,11 +144,18 @@ public class Roboseed_Test extends LinearOpMode {
 //            arm.periodic();
 //            arm.closeClaw();
 
-//            positionCalculator.forceUpdateEncoderValue();
-//            positionCalculator.periodic();
-//            chassisDriver.sendCommandsToMotors();
-            telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            chassisDriver.sendCommandsToMotors();
+
+            if (dt.seconds() > 3 && flag) {
+                chassisDriver.setTargetedTranslation_fixedRotation(2000, 20000);
+                flag = false;
+            }
+
+            // telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
             telemetry.addData("position:", String.format("%.2f",positionCalculator.getRobotPosition()[0]) + "," + String.format("%.2f",positionCalculator.getRobotPosition()[1]));
+            telemetry.addData("rotation:", Math.toDegrees(positionCalculator.getRobotRotation()));
             telemetry.update();
         }
     }

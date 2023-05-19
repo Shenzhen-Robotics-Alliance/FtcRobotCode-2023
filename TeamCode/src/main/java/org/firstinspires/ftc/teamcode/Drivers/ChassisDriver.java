@@ -11,7 +11,7 @@ public class ChassisDriver {
     private final double maxRotatingPower = 0.6;
     private final double rotationDifferenceStartDecelerate = Math.toRadians(15);
     private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
-    private final double velocityDebugTimeRotation = 0.05;
+    private final double velocityDebugTimeRotation = 0.07;
     private final double integralCoefficientRotation = 0; // not needed yet
 
     private final double maxMotioningPower = 0.6;
@@ -55,7 +55,7 @@ public class ChassisDriver {
         sendCommandsToMotors();
     }
 
-    public void setTargetedTranslation_fixedPosition(double xAxleTranslation, double yAxleTranslation) {
+    public void setTargetedTranslation_fixedRotation(double xAxleTranslation, double yAxleTranslation) {
         this.xAxleTranslationTarget = xAxleTranslation;
         this.yAxleTranslationTarget = yAxleTranslation;
         switchToGoToPosition_fixedRotation_mode();
@@ -122,10 +122,11 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
         // rotationalMotion *= -1;
-        // System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
+        ElapsedTime time = new ElapsedTime(); time.reset();
         double[] currentPosition = positionCalculator.getRobotPosition();
         double currentRotation = positionCalculator.getRobotRotation();
 
@@ -144,13 +145,13 @@ public class ChassisDriver {
         positionError[1] = (positionErrorToGround[0] * Math.sin(currentRotation) + (positionErrorToGround[1] * Math.cos(currentRotation)));
 
         // do the integration when the robot is almost there
-        if (Math.abs(positionErrorToGround[0]) + Math.abs(positionErrorToGround[1]) < encoderDifferenceStartDecelerate) {
-            translationalIntegration[0] += dt * positionRawErrorToGround[0];
-            translationalIntegration[1] += dt * positionRawErrorToGround[1];
+        if (Math.abs(positionError[0]) + Math.abs(positionError[1]) < encoderDifferenceStartDecelerate) {
+            translationalIntegration[0] += dt * positionRawError[0];
+            translationalIntegration[1] += dt * positionRawError[1];
         }
 
-        xAxleMotion = positionErrorToGround[0] * motorPowerPerEncoderDifference + translationalIntegration[0] * integrationCoefficientTranslation;
-        yAxleMotion = positionErrorToGround[1] * motorPowerPerEncoderDifference + translationalIntegration[1] * integrationCoefficientTranslation;
+        xAxleMotion = positionError[0] * motorPowerPerEncoderDifference + translationalIntegration[0] * integrationCoefficientTranslation;
+        yAxleMotion = positionError[1] * motorPowerPerEncoderDifference + translationalIntegration[1] * integrationCoefficientTranslation;
 
         xAxleMotion = Math.copySign(
                 Math.min(Math.abs(xAxleMotion), maxMotioningPower),
@@ -161,7 +162,11 @@ public class ChassisDriver {
                 yAxleMotion
         );
 
-        System.out.println("raw error:" + positionRawErrorToGround[1] + "; error:" + positionErrorToGround[1] + "; motion:" + yAxleMotion);
+        updateRotationalMotorSpeed(dt);
+
+        // System.out.println("raw error:" + positionRawError[0] + "," + positionRawError[1] +"; raw:" + positionError[0] + "," + positionError[1]);
+
+        System.out.println(time);
     }
 
     @Deprecated
@@ -200,7 +205,7 @@ public class ChassisDriver {
         xAxleMotion = (xAxleMotionToGround * Math.cos(currentRotation)) + (yAxleMotionToGround * Math.sin(currentRotation));
         yAxleMotion = (xAxleMotionToGround * Math.sin(currentRotation)) + (yAxleMotionToGround * Math.cos(currentRotation));
 
-        System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
+        // System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {
