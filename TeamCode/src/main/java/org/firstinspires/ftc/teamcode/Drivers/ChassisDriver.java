@@ -18,7 +18,7 @@ public class ChassisDriver {
     private final double encoderDifferenceStartDecelerate = 3000;
     private final double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private final double velocityDebugTimeTranslation = 0.14;
-    private final double integrationCoefficientTranslation = 0; // not needed yet
+    private final double integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference; // not needed yet
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -137,8 +137,11 @@ public class ChassisDriver {
         double[] positionRawError = new double[]{xAxleTranslationTarget - currentPosition[0], yAxleTranslationTarget - currentPosition[1]};
         double[] positionError = new double[] {xAxleTranslationTarget - positionPrediction[0], yAxleTranslationTarget- positionPrediction[1]};
 
-        translationalIntegration[0] += dt * positionRawError[0];
-        translationalIntegration[1] += dt * positionRawError[1];
+        // do the integration when the robot is almost there
+        if (Math.abs(positionError[0]) + Math.abs(positionError[1]) < encoderDifferenceStartDecelerate) {
+            translationalIntegration[0] += dt * positionRawError[0];
+            translationalIntegration[1] += dt * positionRawError[1];
+        }
 
         double xAxleMotionToGround;
         double yAxleMotionToGround;
@@ -173,5 +176,10 @@ public class ChassisDriver {
             absoluteDifference *= -1;
         }
         return absoluteDifference;
+    }
+
+    public static double midPoint(double rotation1, double rotation2) {
+        rotation1 += getActualDifference(rotation1, rotation2);
+        return rotation1 % (Math.PI*2);
     }
 }

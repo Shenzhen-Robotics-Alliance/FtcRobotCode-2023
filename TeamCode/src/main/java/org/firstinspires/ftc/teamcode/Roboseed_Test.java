@@ -126,7 +126,6 @@ public class Roboseed_Test extends LinearOpMode {
         robotAuxiliarySystemDependentModules.put("arm", arm);
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this);
-        // robotAuxiliarySystem.startAim();
 
         ElapsedTime dt = new ElapsedTime();
 
@@ -138,7 +137,6 @@ public class Roboseed_Test extends LinearOpMode {
 
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
-            chassisDriver.sendCommandsToMotors();
             robotAuxiliarySystem.periodic();
 
 
@@ -151,8 +149,9 @@ public class Roboseed_Test extends LinearOpMode {
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            chassisDriver.sendCommandsToMotors();
-//            telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
-//            telemetry.update();
+            telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
+            telemetry.addData("position:", String.format("%.2f",positionCalculator.getRobotPosition()[0]) + "," + String.format("%.2f",positionCalculator.getRobotPosition()[1]));
+            telemetry.update();
         }
     }
 
