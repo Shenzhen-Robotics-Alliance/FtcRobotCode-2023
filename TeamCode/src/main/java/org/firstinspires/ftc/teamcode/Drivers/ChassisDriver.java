@@ -8,14 +8,14 @@ public class ChassisDriver {
     /* private final double maxPower = 0.6;
     private final double encoderDistanceStartDecelerate = 15000;
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
-    private final double maxRotatingPower = 0.6;
+    private final double maxRotatingPower = 0.4;
     private final double rotationDifferenceStartDecelerate = Math.toRadians(15);
     private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
-    private final double velocityDebugTimeRotation = 0.07;
+    private final double velocityDebugTimeRotation = 0.05;
     private final double integralCoefficientRotation = 0; // not needed yet
 
-    private final double maxMotioningPower = 0.6;
-    private final double encoderDifferenceStartDecelerate = 3000;
+    private final double maxMotioningPower = 0.4;
+    private final double encoderDifferenceStartDecelerate = 2400;
     private final double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private final double velocityDebugTimeTranslation = 0.14;
     private final double integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference; // not needed yet
@@ -52,6 +52,7 @@ public class ChassisDriver {
     public void setRobotTranslationalMotion(double xAxleMotion, double yAxleMotion) {
         this.xAxleMotion = xAxleMotion;
         this.yAxleMotion = yAxleMotion;
+        translationalMode = manualMode;
         sendCommandsToMotors();
     }
 
@@ -121,8 +122,8 @@ public class ChassisDriver {
 
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
-        // rotationalMotion *= -1;
-        // System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+
+        System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
@@ -138,10 +139,10 @@ public class ChassisDriver {
         double[] positionErrorToGround = new double[] {xAxleTranslationTarget - positionPrediction[0], yAxleTranslationTarget- positionPrediction[1]};
 
         double[] positionRawError, positionError; positionRawError = new double[2]; positionError = new double[2];
-        positionRawError[0] = (positionRawErrorToGround[0] * Math.cos(currentRotation) + (positionRawErrorToGround[1] * Math.sin(currentRotation)));
-        positionRawError[1] = (positionRawErrorToGround[0] * Math.sin(currentRotation) + (positionRawErrorToGround[1] * Math.cos(currentRotation)));
-        positionError[0] = (positionErrorToGround[0] * Math.cos(currentRotation)) + (positionErrorToGround[1] * Math.sin(currentRotation));
-        positionError[1] = (positionErrorToGround[0] * Math.sin(currentRotation)) + (positionErrorToGround[1] * Math.cos(currentRotation));
+        positionRawError[0] = positionRawErrorToGround[0] * Math.cos(currentRotation) + positionRawErrorToGround[1] * Math.sin(currentRotation);
+        positionRawError[1] = positionRawErrorToGround[0] * -Math.sin(currentRotation) + positionRawErrorToGround[1] * Math.cos(currentRotation);
+        positionError[0] = positionErrorToGround[0] * Math.cos(currentRotation) + positionErrorToGround[1] * Math.sin(currentRotation);
+        positionError[1] = positionErrorToGround[0] * -Math.sin(currentRotation) + positionErrorToGround[1] * Math.cos(currentRotation);
 
         // do the integration when the robot is almost there
         if (Math.abs(positionError[0]) + Math.abs(positionError[1]) < encoderDifferenceStartDecelerate) {
@@ -163,7 +164,7 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
-        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1]);
+        // System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + ";error to ground:" + positionErrorToGround[0] + "," + positionErrorToGround[1]);
     }
 
     @Deprecated
@@ -221,7 +222,7 @@ public class ChassisDriver {
     }
 
     public static double midPoint(double rotation1, double rotation2) {
-        rotation1 += getActualDifference(rotation1, rotation2);
+        rotation1 += getActualDifference(rotation1, rotation2) / 2;
         return rotation1 % (Math.PI*2);
     }
 }

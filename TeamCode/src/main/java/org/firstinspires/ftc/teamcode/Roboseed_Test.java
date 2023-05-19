@@ -127,15 +127,13 @@ public class Roboseed_Test extends LinearOpMode {
         ElapsedTime dt = new ElapsedTime();
 
         arm.closeClaw();
-        // robotAuxiliarySystem.startAim();
-        chassisDriver.setTargetedRotation(Math.toRadians(90));
-        boolean flag = true;
+        robotAuxiliarySystem.startAim();
         while (opModeIsActive() && !isStopRequested()) {
             // System.out.println("delay:" + dt.seconds()*1000);
 
-//            positionCalculator.forceUpdateEncoderValue();
-//            positionCalculator.periodic();
-            // robotAuxiliarySystem.periodic();
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            robotAuxiliarySystem.periodic();
 
 
 //            positionCalculator.forceUpdateEncoderValue();
@@ -144,14 +142,9 @@ public class Roboseed_Test extends LinearOpMode {
 //            arm.periodic();
 //            arm.closeClaw();
 
-            positionCalculator.forceUpdateEncoderValue();
-            positionCalculator.periodic();
-            chassisDriver.sendCommandsToMotors();
-
-            if (dt.seconds() > 3 && flag) {
-                chassisDriver.setTargetedTranslation_fixedRotation(2000, 20000);
-                flag = false;
-            }
+//            positionCalculator.forceUpdateEncoderValue();
+//            positionCalculator.periodic();
+//            chassisDriver.sendCommandsToMotors();
 
             // telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
             telemetry.addData("position:", String.format("%.2f",positionCalculator.getRobotPosition()[0]) + "," + String.format("%.2f",positionCalculator.getRobotPosition()[1]));
