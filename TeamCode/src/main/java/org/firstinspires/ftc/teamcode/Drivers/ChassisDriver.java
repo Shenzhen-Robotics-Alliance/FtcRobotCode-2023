@@ -122,11 +122,10 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
         // rotationalMotion *= -1;
-        System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        // System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
-        ElapsedTime time = new ElapsedTime(); time.reset();
         double[] currentPosition = positionCalculator.getRobotPosition();
         double currentRotation = positionCalculator.getRobotRotation();
 
@@ -141,8 +140,8 @@ public class ChassisDriver {
         double[] positionRawError, positionError; positionRawError = new double[2]; positionError = new double[2];
         positionRawError[0] = (positionRawErrorToGround[0] * Math.cos(currentRotation) + (positionRawErrorToGround[1] * Math.sin(currentRotation)));
         positionRawError[1] = (positionRawErrorToGround[0] * Math.sin(currentRotation) + (positionRawErrorToGround[1] * Math.cos(currentRotation)));
-        positionError[0] = (positionErrorToGround[0] * Math.cos(currentRotation) + (positionErrorToGround[1] * Math.sin(currentRotation)));
-        positionError[1] = (positionErrorToGround[0] * Math.sin(currentRotation) + (positionErrorToGround[1] * Math.cos(currentRotation)));
+        positionError[0] = (positionErrorToGround[0] * Math.cos(currentRotation)) + (positionErrorToGround[1] * Math.sin(currentRotation));
+        positionError[1] = (positionErrorToGround[0] * Math.sin(currentRotation)) + (positionErrorToGround[1] * Math.cos(currentRotation));
 
         // do the integration when the robot is almost there
         if (Math.abs(positionError[0]) + Math.abs(positionError[1]) < encoderDifferenceStartDecelerate) {
@@ -164,9 +163,7 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
-        // System.out.println("raw error:" + positionRawError[0] + "," + positionRawError[1] +"; raw:" + positionError[0] + "," + positionError[1]);
-
-        System.out.println(time);
+        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1]);
     }
 
     @Deprecated
