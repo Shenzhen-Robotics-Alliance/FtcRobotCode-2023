@@ -189,7 +189,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                 }
                 /* wait for the robot to turn left, until difference is negative */
-                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0 && !targetFound) break; // go to the next loop
                 chassisDriver.setRotationalMotion(0);
                 if (targetFound) {
                     statusCode = 3;
@@ -209,7 +209,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     minDistanceSpot = positionCalculator.getRobotRotation();
                 }
                 /* wait for the robot to turn right, until difference is positive */
-                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop if not reached yet
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0 && !targetFound) break; // go to the next loop if not reached yet
                 chassisDriver.setRotationalMotion(0);
                 if (targetFound) {
                     statusCode = 3;
@@ -245,13 +245,13 @@ public class RobotAuxiliarySystem extends RobotModule {
     }
 
     private void aimTower() {
-        System.out.println(statusCode);
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
                 double targetedDirection = startingRotation + (aimRange /2);
                 /* if target is ahead */
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
+                    System.out.println("target in range and is first found:" + targetFound);
                     /* if this is not the first time to see the target */
                     if (targetFound) break; // wait for the target to disappear
                     /* record the information's for further calculation */
@@ -295,9 +295,10 @@ public class RobotAuxiliarySystem extends RobotModule {
                     chassisDriver.setRotationalMotion(0);
 
                     double distanceToDroppingSpot = (towerDistance - droppingSpotList[targetCode]) * encoderValuePerCM;
-                    towerPosition[0] = positionCalculator.getRobotPosition()[0] - Math.sin(positionCalculator.getRobotRotation()) * distanceToDroppingSpot;
-                    towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.cos(positionCalculator.getRobotRotation()) * distanceToDroppingSpot;
-                    chassisDriver.setTargetedTranslation(towerPosition[0], towerPosition[1]);
+                    towerPosition[0] = positionCalculator.getRobotPosition()[0] + Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
+                    towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
+                    System.out.println(Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot + "," + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot);
+                    chassisDriver.setTargetedTranslation_fixedPosition(towerPosition[0], towerPosition[1]);
                     statusCode = 4;
                 }
                 break;

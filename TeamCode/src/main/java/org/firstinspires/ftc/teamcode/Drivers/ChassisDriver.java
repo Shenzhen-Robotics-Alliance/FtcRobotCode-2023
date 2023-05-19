@@ -55,10 +55,10 @@ public class ChassisDriver {
         sendCommandsToMotors();
     }
 
-    public void setTargetedTranslation(double xAxleTranslation, double yAxleTranslation) {
+    public void setTargetedTranslation_fixedPosition(double xAxleTranslation, double yAxleTranslation) {
         this.xAxleTranslationTarget = xAxleTranslation;
         this.yAxleTranslationTarget = yAxleTranslation;
-        switchToGoToPositionMode();;
+        switchToGoToPosition_fixedRotation_mode();
         translationalIntegration[0] = 0;
         translationalIntegration[1] = 0;
     }
@@ -91,7 +91,7 @@ public class ChassisDriver {
     private void switchToGoToRotationMode() { rotationMode = goToRotationMode; }
 
     public void switchToManualPositionMode() { translationalMode = manualMode; }
-    private void switchToGoToPositionMode() {
+    private void switchToGoToPosition_fixedRotation_mode() {
         translationalMode = gotoPositionMode;
         this.targetedRotation = positionCalculator.getRobotRotation();
         switchToGoToRotationMode();
@@ -101,7 +101,7 @@ public class ChassisDriver {
 
     public void sendCommandsToMotors() {
         if (rotationMode == goToRotationMode) updateRotationalMotorSpeed(dt.seconds());
-        if (translationalMode == gotoPositionMode) updateTranslationalMotionUsingEncoder(dt.seconds());
+        if (translationalMode == gotoPositionMode) updateTranslationalMotionUsingEncoder_fixedRotation(dt.seconds());
         hardwareDriver.leftFront.setPower(yAxleMotion + rotationalMotion + xAxleMotion);
         hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
@@ -125,6 +125,46 @@ public class ChassisDriver {
         // System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
+    private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
+        double[] currentPosition = positionCalculator.getRobotPosition();
+        double currentRotation = positionCalculator.getRobotRotation();
+
+        /* according to the robot's translational motion, predict it's future position */
+        double[] positionPrediction = new double[2];
+        positionPrediction[0] = positionCalculator.getVelocity()[0] * velocityDebugTimeTranslation + currentPosition[0];
+        positionPrediction[1] = positionCalculator.getVelocity()[1] * velocityDebugTimeTranslation + currentPosition[1];
+
+        double[] positionRawErrorToGround = new double[]{xAxleTranslationTarget - currentPosition[0], yAxleTranslationTarget - currentPosition[1]};
+        double[] positionErrorToGround = new double[] {xAxleTranslationTarget - positionPrediction[0], yAxleTranslationTarget- positionPrediction[1]};
+
+        double[] positionRawError, positionError; positionRawError = new double[2]; positionError = new double[2];
+        positionRawError[0] = (positionRawErrorToGround[0] * Math.cos(currentRotation) + (positionRawErrorToGround[1] * Math.sin(currentRotation)));
+        positionRawError[1] = (positionRawErrorToGround[0] * Math.sin(currentRotation) + (positionRawErrorToGround[1] * Math.cos(currentRotation)));
+        positionError[0] = (positionErrorToGround[0] * Math.cos(currentRotation) + (positionErrorToGround[1] * Math.sin(currentRotation)));
+        positionError[1] = (positionErrorToGround[0] * Math.sin(currentRotation) + (positionErrorToGround[1] * Math.cos(currentRotation)));
+
+        // do the integration when the robot is almost there
+        if (Math.abs(positionErrorToGround[0]) + Math.abs(positionErrorToGround[1]) < encoderDifferenceStartDecelerate) {
+            translationalIntegration[0] += dt * positionRawErrorToGround[0];
+            translationalIntegration[1] += dt * positionRawErrorToGround[1];
+        }
+
+        xAxleMotion = positionErrorToGround[0] * motorPowerPerEncoderDifference + translationalIntegration[0] * integrationCoefficientTranslation;
+        yAxleMotion = positionErrorToGround[1] * motorPowerPerEncoderDifference + translationalIntegration[1] * integrationCoefficientTranslation;
+
+        xAxleMotion = Math.copySign(
+                Math.min(Math.abs(xAxleMotion), maxMotioningPower),
+                xAxleMotion
+        );
+        yAxleMotion = Math.copySign(
+                Math.min(Math.abs(yAxleMotion), maxMotioningPower),
+                yAxleMotion
+        );
+
+        System.out.println("raw error:" + positionRawErrorToGround[1] + "; error:" + positionErrorToGround[1] + "; motion:" + yAxleMotion);
+    }
+
+    @Deprecated
     private void updateTranslationalMotionUsingEncoder(double dt) {
         double[] currentPosition = positionCalculator.getRobotPosition();
         double currentRotation = positionCalculator.getRobotRotation();
