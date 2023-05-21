@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -11,8 +12,11 @@ import org.firstinspires.ftc.teamcode.Drivers.ChassisDriver;
 import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
+import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
+import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 
 import java.util.HashMap;
 
@@ -38,7 +42,7 @@ abstract class AutoStage extends LinearOpMode {
 
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ChassisDriver chassis;
-    private Arm arm;
+    private AutoStageArm arm;
     /** the number of the sector the robot parks into by the end of auto stage */
     private short parkingSectorNum;
 
@@ -52,11 +56,34 @@ abstract class AutoStage extends LinearOpMode {
         configureRobot();
 
         /** pass the hardware ports to the arm module */
-        HashMap armModuleDependentModules = null;
+        HashMap<String, RobotModule> armModuleDependentModules = new HashMap<>(1);
         HashMap<String, Object> armModuleDependentInstances = new HashMap<>(1);
         armModuleDependentInstances.put("hardwareDriver", hardwareDriver);
-        arm = new Arm();
-        arm.init(armModuleDependentModules, armModuleDependentInstances);
+        armModuleDependentInstances.put("initialControllerPad", new Gamepad());
+        Arm armModule = new Arm();
+        armModule.init(armModuleDependentModules, armModuleDependentInstances, false);
+
+        /** the temporary arm module to operate the arm during auto stage */
+        this.arm = new AutoStageArm(armModule);
+
+        /** pass the hardware ports to the encoder reader module */
+        HashMap<String, RobotModule> encoderReaderDependentModules = null;
+        HashMap<String, Object> encoderReaderDependentInstances = new HashMap<>(1);
+        /* no enough ports, use the encoder ports of the driving motors instead */
+        encoderReaderDependentInstances.put("encoder-1-instance", hardwareDriver.leftFront);
+        encoderReaderDependentInstances.put("encoder-2-instance", hardwareDriver.rightFront);
+        encoderReaderDependentInstances.put("encoder-3-instance", hardwareDriver.leftRear);
+        Mini1024EncoderReader encoderReader = new Mini1024EncoderReader();
+        encoderReader.init(encoderReaderDependentModules, encoderReaderDependentInstances);
+        /** pass the encoder reader to the temporary position calculator */
+        HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
+        HashMap<String, Object> positionCalculatorDependentInstances = null;
+        positionCalculatorDependentModules.put("encoderReader", encoderReader);
+        RobotPositionCalculator positionCalculator = new RobotPositionCalculator();
+        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+
+        /** the driver of the chassis */
+        this.chassis = new ChassisDriver(hardwareDriver, positionCalculator);
 
         /* determines where to park */
         this.parkingSectorNum = determineParkingSector();
@@ -129,11 +156,11 @@ abstract class AutoStage extends LinearOpMode {
      * */
     private void proceedAutoStageInstructions() throws InterruptedException {
         // grab the preloaded sleeve
-        arm.closeClaw();
+        arm.holdPreLoadedSleeve();
         Thread.sleep(1000);
 
         // go to the center of the grid (200, 130), in reference to the red side team
-        chassis.goToPosition(0, 1000);
+        System.out.println(chassis.goToPosition(0, 1000));
 
         chassis.goToPosition(-10000, 1000);
     }

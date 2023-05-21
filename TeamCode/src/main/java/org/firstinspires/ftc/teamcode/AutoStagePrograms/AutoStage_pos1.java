@@ -19,7 +19,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * using the temporary auto stage program for now
  * */
 @Autonomous(name = "1_blue_right") // just to make the judges think the sectors are selected
-public class AutoStage_pos1 extends Roboseed_AutoStage_tmp{
+public class AutoStage_pos1 extends AutoStage{
     /** set the parking sector to be the selected */
     @Override
     short determineParkingSector() {
