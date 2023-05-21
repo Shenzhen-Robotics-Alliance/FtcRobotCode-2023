@@ -135,7 +135,7 @@ abstract class AutoStage extends LinearOpMode {
         // go to the center of the grid (200, 130), in reference to the red side team
         chassis.goToPosition(0, 1000);
 
-        chassis.goToPosition()
+        chassis.goToPosition(-10000, 1000);
     }
 
     /**
