@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -20,13 +19,13 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the rotational speed, in motor speed, of the aim */
     private static final double aimSpeed = 0.35;
     /** the rotation tolerance when trying to face the sleeve */
-    private static final double rotationTolerance = Math.toRadians(2.5);
+    private static final double rotationTolerance = Math.toRadians(5);
 
     /** the tolerance for translational error, in encoder values */
-    private static final double encoderErrorTolerance = 200;
+    private static final double encoderErrorTolerance = 250;
 
     /** the range to look for the high tower, in cm */
-    private static final double highTowerSearchRange = 80;
+    private static final double highTowerSearchRange = 70;
     /** the range to look for the mid tower, in cm */
     private static final double midTowerSearchRange = 110; // the arm is farther away when reaching for middle
     /** the range to look for the low tower, in cm */
@@ -41,7 +40,10 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
 
-    private static final double aimCenterToDropCenterAngle = Math.toRadians(-4); // the angle between the sensor's aim center and the center of the arm
+    /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
+    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-1);
+    /** when approaching from the right */
+    private static final double aimCenterToDropCenterAngleRight = Math.toDegrees(-4);
 
     private static final double encoderValuePerCM = 6000 / 30; // measured that 6000 encoder values where increased for a 30cm of move
 
@@ -94,7 +96,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the spot of the tower, calculated into absolute encoder position */
     private double[] towerPosition = new double[2];
     /** the reading of the tof distance sensor */
-    private double tofDistanceSensorReading;
+    public double tofDistanceSensorReading;
 
     /**
      * construction method of robot auxiliary system
@@ -245,6 +247,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     }
 
     private void aimTower() {
+        System.out.println(statusCode);
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
@@ -261,17 +264,19 @@ public class RobotAuxiliarySystem extends RobotModule {
                 } else if (targetFound) { // when the target is lost again
                     statusCode = 3; // go for it
                     towerRotation = ChassisDriver.midPoint(towerRotation, positionCalculator.getRobotRotation()); // set it's rotation to be mid point between it's two edges
+                    towerRotation += aimCenterToDropCenterAngleLeft;
                     System.out.println("tower found:"+ Math.toDegrees(towerRotation));
                 }
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0 || !targetFound) break; // go to the next loop
                 chassisDriver.setRotationalMotion(0);
-                statusCode = 2;
+                statusCode = 3;
                 break;
             }
             case 2: {
                 chassisDriver.setRotationalMotion(aimSpeed);
                 double targetedDirection = startingRotation - (aimRange /2);
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
+                    System.out.println("target in range and is found:" + targetFound + "; rotation" + Math.toDegrees(positionCalculator.getRobotRotation()));
                     if (targetFound) break;
                     minDistanceSpot = positionCalculator.getRobotRotation();
                     towerDistance = tofDistanceSensorReading;
@@ -279,16 +284,17 @@ public class RobotAuxiliarySystem extends RobotModule {
                 } else if (targetFound) {
                     statusCode = 3;
                     towerRotation = ChassisDriver.midPoint(towerRotation, positionCalculator.getRobotRotation());
+                    towerRotation += aimCenterToDropCenterAngleRight;
                 }
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0 || !targetFound) break; // go to the next loop
                 /* end the aiming process */
                 chassisDriver.setRotationalMotion(0);
-                statusCode = 0;
+                statusCode = 3;
                 break;
             }
             case 3: {
-                chassisDriver.setTargetedRotation(towerRotation + aimCenterToDropCenterAngle);
-                double rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), towerRotation + aimCenterToDropCenterAngle);
+                chassisDriver.setTargetedRotation(towerRotation);
+                double rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), towerRotation);
                 /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
                 chassisDriver.sendCommandsToMotors();
                 System.out.println("rotational error:" + rotationalError);
@@ -330,8 +336,9 @@ public class RobotAuxiliarySystem extends RobotModule {
     /**
      * call the system to start the aiming process
      * @param targetCode the code of the target, 0 for sleeves, 1 2 3 for low to high towers
+     * @param targetDirection the direction to search the target, 1 for left and 2 for right
      * */
-    public void startAim(int targetCode) {
+    public void startAim(int targetCode, int targetDirection) {
         if (statusCode == -1) return;
         // stopAim();
         startingRotation = positionCalculator.getRobotRotation();
@@ -342,17 +349,25 @@ public class RobotAuxiliarySystem extends RobotModule {
                 return;
             }
         }
-        statusCode = 1;
+        statusCode = targetDirection;
         minDistance = 1;
         targetFound = false;
         chassisDriver.newAimStarted();
     }
 
-    public void startAim() {
+    /**
+     * calls the system to start aim
+     * @param targetDirection the direction to search the target, 1 for left and 2 for right
+     * */
+    public void startAim(int targetDirection) {
         int targetCode;
         if (arm.getClaw()) targetCode = 3; // go for high tower by default
         else targetCode = 0;
-        startAim(targetCode);
+        startAim(targetCode, targetDirection);
+    }
+
+    public void startAim() {
+        startAim(0, 0);
     }
 
     /** cancel the aiming process */

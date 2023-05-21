@@ -127,13 +127,21 @@ public class Roboseed_Test extends LinearOpMode {
         ElapsedTime dt = new ElapsedTime();
 
         arm.closeClaw();
-        robotAuxiliarySystem.startAim();
+        Thread.sleep(500);
+        arm.toHighArmPosition();
+        while (arm.getArmStatusCode() != 0) {
+            System.out.println(hardwareDriver.lift_left.getCurrentPosition());
+            arm.periodic();
+        }
+        robotAuxiliarySystem.startAim(2);
         while (opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
             // System.out.println("delay:" + dt.seconds()*1000);
 
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
             robotAuxiliarySystem.periodic();
+            arm.periodic();
 
 
 //            positionCalculator.forceUpdateEncoderValue();
