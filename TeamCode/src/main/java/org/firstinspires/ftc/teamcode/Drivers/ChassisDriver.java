@@ -13,12 +13,17 @@ public class ChassisDriver {
     private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
     private final double velocityDebugTimeRotation = 0.05;
     private final double integralCoefficientRotation = 0; // not needed yet
+    private final double rotationalTolerance = Math.toRadians(3.5);
+    private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
 
     private final double maxMotioningPower = 0.5;
     private final double encoderDifferenceStartDecelerate = 2000;
     private final double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private final double velocityDebugTimeTranslation = 0.14;
     private final double integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference; // not needed yet
+    private final double translationalEncoderTolerance = 250;
+    /** the minimum encoder speed, in encoder value per second, of the robot. so the robot can judge whether it is stuck */
+    private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -204,6 +209,67 @@ public class ChassisDriver {
         yAxleMotion = (xAxleMotionToGround * Math.sin(currentRotation)) + (yAxleMotionToGround * Math.cos(currentRotation));
 
         // System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
+    }
+
+    /**
+     * go to a targeted sector and stop, for auto stage
+     * @param x: the x-axle target
+     * @param y: the y-axle target
+     * @return whether the process succeeded or did it got stuck
+     * */
+    public boolean goToPosition(double x, double y) {
+        setTargetedTranslation_fixedRotation(x, y);
+        double xError, yError;
+        ElapsedTime dt = new ElapsedTime();
+        /* the time that the robot has been stuck */
+        ElapsedTime stuckTime = new ElapsedTime();
+        do {
+            xError = x - positionCalculator.getRobotPosition()[0];
+            yError = y - positionCalculator.getRobotPosition()[1];
+            updateTranslationalMotionUsingEncoder_fixedRotation(dt.seconds());
+            dt.reset();
+
+            /* to judge if the robot is stuck */
+            if (
+                    positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1]
+                            + positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0]
+                            > minMotioningEncoderSpeed * minMotioningEncoderSpeed) {
+                stuckTime.reset();
+            } else if (stuckTime.seconds() > 0.5) {
+                return false;
+            }
+        } while(xError * xError + yError * yError > translationalEncoderTolerance * translationalEncoderTolerance);
+        return true;
+    }
+
+    /**
+     * go to a rotation and stop, for auto stage
+     * @param radian: the targeted facing, in radian
+     * @return whether the process succeeded
+     * */
+    public boolean goToRotation(double radian) {
+        setTargetedRotation(radian);
+        double rotationError;
+        ElapsedTime dt = new ElapsedTime();
+        ElapsedTime stuckTime = new ElapsedTime();
+        do {
+            rotationError = getActualDifference(positionCalculator.getRobotRotation(), radian);
+            updateRotationalMotorSpeed(dt.seconds());
+            dt.reset();
+
+            if (Math.abs(positionCalculator.getAngularVelocity()) > minRotatingAngularVelocity) stuckTime.reset();
+            else if (stuckTime.seconds() > 0.5) return false;
+        } while (Math.abs(rotationError) > rotationalTolerance);
+        return true;
+    }
+
+    /**
+     * go to a rotation and stop, for auto stage
+     * @param degrees: the targeted facing, in degrees
+     * @return whether the process succeeded
+     * */
+    public boolean goToRotation(int degrees) {
+        return goToRotation(Math.toRadians(degrees));
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {

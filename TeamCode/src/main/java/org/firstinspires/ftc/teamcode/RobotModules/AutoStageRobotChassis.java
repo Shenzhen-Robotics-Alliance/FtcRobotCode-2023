@@ -68,6 +68,7 @@ public class AutoStageRobotChassis extends RobotModule {
     /**
      * construct method for chassis module used in autonomous stage
      */
+    @Deprecated
     public AutoStageRobotChassis() {
         /* call to super method */
         super("autoStageRobotChassis");

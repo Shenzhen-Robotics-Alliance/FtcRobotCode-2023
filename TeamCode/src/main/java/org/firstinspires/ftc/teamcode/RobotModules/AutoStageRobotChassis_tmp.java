@@ -40,6 +40,7 @@ public class AutoStageRobotChassis_tmp {
     /** whether to flip the x-axis for left side operation, currently -1 for left side */
     private double xAxisPositionCorrectionFactor = 1;
 
+    @Deprecated
     public AutoStageRobotChassis_tmp(HardwareMap hardwareMap, HardwareDriver hardwareDriver, RobotPositionCalculator positionCalculator) {
         this.hardwareDriver = hardwareDriver;
         this.hardwareMap = hardwareMap;
