@@ -16,12 +16,12 @@ public class ChassisDriver {
     private final double rotationalTolerance = Math.toRadians(3.5);
     private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
 
-    private final double maxMotioningPower = 0.5;
-    private final double encoderDifferenceStartDecelerate = 2000;
-    private final double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
-    private final double velocityDebugTimeTranslation = 0.14;
-    private final double integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference; // not needed yet
-    private final double translationalEncoderTolerance = 250;
+    private double maxMotioningPower = 0.5;
+    private double encoderDifferenceStartDecelerate = 2000;
+    private double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
+    private double velocityDebugTimeTranslation = 0.12;
+    private double integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference; // not needed yet
+    private double translationalEncoderTolerance = 250;
     /** the minimum encoder speed, in encoder value per second, of the robot. so the robot can judge whether it is stuck */
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
@@ -270,6 +270,20 @@ public class ChassisDriver {
      * */
     public boolean goToRotation(int degrees) {
         return goToRotation(Math.toRadians(degrees));
+    }
+
+    public void setFastModeOn(boolean fastModeOn) {
+        if (fastModeOn) {
+            maxMotioningPower = 0.7;
+            encoderDifferenceStartDecelerate = 1500;
+            velocityDebugTimeTranslation = 0.35;
+        } else {
+            maxMotioningPower = 0.5;
+            encoderDifferenceStartDecelerate = 2000;
+            velocityDebugTimeTranslation = 0.12;
+        }
+        motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
+        integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference;
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {

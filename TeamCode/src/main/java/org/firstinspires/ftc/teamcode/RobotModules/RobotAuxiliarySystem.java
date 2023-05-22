@@ -19,7 +19,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the rotational speed, in motor speed, of the aim */
     private static final double aimSpeed = 0.35;
     /** the rotation tolerance when trying to face the sleeve */
-    private static final double rotationTolerance = Math.toRadians(5);
+    private static final double rotationTolerance = Math.toRadians(4);
 
     /** the tolerance for translational error, in encoder values */
     private static final double encoderErrorTolerance = 250;
@@ -39,13 +39,14 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the best dropping spot for the low tower, in cm */
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
+    private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 47.5};
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
     private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-1);
     /** when approaching as rotating to the right */
     private static final double aimCenterToDropCenterAngleRight = Math.toDegrees(-4);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
-    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(5);
+    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(8);
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(-5);
 
@@ -166,6 +167,8 @@ public class RobotAuxiliarySystem extends RobotModule {
 
         statusCode = 0;
         this.highSpeedAim = enableHighSpeedAiming;
+        // this.chassisDriver.setFastModeOn(enableHighSpeedAiming);
+        this.chassisDriver.setFastModeOn(false); // TODO get this done
 
         this.tofSensorReadingThread = new Thread(new Runnable() {
             @Override public void run() {
@@ -346,7 +349,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         System.out.println(statusCode);
         switch (statusCode) {
             case 1: {
-                chassisDriver.setRotationalMotion(-aimSpeed);
+                chassisDriver.setRotationalMotion(-aimSpeed * 1.6);
                 double targetedDirection = startingRotation + (aimRange /2);
                 /* if target is ahead */
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
@@ -363,7 +366,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 break;
             }
             case 2: {
-                chassisDriver.setRotationalMotion(aimSpeed);
+                chassisDriver.setRotationalMotion(aimSpeed * 1.6);
                 double targetedDirection = startingRotation - (aimRange /2);
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
                     towerRotation = positionCalculator.getRobotRotation();
@@ -388,7 +391,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
 
-                    double distanceToDroppingSpot = (towerDistance - droppingSpotList[targetCode]) * encoderValuePerCM;
+                    double distanceToDroppingSpot = (towerDistance - droppingSpotListEdge[targetCode]) * encoderValuePerCM;
                     towerPosition[0] = positionCalculator.getRobotPosition()[0] + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     System.out.println(Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot + "," + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot);
@@ -405,14 +408,15 @@ public class RobotAuxiliarySystem extends RobotModule {
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
                 if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
                 /* if the robot reached the tower */
+                chassisDriver.setRotationalMotion(0);
+                chassisDriver.setRobotTranslationalMotion(0, 0);
+                chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
                 while (descendTime.milliseconds() < 300) {
                     arm.periodic();
                 }
                 arm.openClaw();
-                chassisDriver.setRotationalMotion(0);
-                chassisDriver.setRobotTranslationalMotion(0, 0);
                 statusCode = 0;
                 break;
             }
