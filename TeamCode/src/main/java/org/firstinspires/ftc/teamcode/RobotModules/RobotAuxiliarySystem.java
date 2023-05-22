@@ -42,8 +42,12 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
     private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-1);
-    /** when approaching from the right */
+    /** when approaching as rotating to the right */
     private static final double aimCenterToDropCenterAngleRight = Math.toDegrees(-4);
+    /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
+    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(5);
+    /** when approaching as rotating to the right at high speed*/
+    private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(-5);
 
     private static final double encoderValuePerCM = 6000 / 30; // measured that 6000 encoder values where increased for a 30cm of move
 
@@ -74,6 +78,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     public int statusCode = -1;
     /** the code of the target, 0 for sleeves and 1 for towers */
     private int targetCode = 0;
+    private boolean highSpeedAim;
 
     /** an independent thread that reads the tof distance sensor, as it takes a bit long, 30ms */
     private Thread tofSensorReadingThread;
@@ -108,7 +113,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** @Deprecated: this is not going to work as not opmode is running it */
     @Override @Deprecated
     public void init(HashMap<String, RobotModule> dependentModules, HashMap<String, Object> dependentInstances) throws NullPointerException {
-        init(dependentModules, dependentInstances, new Roboseed_DualPilot());
+        init(dependentModules, dependentInstances, new Roboseed_DualPilot(), false);
     }
 
     /**
@@ -122,11 +127,13 @@ public class RobotAuxiliarySystem extends RobotModule {
      *                          ColorDistanceSensor "colorDistanceSensor": color sensor reader
      *                          TOFDistanceSensor "tofDistanceSensor": time-of-flight inferred distance sensor reader
      * @param creator the op-mode that created this module, so that the thread can be stopped when the program ends
+     * @param enableHighSpeedAiming whether to enable fast aiming, or do precise but slow aim
      */
     public void init(
             HashMap<String, RobotModule> dependentModules,
             HashMap<String, Object> dependentInstances,
-            LinearOpMode creator) throws NullPointerException
+            LinearOpMode creator,
+            boolean enableHighSpeedAiming) throws NullPointerException
     {
         /* throw out exceptions if dependencies not specified */
         if (dependentInstances.isEmpty()) throw new NullPointerException (
@@ -158,6 +165,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         positionCalculator = (RobotPositionCalculator) dependentModules.get("positionCalculator");
 
         statusCode = 0;
+        this.highSpeedAim = enableHighSpeedAiming;
 
         this.tofSensorReadingThread = new Thread(new Runnable() {
             @Override public void run() {
@@ -176,6 +184,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
 
         if (targetCode == 0) aimCone();
+        else if (highSpeedAim) aimTowerFast();
         else aimTower();
     }
 
@@ -290,6 +299,83 @@ public class RobotAuxiliarySystem extends RobotModule {
                 /* end the aiming process */
                 chassisDriver.setRotationalMotion(0);
                 statusCode = 3;
+                break;
+            }
+            case 3: {
+                chassisDriver.setTargetedRotation(towerRotation);
+                double rotationalError = ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), towerRotation);
+                /* positionCalculator.forceUpdateEncoderValue(); positionCalculator.periodic(); // if used in auto stage */
+                chassisDriver.sendCommandsToMotors();
+                System.out.println("rotational error:" + rotationalError);
+                if (Math.abs(rotationalError) < rotationTolerance) {
+                    chassisDriver.switchToManualRotationMode();
+                    chassisDriver.setRotationalMotion(0);
+
+                    double distanceToDroppingSpot = (towerDistance - droppingSpotList[targetCode]) * encoderValuePerCM;
+                    towerPosition[0] = positionCalculator.getRobotPosition()[0] + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
+                    towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
+                    System.out.println(Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot + "," + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot);
+                    chassisDriver.setTargetedTranslation_fixedRotation(towerPosition[0], towerPosition[1]);
+                    statusCode = 4;
+                }
+                break;
+            }
+            case 4: {
+                // TODO if the robot is not moving at all, stop the dead loop; adjust the PIDs, the robot is stuck when being told to move to a nearby position
+
+                chassisDriver.sendCommandsToMotors();
+                double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
+                double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
+                if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
+                /* if the robot reached the tower */
+                arm.lowerArm();
+                ElapsedTime descendTime = new ElapsedTime();
+                while (descendTime.milliseconds() < 300) {
+                    arm.periodic();
+                }
+                arm.openClaw();
+                chassisDriver.setRotationalMotion(0);
+                chassisDriver.setRobotTranslationalMotion(0, 0);
+                statusCode = 0;
+                break;
+            }
+        }
+    }
+
+    private void aimTowerFast() {
+        System.out.println(statusCode);
+        switch (statusCode) {
+            case 1: {
+                chassisDriver.setRotationalMotion(-aimSpeed);
+                double targetedDirection = startingRotation + (aimRange /2);
+                /* if target is ahead */
+                if (tofDistanceSensorReading < searchRangeList[targetCode]) {
+                    System.out.println("target in range and is found:" + targetFound + "; rotation" + Math.toDegrees(positionCalculator.getRobotRotation()));
+                    towerRotation = positionCalculator.getRobotRotation();
+                    towerRotation += aimEdgeToDropCenterAngleLeft;
+                    towerDistance = tofDistanceSensorReading;
+                    targetFound = true;
+                    statusCode = 3; // go for it
+                }
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) > 0) break; // go to the next loop
+                chassisDriver.setRotationalMotion(0);
+                statusCode = 0;
+                break;
+            }
+            case 2: {
+                chassisDriver.setRotationalMotion(aimSpeed);
+                double targetedDirection = startingRotation - (aimRange /2);
+                if (tofDistanceSensorReading < searchRangeList[targetCode]) {
+                    towerRotation = positionCalculator.getRobotRotation();
+                    towerRotation += aimEdgeToDropCenterAngleRight;
+                    towerDistance = tofDistanceSensorReading;
+                    targetFound = true;
+                    statusCode = 3; // go for it
+                }
+                if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0) break; // go to the next loop
+                /* end the aiming process */
+                chassisDriver.setRotationalMotion(0);
+                statusCode = 0;
                 break;
             }
             case 3: {
