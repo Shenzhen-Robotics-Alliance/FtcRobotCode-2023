@@ -224,9 +224,12 @@ public class ChassisDriver {
         /* the time that the robot has been stuck */
         ElapsedTime stuckTime = new ElapsedTime();
         do {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+
             xError = x - positionCalculator.getRobotPosition()[0];
             yError = y - positionCalculator.getRobotPosition()[1];
-            updateTranslationalMotionUsingEncoder_fixedRotation(dt.seconds());
+            sendCommandsToMotors();
             dt.reset();
 
             /* to judge if the robot is stuck */
@@ -253,8 +256,11 @@ public class ChassisDriver {
         ElapsedTime dt = new ElapsedTime();
         ElapsedTime stuckTime = new ElapsedTime();
         do {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+
             rotationError = getActualDifference(positionCalculator.getRobotRotation(), radian);
-            updateRotationalMotorSpeed(dt.seconds());
+            sendCommandsToMotors();
             dt.reset();
 
             if (Math.abs(positionCalculator.getAngularVelocity()) > minRotatingAngularVelocity) stuckTime.reset();

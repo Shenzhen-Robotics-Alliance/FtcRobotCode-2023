@@ -46,9 +46,9 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** when approaching as rotating to the right */
     private static final double aimCenterToDropCenterAngleRight = Math.toRadians(-4);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
-    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(8);
+    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(6);
     /** when approaching as rotating to the right at high speed*/
-    private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(3);
+    private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(6);
 
     private static final double encoderValuePerCM = 6000 / 30; // measured that 6000 encoder values where increased for a 30cm of move
 
@@ -407,14 +407,14 @@ public class RobotAuxiliarySystem extends RobotModule {
                 double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
                 if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
-                /* if the robot reached the tower */
-                chassisDriver.setRotationalMotion(0);
+                /* if the robot reached the tower */ 吗 
                 chassisDriver.setRobotTranslationalMotion(0, 0);
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
                 while (descendTime.milliseconds() < 300) {
                     arm.periodic();
+                    chassisDriver.setRotationalMotion(0);
                 }
                 arm.openClaw();
                 statusCode = 0;

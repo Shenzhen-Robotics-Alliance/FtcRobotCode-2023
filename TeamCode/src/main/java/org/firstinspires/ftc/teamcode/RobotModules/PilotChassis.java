@@ -75,7 +75,9 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     /** the limit fo the motor power when the robot is carrying a goal */
     private final double maxCarryingPower = 0.6;
     /** when the pilot stops the machine it will still travel for this much time */
-    private static final double smoothOutTime = 0.14; // 0.15:soft, 0.1: very hard
+    private static final double smoothOutTime = 0.12; // 0.15:soft, 0.1: very hard
+    /** whether to do a secondary non-linear process to the axis of the controller */
+    private static final boolean squareAxis = true;
 
     /** calibrate the controller, store the initial state of the controller, in the order of x-axis, y axis and rotational axis */
     private double[] pilotControllerPadZeroPosition = {0, 0, 0};
@@ -84,18 +86,6 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private double targetedRotation;
     /** the minimum speed when the encoder starts to correct the motion */
     private static final double useEncoderCorrectionSpeed = Float.POSITIVE_INFINITY;
-
-    private static final double rotationTolerance = Math.toRadians(5);
-    /** the rotational deviation when the robot starts to decelerate */
-    private static final double rotationStartsSlowingDown = Math.toRadians(180);
-
-    /** minimum power during to rotate the robot */
-    private static final double minMovingMotorPower = 0.05;
-    /** motor speed limit */
-    private static final double maxMovingMotorPower = 0.65;
-
-    /** the correction factor when using encoders to correct motor speed */
-    private static final double encoderRotationToMotorSpeedFactor = -1;
 
     /**
      * construct function of the robot chassis, use init() for further initialization
@@ -170,7 +160,15 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
         pilotOnControl = (Math.abs(yAxleMotion) + Math.abs(xAxleMotion)) > 0; // already linearly mapped, so greater than zero means it is in use
-        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.5;
+
+        if (squareAxis) {
+            yAxleMotion = Math.copySign(yAxleMotion * yAxleMotion, yAxleMotion);
+            xAxleMotion = Math.copySign(xAxleMotion * xAxleMotion, xAxleMotion);
+            rotationalAttempt = Math.copySign(rotationalAttempt * rotationalAttempt, rotationalAttempt);
+        }
+
+        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.9;
+        rotationalAttempt *= 0.8;
         // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;
@@ -226,6 +224,8 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             positionCalculator.reset();
             // imu.resetYaw();
         }
+
+        System.out.println(slowMotionModeActivationSwitch);
 
         slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot
 

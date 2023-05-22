@@ -85,10 +85,24 @@ abstract class AutoStage extends LinearOpMode {
         /** the driver of the chassis */
         this.chassis = new ChassisDriver(hardwareDriver, positionCalculator);
 
+        /** the thread for telemetry monitoring */
+        Thread telemetryThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (opModeIsActive() && !isStopRequested()) {
+                    telemetry.addData("position", positionCalculator.getRobotPosition()[0] + "," + positionCalculator.getRobotPosition()[1]);
+                    telemetry.addData("rotation", Math.toDegrees(positionCalculator.getRobotRotation()));
+                    telemetry.update();
+                }
+            }
+        }); // TODO replace with robot debug bridge
+
         /* determines where to park */
         this.parkingSectorNum = determineParkingSector();
 
         waitForStart();
+
+        telemetryThread.start();
 
         /** start of the auto stage scripts */
 
@@ -108,6 +122,12 @@ abstract class AutoStage extends LinearOpMode {
                 proceedGoToSector3();
                 break;
             }
+        }
+
+        chassis.setRobotTranslationalMotion(0, 0); chassis.setRotationalMotion(0);
+        while (opModeIsActive() && !isStopRequested()) {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
         }
     }
 
