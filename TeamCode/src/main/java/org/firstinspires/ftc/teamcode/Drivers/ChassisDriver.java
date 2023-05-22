@@ -81,7 +81,6 @@ public class ChassisDriver {
         this.rotationalMotion = rotationalMotion;
         dt.reset();
         sendCommandsToMotors();
-        System.out.println(rotationalMotion);
     }
 
     public void pilotInterruption() {
@@ -129,7 +128,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        // System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
