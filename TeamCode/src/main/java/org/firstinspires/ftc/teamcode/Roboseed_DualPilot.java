@@ -2,9 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -17,7 +19,9 @@ import org.firstinspires.ftc.teamcode.RobotModules.PilotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.IMUReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotAuxiliarySystem;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
+import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
 
@@ -37,7 +41,7 @@ import java.util.HashMap;
 public class Roboseed_DualPilot extends LinearOpMode {
     /** the interface that connects the robot's hardware */
     private final HardwareDriver hardwareDriver = new HardwareDriver();
-    private ChassisDriver chassis;
+    private ChassisDriver chassisDriver;
 
     /** whether the program will switch to slow motion mode automatically when using the arm */
     private final boolean PreviousSlowMotionModeAutoActivation = false;
@@ -56,6 +60,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
     private IMUReader imuReader;
     private Mini1024EncoderReader encoderReader;
     private RobotPositionCalculator positionCalculator;
+    private RobotAuxiliarySystem robotAuxiliarySystem;
 
     /**
      * the main entry of the robot's program during manual stage
@@ -85,10 +90,11 @@ public class Roboseed_DualPilot extends LinearOpMode {
         HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
         HashMap<String, Object> positionCalculatorDependentInstances = null;
         positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        positionCalculator = new RobotPositionCalculator();
-        positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
+        this.positionCalculator = new RobotPositionCalculator();
+        this.positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** pass the hardware ports to the robot chassis */
+        this.chassisDriver = new ChassisDriver(hardwareDriver, this.positionCalculator);
         HashMap<String, RobotModule> robotChassisDependentModules = new HashMap<>(1);
         /* the module that computes the robot's current position and motion */
         robotChassisDependentModules.put("positionCalculator", positionCalculator);
@@ -96,7 +102,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         /* give the first pilot's controller pad as the initial controller pad for robot's movement to the chassis module */
         robotChassisDependentInstances.put("initialControllerPad", gamepad1);
         /* give the connection to the hardware to the module */
-        robotChassisDependentInstances.put("chassisDriver", chassis);
+        robotChassisDependentInstances.put("chassisDriver", this.chassisDriver);
         /* give the back up imu module of the extension hub to the chassis module*/
         robotChassisDependentInstances.put("imu", hardwareMap.get(IMU.class, "imu2"));
         pilotChassis = new PilotChassis();
@@ -128,6 +134,19 @@ public class Roboseed_DualPilot extends LinearOpMode {
         autoStageRobotChassisDependentInstances.put("hardwareMap", hardwareMap);
         autoStageRobotChassis = new AutoStageRobotChassis();
         autoStageRobotChassis.init(autoStageRobotChassisDependentModules, autoStageRobotChassisDependentInstances);
+
+        /** the RAS */
+        ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
+        DistanceSensor distance = hardwareMap.get(DistanceSensor.class, "distance");
+        HashMap<String, RobotModule> robotAuxiliarySystemDependentModules = new HashMap<>(1);
+        HashMap<String, Object> robotAuxiliarySystemDependentInstances = new HashMap<>(1);
+        robotAuxiliarySystemDependentModules.put("positionCalculator", this.positionCalculator);
+        robotAuxiliarySystemDependentInstances.put("colorDistanceSensor", color);
+        robotAuxiliarySystemDependentInstances.put("tofDistanceSensor", distance);
+        robotAuxiliarySystemDependentInstances.put("chassisDriver", chassisDriver);
+        robotAuxiliarySystemDependentModules.put("arm", arm);
+        this.robotAuxiliarySystem = new RobotAuxiliarySystem();
+        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, true);
 
 
         /* telemetry.addLine("robotCurrentPosition(Camera)");
@@ -184,6 +203,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         // System.out.println("<--encoder reader module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
         positionCalculator.periodic();
+        robotAuxiliarySystem.periodic();
         // System.out.println("<--position calculator module delay: " + elapsedTime.seconds()*1000 + "-->");
 
 
@@ -196,6 +216,9 @@ public class Roboseed_DualPilot extends LinearOpMode {
             /* shake the game pad to remind the pilots */
             gamepad2.rumble(500);
         }
+
+        if (gamepad1.left_trigger > 0.5) robotAuxiliarySystem.startAim(1);
+        else if (gamepad1.right_trigger > 0.5) robotAuxiliarySystem.startAim(2);
 
         /* switch back to single pilot mode if the first pilot asks to take over the arms */
         if (gamepad1.left_bumper && gamepad1.right_bumper) {
@@ -236,7 +259,6 @@ public class Roboseed_DualPilot extends LinearOpMode {
 
         hardwareDriver.lift_left.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        chassis = new ChassisDriver(hardwareDriver, positionCalculator);
     }
 }
 

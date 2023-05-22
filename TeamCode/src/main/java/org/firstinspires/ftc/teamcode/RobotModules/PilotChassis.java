@@ -55,7 +55,7 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     /** whether to use the chassis module's auto system, or make it disabled, whenever the auto aim module is in use  */
     private boolean chassisAutoEnabled = true;
     /** whether the pilot is sending instructions to the robot's rotational motion, notice translational motion is not counted */
-    boolean pilotInterrupting = false;
+    boolean pilotOnControl = false;
 
     /** the times elapsed after the last time these mode buttons are pressed
      * so that it does not shift between the modes inside one single press */
@@ -74,6 +74,8 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private final double maxDrivingPower = 1;
     /** the limit fo the motor power when the robot is carrying a goal */
     private final double maxCarryingPower = 0.6;
+    /** when the pilot stops the machine it will still travel for this much time */
+    private static final double smoothOutTime = 0.1; // 0.15:soft, 0.1: very hard
 
     /** calibrate the controller, store the initial state of the controller, in the order of x-axis, y axis and rotational axis */
     private double[] pilotControllerPadZeroPosition = {0, 0, 0};
@@ -167,7 +169,7 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
         double yAxleMotion = linearMap(-(gamepad.right_stick_y - this.pilotControllerPadZeroPosition[1])); // the left stick is reversed to match the vehicle
         double xAxleMotion = linearMap(gamepad.right_stick_x - this.pilotControllerPadZeroPosition[0]);
         double rotationalAttempt = linearMap(gamepad.left_stick_x -  this.pilotControllerPadZeroPosition[2]); // the driver's attempt to rotate
-        pilotInterrupting = (Math.abs(yAxleMotion) + Math.abs(xAxleMotion)) > 0; // already linearly mapped, so greater than zero means it is in use
+        pilotOnControl = (Math.abs(yAxleMotion) + Math.abs(xAxleMotion)) > 0; // already linearly mapped, so greater than zero means it is in use
         if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.5;
         // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
@@ -199,12 +201,18 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             }
         }
 
-        double rotationalMotion = getRotationMotorSpeed(rotationalAttempt);
+        if (Math.abs(rotationalAttempt) > 0) {
+            chassisDriver.pilotInterruption();
+            chassisDriver.setRotationalMotion(rotationalAttempt);
+            targetedRotation = positionCalculator.getRobotRotation() + positionCalculator.getAngularVelocity()*smoothOutTime;
+        } else {
+            chassisDriver.setTargetedRotation(targetedRotation);
+        }
 
-        /* sends commands to the chassis */
-        chassisDriver.setRobotTranslationalMotion(xAxleMotion, yAxleMotion); // the translational commands are always sent
-        if (pilotInterrupting || // if the pilot interrupted the process, or if the RAS is not activated
-                (! chassisDriver.isRASActivated())) chassisDriver.setRotationalMotion(rotationalMotion); // send the rotational commands
+        if (pilotOnControl) chassisDriver.setRobotTranslationalMotion(xAxleMotion, yAxleMotion);
+        else if (!chassisDriver.isRASActivated()) chassisDriver.setRobotTranslationalMotion(0, 0);
+
+        chassisDriver.sendCommandsToMotors();
 
         if (gamepad.dpad_down & previousMotionModeButtonActivation.seconds() > 0.5 & !slowMotionModeSuggested) { // when control mode button is pressed, and hasn't been pressed in the last 0.3 seconds. pause this action when slow motion mode is already suggested
             slowMotionModeRequested = !slowMotionModeRequested; // activate or deactivate slow motion
@@ -308,43 +316,6 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
         correctedMotion[1] = yVelocity;
 
         return correctedMotion;
-    }
-
-
-    /**
-     * rotate the robot to make it stick to the rotation where it's asked to be
-     * if the pilot asks to rotate, just rotate
-     * otherwise, the robot sticks to the rotation where it was during the last pilot command
-     *
-     * @param rotationalAttempt the rotational speed that the pilot inputs
-     * @return the required rotational motor speed to make the robot stick the pilot's commands
-     */
-    public double getRotationMotorSpeed(double rotationalAttempt) {
-        double rotationMotorSpeed;
-        if (Math.abs(rotationalAttempt) > 0.05) { /* if the pilot asks the robot to rotate */
-            /* update the robot's current position */
-            targetedRotation = positionCalculator.getRobotRotation();
-            /* do a linear map to shrink the motor speed into a set range */
-            rotationMotorSpeed = Math.copySign(
-                    linearMap(minStickValue, 1, minMovingMotorPower, maxMovingMotorPower, Math.abs(rotationalAttempt)),
-                    rotationalAttempt
-            );
-        } else { /* if the pilot didn't do any rotation */
-            /* find the closest path do the original rotation */
-            double rotationDifference = AutoStageRobotChassis_tmp.reformatRotationDifference(
-                    targetedRotation - positionCalculator.getRobotRotation());
-
-            /* do a linear map to find out what motor speed should be given */
-            rotationMotorSpeed  = Math.copySign(
-                    linearMap(rotationTolerance,rotationStartsSlowingDown,minMovingMotorPower,maxMovingMotorPower,
-                            Math.abs(rotationDifference)),
-                    rotationDifference
-            );
-
-            rotationMotorSpeed *= encoderRotationToMotorSpeedFactor;
-        }
-
-        return rotationMotorSpeed;
     }
 
     private double linearMap(double value) {

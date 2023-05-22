@@ -121,7 +121,7 @@ public class Roboseed_Test extends LinearOpMode {
         robotAuxiliarySystemDependentInstances.put("chassisDriver", chassisDriver);
         robotAuxiliarySystemDependentModules.put("arm", arm);
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
-        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, true);
+        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, false);
 
         waitForStart();
         ElapsedTime dt = new ElapsedTime();
@@ -129,11 +129,8 @@ public class Roboseed_Test extends LinearOpMode {
         arm.closeClaw();
         Thread.sleep(500);
         arm.toHighArmPosition();
-        while (arm.getArmStatusCode() != 0) {
-            System.out.println(hardwareDriver.lift_left.getCurrentPosition());
-            arm.periodic();
-        }
-        robotAuxiliarySystem.startAim(1);
+        while (arm.getArmStatusCode() != 0) arm.periodic();
+        robotAuxiliarySystem.startAim(2);
         while (opModeIsActive() && !isStopRequested()) {
             telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
             // System.out.println("delay:" + dt.seconds()*1000);

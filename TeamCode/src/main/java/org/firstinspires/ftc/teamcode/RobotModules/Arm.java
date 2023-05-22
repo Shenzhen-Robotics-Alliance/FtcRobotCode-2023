@@ -274,12 +274,6 @@ public class Arm extends RobotModule {
         if (gamepad.a) {
             this.toGroundArmPosition();
         }
-        if (gamepad.right_trigger>0.2 & PreviousGrepActivation.seconds() > .3) {
-            PreviousGrepActivation.reset();
-            this.openClaw();
-            this.deactivateArm();
-            armStatusCode = 5; // let the system check for completion
-        }
 
         if (gamepad.left_stick_y < -0.8 & PreviousElevatorActivation.seconds() > .3) { // the elevator cannot be immediately activated until 0.2 seconds after the last activation
             System.out.println("RA");

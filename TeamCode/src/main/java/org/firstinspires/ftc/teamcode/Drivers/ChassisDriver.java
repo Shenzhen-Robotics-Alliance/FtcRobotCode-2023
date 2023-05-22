@@ -81,6 +81,7 @@ public class ChassisDriver {
         this.rotationalMotion = rotationalMotion;
         dt.reset();
         sendCommandsToMotors();
+        System.out.println(rotationalMotion);
     }
 
     public void pilotInterruption() {
@@ -116,9 +117,9 @@ public class ChassisDriver {
     }
 
     private void updateRotationalMotorSpeed(double dt) {
-        double currentRotation = positionCalculator.getRobotRotation();
+        double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
-        double futureRotation = currentRotation + velocityDebugTimeRotation * positionCalculator.getAngularVelocity();
+        double futureRotation = currentRotation + velocityDebugTimeRotation * this.positionCalculator.getAngularVelocity();
 
         double rotationalRawError = getActualDifference(currentRotation, targetedRotation);
         double rotationalError = getActualDifference(futureRotation, targetedRotation);
@@ -128,7 +129,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        System.out.println("rotation:" + Math.toDegrees(positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
