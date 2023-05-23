@@ -101,7 +101,6 @@ public class RobotPositionCalculator extends RobotModule {
         /* take the integral of angular velocity to time */
         // this.robotRotation += angularVelocity * this.dt.seconds();
         this.robotRotation = (encoderReader.getEncoderPosition(2) - encoderReader.getEncoderPosition(1) - startingEncoderDifference) * angularVelocityPerParallelEncoderVelocityDifference; // use the difference between two encoders to determine the heading of the robot
-        System.out.println("encoder readings:" + encoderReader.getEncoderPosition(2) + "," + encoderReader.getEncoderPosition(1));
         /* format the rotation value */
         while (this.robotRotation > Math.PI*2) this.robotRotation -= Math.PI*2;
         while (this.robotRotation < 0) this.robotRotation += Math.PI*2;

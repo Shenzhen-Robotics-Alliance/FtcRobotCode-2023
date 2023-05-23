@@ -19,13 +19,13 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the rotational speed, in motor speed, of the aim */
     private static final double aimSpeed = 0.35;
     /** the rotation tolerance when trying to face the sleeve */
-    private static final double rotationTolerance = Math.toRadians(4);
+    private static final double rotationTolerance = Math.toRadians(3);
 
     /** the tolerance for translational error, in encoder values */
     private static final double encoderErrorTolerance = 250;
 
     /** the range to look for the high tower, in cm */
-    private static final double highTowerSearchRange = 70;
+    private static final double highTowerSearchRange = 65;
     /** the range to look for the mid tower, in cm */
     private static final double midTowerSearchRange = 110; // the arm is farther away when reaching for middle
     /** the range to look for the low tower, in cm */
@@ -33,24 +33,24 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 48;
+    private static final double highTowerDroppingSpot = 42;
     /** the best dropping spot for the mid tower, in cm */
     private static final double midTowerDroppingSpot = 45; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
-    private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 48};
+    private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 52};
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
-    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-1);
+    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(0);
     /** when approaching as rotating to the right */
     private static final double aimCenterToDropCenterAngleRight = Math.toRadians(-4);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
-    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(6);
+    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(8);
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(6);
 
-    private static final double encoderValuePerCM = 6000 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6450 / 30; // measured that 6000 encoder values where increased for a 30cm of move
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -294,13 +294,14 @@ public class RobotAuxiliarySystem extends RobotModule {
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
                     System.out.println("target in range and is found:" + targetFound + "; rotation" + Math.toDegrees(positionCalculator.getRobotRotation()));
                     if (targetFound) break;
-                    minDistanceSpot = positionCalculator.getRobotRotation();
+                    towerRotation = positionCalculator.getRobotRotation();
                     towerDistance = tofDistanceSensorReading;
                     targetFound = true;
                 } else if (targetFound) {
                     statusCode = 3;
                     towerRotation = ChassisDriver.midPoint(towerRotation, positionCalculator.getRobotRotation());
                     towerRotation += aimCenterToDropCenterAngleRight;
+                    System.out.println("tower found:"+ Math.toDegrees(towerRotation));
                 }
                 if (ChassisDriver.getActualDifference(positionCalculator.getRobotRotation(), targetedDirection) < 0 || !targetFound) break; // go to the next loop
                 /* end the aiming process */
