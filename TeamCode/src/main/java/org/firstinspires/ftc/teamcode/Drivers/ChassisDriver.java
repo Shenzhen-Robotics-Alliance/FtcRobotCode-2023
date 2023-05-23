@@ -38,6 +38,7 @@ public class ChassisDriver {
     private double[] translationalIntegration = new double[2];
     private double targetedRotation = 0;
     private boolean RASActivation = false;
+    private boolean aimProcessInterrupted = false;
 
     private final int goToRotationMode = 1;
     private final int manualMode = 0;
@@ -85,13 +86,17 @@ public class ChassisDriver {
 
     public void pilotInterruption() {
         RASActivation = false;
+        aimProcessInterrupted = true;
     }
+
+    public boolean isAimProcessInterrupted() { return aimProcessInterrupted; }
 
     public void newAimStarted() {
         RASActivation = true;
+        aimProcessInterrupted = false;
     }
 
-    public void aimStopped() {RASActivation = false; }
+    public void aimStopped() { RASActivation = false; }
 
     public void switchToManualRotationMode() { rotationMode = manualMode;}
     private void switchToGoToRotationMode() { rotationMode = goToRotationMode; }
@@ -116,6 +121,7 @@ public class ChassisDriver {
     }
 
     private void updateRotationalMotorSpeed(double dt) {
+        // TODO use different PID coefficients when the robot is moving translationally
         double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
         double futureRotation = currentRotation + velocityDebugTimeRotation * this.positionCalculator.getAngularVelocity();
@@ -128,7 +134,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
         rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        // System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {

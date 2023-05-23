@@ -33,7 +33,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 50;
+    private static final double highTowerDroppingSpot = 48;
     /** the best dropping spot for the mid tower, in cm */
     private static final double midTowerDroppingSpot = 45; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
@@ -186,6 +186,10 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void periodic() {
         if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
 
+        if (chassisDriver.isAimProcessInterrupted()) targetCode = 0;
+
+        if (statusCode == 0) chassisDriver.aimStopped();
+
         if (targetCode == 0) aimCone();
         else if (highSpeedAim) aimTowerFast();
         else aimTower();
@@ -331,14 +335,15 @@ public class RobotAuxiliarySystem extends RobotModule {
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
                 if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
                 /* if the robot reached the tower */
+                chassisDriver.setRotationalMotion(0);
+                chassisDriver.setRobotTranslationalMotion(0, 0);
+                chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
                 while (descendTime.milliseconds() < 300) {
                     arm.periodic();
                 }
                 arm.openClaw();
-                chassisDriver.setRotationalMotion(0);
-                chassisDriver.setRobotTranslationalMotion(0, 0);
                 statusCode = 0;
                 break;
             }
@@ -407,7 +412,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
                 if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
-                /* if the robot reached the tower */ 吗 
+                /* if the robot reached the tower */
                 chassisDriver.setRobotTranslationalMotion(0, 0);
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
