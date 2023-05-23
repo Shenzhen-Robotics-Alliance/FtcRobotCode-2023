@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -16,9 +17,13 @@ import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
 import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
+import org.firstinspires.ftc.teamcode.RobotModules.RobotAuxiliarySystem;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
+import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
+
+import dalvik.system.DelegateLastClassLoader;
 
 /**
  * Copyright © 2023 SCCSC-Robotics-Club
@@ -43,6 +48,9 @@ abstract class AutoStage extends LinearOpMode {
     private HardwareDriver hardwareDriver = new HardwareDriver();
     private ChassisDriver chassis;
     private AutoStageArm arm;
+    private RobotPositionCalculator positionCalculator;
+    private RobotAuxiliarySystem robotAuxiliarySystem;
+
     /** the number of the sector the robot parks into by the end of auto stage */
     private short parkingSectorNum;
 
@@ -79,11 +87,25 @@ abstract class AutoStage extends LinearOpMode {
         HashMap<String, RobotModule> positionCalculatorDependentModules = new HashMap<>(1);
         HashMap<String, Object> positionCalculatorDependentInstances = null;
         positionCalculatorDependentModules.put("encoderReader", encoderReader);
-        RobotPositionCalculator positionCalculator = new RobotPositionCalculator();
+        this.positionCalculator = new RobotPositionCalculator();
         positionCalculator.init(positionCalculatorDependentModules, positionCalculatorDependentInstances);
 
         /** the driver of the chassis */
         this.chassis = new ChassisDriver(hardwareDriver, positionCalculator);
+
+        /** the RAS */
+        ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
+        DistanceSensor distance = hardwareMap.get(DistanceSensor.class, "distance");
+        HashMap<String, RobotModule> robotAuxiliarySystemDependentModules = new HashMap<>(1);
+        HashMap<String, Object> robotAuxiliarySystemDependentInstances = new HashMap<>(1);
+        robotAuxiliarySystemDependentModules.put("positionCalculator", positionCalculator);
+        robotAuxiliarySystemDependentInstances.put("colorDistanceSensor", color);
+        robotAuxiliarySystemDependentInstances.put("tofDistanceSensor", distance);
+        robotAuxiliarySystemDependentInstances.put("chassisDriver", chassis);
+        robotAuxiliarySystemDependentModules.put("arm", armModule);
+        this.robotAuxiliarySystem = new RobotAuxiliarySystem();
+        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, false);
+
 
         /** the thread for telemetry monitoring */
         Thread telemetryThread = new Thread(new Runnable() {
@@ -175,14 +197,44 @@ abstract class AutoStage extends LinearOpMode {
      * @throws InterruptedException
      * */
     private void proceedAutoStageInstructions() throws InterruptedException {
-        // grab the preloaded sleeve
+        /* grab the preloaded sleeve */
         arm.holdPreLoadedSleeve();
         Thread.sleep(1000);
 
-        // go to the center of the grid (200, 130), in reference to the red side team
-        System.out.println(chassis.goToPosition(0, 1000));
+        /* go to the center of the grid */
+        chassis.goToPosition(0, 1000);
 
+        /* move to center the grid on the left */
         chassis.goToPosition(-10000, 1000);
+
+        /* go to the center of the grid ahead */
+        chassis.goToPosition(-10000, 0000); // TODO measure the y-axis
+
+        /* raise the arm */
+        arm.goToHighestTower();
+
+        /* scores goal */
+    }
+
+    /**
+     * aim tower and score sleeve
+     * @param direction: the direction of the targeted tower 1 for left and 2 for right
+     * @return whether the process succeeded
+     * */
+    private boolean aimAndScore(int direction) {
+        robotAuxiliarySystem.startAim(direction);
+
+        ElapsedTime timeUsed = new ElapsedTime(); timeUsed.reset();
+        do {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            robotAuxiliarySystem.periodic();
+
+            if (timeUsed.seconds() > 3) return false;
+
+        } while (robotAuxiliarySystem.statusCode != 0);
+
+        return robotAuxiliarySystem.isLastAimSucceeded();
     }
 
     /**

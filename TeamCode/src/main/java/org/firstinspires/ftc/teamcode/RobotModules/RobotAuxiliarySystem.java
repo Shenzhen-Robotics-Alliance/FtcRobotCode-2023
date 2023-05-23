@@ -33,24 +33,24 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 42;
+    private static final double highTowerDroppingSpot = 40;
     /** the best dropping spot for the mid tower, in cm */
     private static final double midTowerDroppingSpot = 45; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
-    private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 52};
+    private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 41};
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
-    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(0);
+    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-1);
     /** when approaching as rotating to the right */
-    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(-4);
+    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(6);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
-    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(8);
+    private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(0);
     /** when approaching as rotating to the right at high speed*/
-    private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(6);
+    private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 6450 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6500 / 30; // measured that 6000 encoder values where increased for a 30cm of move
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -94,6 +94,8 @@ public class RobotAuxiliarySystem extends RobotModule {
     private double minDistance;
     /** whether any target locked in this scan */
     private boolean targetFound;
+    /** whether the last aim succeeded or did it fail */
+    private boolean lastAimSucceeded;
 
     /** the distance to tower the first time it was found */
     private double towerDistance;
@@ -344,6 +346,10 @@ public class RobotAuxiliarySystem extends RobotModule {
                 while (descendTime.milliseconds() < 300) {
                     arm.periodic();
                 }
+
+                if (arm.getArmStatusCode() == 0) lastAimSucceeded = true;
+                else lastAimSucceeded = false;
+
                 arm.openClaw();
                 statusCode = 0;
                 break;
@@ -422,6 +428,10 @@ public class RobotAuxiliarySystem extends RobotModule {
                     arm.periodic();
                     chassisDriver.setRotationalMotion(0);
                 }
+
+                if (arm.getArmStatusCode() == 0) lastAimSucceeded = true;
+                else lastAimSucceeded = false;
+
                 arm.openClaw();
                 statusCode = 0;
                 break;
@@ -470,4 +480,6 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void stopAim() {
         if (statusCode != -1) statusCode = 0;
     }
+
+    public boolean isLastAimSucceeded() { return lastAimSucceeded; }
 }
