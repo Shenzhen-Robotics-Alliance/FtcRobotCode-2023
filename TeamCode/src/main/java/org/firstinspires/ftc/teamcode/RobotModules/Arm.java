@@ -582,7 +582,7 @@ public class Arm extends RobotModule {
     public void openClaw() {
         // System.out.println("opening");
         claw = false;
-        hardwareDriver.claw.setPosition(0); // open grabber
+        hardwareDriver.claw.setPosition(0.7); // open grabber
         armIsBusy = false;
     }
     /**
@@ -591,7 +591,7 @@ public class Arm extends RobotModule {
     public void closeClaw() {
         // System.out.println("closing");
         claw = true;
-        hardwareDriver.claw.setPosition(0.6); // close grabber
+        hardwareDriver.claw.setPosition(0.3); // close grabber
         armIsBusy = true;
     }
 

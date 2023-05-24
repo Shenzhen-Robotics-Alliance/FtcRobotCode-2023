@@ -106,6 +106,8 @@ abstract class AutoStage extends LinearOpMode {
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, false);
 
+        chassis.setAutoMode(true);
+
 
         /** the thread for telemetry monitoring */
         Thread telemetryThread = new Thread(new Runnable() {
@@ -205,15 +207,16 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToPosition(0, 1000);
 
         /* move to center the grid on the left */
-        chassis.goToPosition(-10000, 1000);
+        chassis.goToPosition(-11500, 1000);
 
         /* go to the center of the grid ahead */
-        chassis.goToPosition(-10000, 0000); // TODO measure the y-axis
+        chassis.goToPosition(-11500, 14500); // TODO measure the y-axis
 
-        /* raise the arm */
-        arm.goToHighestTower();
-
-        /* scores goal */
+//        /* raise the arm */
+//        arm.goToHighestTower();
+//
+//        /* scores goal */
+//        aimAndScore(1);
     }
 
     /**
@@ -222,6 +225,7 @@ abstract class AutoStage extends LinearOpMode {
      * @return whether the process succeeded
      * */
     private boolean aimAndScore(int direction) {
+        chassis.setAutoMode(false);
         robotAuxiliarySystem.startAim(direction);
 
         ElapsedTime timeUsed = new ElapsedTime(); timeUsed.reset();
@@ -230,10 +234,14 @@ abstract class AutoStage extends LinearOpMode {
             positionCalculator.periodic();
             robotAuxiliarySystem.periodic();
 
-            if (timeUsed.seconds() > 3) return false;
+            if (timeUsed.seconds() > 3) {
+                chassis.setAutoMode(true);
+                return false;
+            }
 
         } while (robotAuxiliarySystem.statusCode != 0);
 
+        chassis.setAutoMode(true);
         return robotAuxiliarySystem.isLastAimSucceeded();
     }
 

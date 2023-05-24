@@ -33,7 +33,6 @@ public class AutoStageArm {
 
     public void goToHighestTower() {
         armModule.toHighArmPosition();
-        System.out.println("arm status code:" + armModule.getArmStatusCode());
         while (armModule.getArmStatusCode() > 0) {
             armModule.periodic();
             System.out.println(armModule.getArmStatusCode());

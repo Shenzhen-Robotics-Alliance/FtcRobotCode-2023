@@ -175,6 +175,8 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
+        System.out.println(positionError[0] + "," + positionError[1]);
+
         // System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + ";error to ground:" + positionErrorToGround[0] + "," + positionErrorToGround[1]);
     }
 
@@ -248,6 +250,8 @@ public class ChassisDriver {
                 return false;
             }
         } while(xError * xError + yError * yError > translationalEncoderTolerance * translationalEncoderTolerance);
+        switchToManualPositionMode();
+        setRobotTranslationalMotion(0, 0);
         return true;
     }
 
@@ -272,6 +276,8 @@ public class ChassisDriver {
             if (Math.abs(positionCalculator.getAngularVelocity()) > minRotatingAngularVelocity) stuckTime.reset();
             else if (stuckTime.seconds() > 0.5) return false;
         } while (Math.abs(rotationError) > rotationalTolerance);
+        switchToManualRotationMode();
+        setRotationalMotion(0);
         return true;
     }
 
@@ -284,13 +290,11 @@ public class ChassisDriver {
         return goToRotation(Math.toRadians(degrees));
     }
 
-    public void setFastModeOn(boolean fastModeOn) {
-        if (fastModeOn) {
-            maxMotioningPower = 0.7;
-            encoderDifferenceStartDecelerate = 1500;
-            velocityDebugTimeTranslation = 0.35;
+    public void setAutoMode(boolean autoMode) {
+        if (autoMode) {
+            encoderDifferenceStartDecelerate = 3000;
+            velocityDebugTimeTranslation = 0.3;
         } else {
-            maxMotioningPower = 0.5;
             encoderDifferenceStartDecelerate = 2000;
             velocityDebugTimeTranslation = 0.12;
         }
