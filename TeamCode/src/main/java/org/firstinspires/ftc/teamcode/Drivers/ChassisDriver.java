@@ -8,10 +8,10 @@ public class ChassisDriver {
     /* private final double maxPower = 0.6;
     private final double encoderDistanceStartDecelerate = 15000;
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
-    private static final double maxRotatingPowerStationary = 0.6;
+    private static final double maxRotatingPowerStationary = 0.5;
     private static final double rotationDifferenceStartDecelerateStationary = Math.toRadians(15);
     private static final double motorPowerPerRotationDifferenceStationary = -(maxRotatingPowerStationary / rotationDifferenceStartDecelerateStationary);
-    private static final double velocityDebugTimeRotationStationary = 0.05;
+    private static final double velocityDebugTimeRotationStationary = 0.03;
 
     private static final double maxRotatingPowerInMotion = 0.35;
     private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(45);
@@ -128,18 +128,17 @@ public class ChassisDriver {
 
     private void updateRotationalMotorSpeed(double dt) {
         double velocityDebugTime, motorPowerPerRotationDifference, maxPower, integralCoefficient;
-        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0] + positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1] > 1000 * 1000) {
-            velocityDebugTime = velocityDebugTimeRotationInMotion;
-            motorPowerPerRotationDifference = motorPowerPerRotationDifferenceInMotion;
-            maxPower = maxRotatingPowerInMotion;
-            integralCoefficient = 0;
-        } else {
+        if (RASActivation) {
             velocityDebugTime = velocityDebugTimeRotationStationary;
             motorPowerPerRotationDifference = motorPowerPerRotationDifferenceStationary;
             maxPower = maxRotatingPowerStationary;
             integralCoefficient = integralCoefficientRotationStationary;
+        } else {
+            velocityDebugTime = velocityDebugTimeRotationInMotion;
+            motorPowerPerRotationDifference = motorPowerPerRotationDifferenceInMotion;
+            maxPower = maxRotatingPowerInMotion;
+            integralCoefficient = 0;
         }
-        System.out.println("in motion:" + (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0] + positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1] > 1000 * 1000));
 
         double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
