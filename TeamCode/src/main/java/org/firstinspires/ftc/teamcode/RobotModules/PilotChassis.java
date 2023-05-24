@@ -76,12 +76,12 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private final double maxCarryingPower = 0.6;
 
     /** when the pilot stops the machine it will still travel for this much time */
-    private static final double smoothOutTime = 0.1; // 0.15:soft, 0.1: very hard
+    private static final double smoothOutTime = 0.12; // 0.15:soft, 0.1: very hard
     /** the angular velocity of the robot when full rotation power is given */
     private static final double maxAngularVelocity = Math.PI * 2;
 
     /** whether to do a secondary non-linear process to the axis of the controller */
-    private static final boolean squareAxis = true;
+    private static final boolean squareAxis = false;
 
     /** calibrate the controller, store the initial state of the controller, in the order of x-axis, y axis and rotational axis */
     private double[] pilotControllerPadZeroPosition = {0, 0, 0};

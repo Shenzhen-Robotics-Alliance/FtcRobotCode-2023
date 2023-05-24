@@ -356,7 +356,6 @@ public class RobotAuxiliarySystem extends RobotModule {
                 while (descendTime.milliseconds() < 300) {
                     arm.periodic();
                 }
-
                 if (arm.getArmStatusCode() == 0) lastAimSucceeded = true;
                 else lastAimSucceeded = false;
 

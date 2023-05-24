@@ -8,10 +8,16 @@ public class ChassisDriver {
     /* private final double maxPower = 0.6;
     private final double encoderDistanceStartDecelerate = 15000;
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
-    private final double maxRotatingPower = 0.4;
-    private final double rotationDifferenceStartDecelerate = Math.toRadians(15);
-    private final double motorPowerPerRotationDifference = -(maxRotatingPower / rotationDifferenceStartDecelerate);
-    private final double velocityDebugTimeRotation = 0.05;
+    private static final double maxRotatingPowerStationary = 0.4;
+    private static final double rotationDifferenceStartDecelerateStationary = Math.toRadians(15);
+    private static final double motorPowerPerRotationDifferenceStationary = -(maxRotatingPowerStationary / rotationDifferenceStartDecelerateStationary);
+    private static final double velocityDebugTimeRotationStationary = 0.05;
+
+    private static final double maxRotatingPowerInMotion = 0.35;
+    private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(45);
+    private static final double motorPowerPerRotationDifferenceInMotion = -(maxRotatingPowerInMotion / rotationDifferenceStartDecelerateInMotion);
+    private static final double velocityDebugTimeRotationInMotion = 0.1;
+
     private final double integralCoefficientRotation = 0; // not needed yet
     private final double rotationalTolerance = Math.toRadians(3.5);
     private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
@@ -20,7 +26,7 @@ public class ChassisDriver {
     private double encoderDifferenceStartDecelerate = 2000;
     private double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private double velocityDebugTimeTranslation = 0.12;
-    private double integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference; // not needed yet
+    private double integrationCoefficientTranslation = 0 * motorPowerPerEncoderDifference; // not needed yet, (originally 0.05 * motor_power_per...)
     private double translationalEncoderTolerance = 250;
     /** the minimum encoder speed, in encoder value per second, of the robot. so the robot can judge whether it is stuck */
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
@@ -122,9 +128,20 @@ public class ChassisDriver {
 
     private void updateRotationalMotorSpeed(double dt) {
         // TODO use different PID coefficients when the robot is moving translationally
+        double velocityDebugTime, motorPowerPerRotationDifference, maxPower;
+        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0] + positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1] > minMotioningEncoderSpeed * minMotioningEncoderSpeed) {
+            velocityDebugTime = velocityDebugTimeRotationInMotion;
+            motorPowerPerRotationDifference = motorPowerPerRotationDifferenceInMotion;
+            maxPower = maxRotatingPowerInMotion;
+        } else {
+            velocityDebugTime = velocityDebugTimeRotationStationary;
+            motorPowerPerRotationDifference = motorPowerPerRotationDifferenceStationary;
+            maxPower = maxRotatingPowerStationary;
+        }
+
         double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
-        double futureRotation = currentRotation + velocityDebugTimeRotation * this.positionCalculator.getAngularVelocity();
+        double futureRotation = currentRotation + velocityDebugTime * this.positionCalculator.getAngularVelocity();
 
         double rotationalRawError = getActualDifference(currentRotation, targetedRotation);
         double rotationalError = getActualDifference(futureRotation, targetedRotation);
@@ -132,7 +149,7 @@ public class ChassisDriver {
         rotationalIntegration += rotationalRawError * dt;
 
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
-        rotationalMotion = Math.copySign(Math.min(maxRotatingPower, Math.abs(rotationalMotion)), rotationalMotion);
+        rotationalMotion = Math.copySign(Math.min(maxPower, Math.abs(rotationalMotion)), rotationalMotion);
 
         System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
@@ -156,7 +173,7 @@ public class ChassisDriver {
         positionError[1] = positionErrorToGround[0] * -Math.sin(currentRotation) + positionErrorToGround[1] * Math.cos(currentRotation);
 
         // do the integration when the robot is almost there
-        if (Math.abs(positionError[0]) + Math.abs(positionError[1]) < encoderDifferenceStartDecelerate) {
+        if (Math.abs(positionError[0]) + Math.abs(positionError[1]) < encoderDifferenceStartDecelerate / 4) {
             translationalIntegration[0] += dt * positionRawError[0];
             translationalIntegration[1] += dt * positionRawError[1];
         }
@@ -175,9 +192,7 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
-        System.out.println(positionError[0] + "," + positionError[1]);
-
-        // System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + ";error to ground:" + positionErrorToGround[0] + "," + positionErrorToGround[1]);
+        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + ";error to ground:" + positionErrorToGround[0] + "," + positionErrorToGround[1]);
     }
 
     @Deprecated
@@ -292,14 +307,14 @@ public class ChassisDriver {
 
     public void setAutoMode(boolean autoMode) {
         if (autoMode) {
-            encoderDifferenceStartDecelerate = 3000;
-            velocityDebugTimeTranslation = 0.3;
+            encoderDifferenceStartDecelerate = 2400;
+            velocityDebugTimeTranslation = 0.2;
         } else {
             encoderDifferenceStartDecelerate = 2000;
             velocityDebugTimeTranslation = 0.12;
         }
         motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
-        integrationCoefficientTranslation = 0.05 * motorPowerPerEncoderDifference;
+        integrationCoefficientTranslation = 0.00 * motorPowerPerEncoderDifference;
     }
 
     public static double getActualDifference(double currentRotation, double targetedRotation) {

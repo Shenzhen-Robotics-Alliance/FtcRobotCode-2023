@@ -181,7 +181,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
      * @throws InterruptedException: when the operation mode is interrupted by the system
      */
     private void runLoop() throws InterruptedException {
-        telemetry.addData("program-delay", programDelay.seconds()*1000);
+        telemetry.addData("program-delay(ms)", programDelay.seconds()*1000);
         programDelay.reset();
 
         /** calls the periodic function of the modules TODO put the modules in a map and go through in every run loop */

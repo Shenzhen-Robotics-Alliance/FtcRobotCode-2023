@@ -106,7 +106,7 @@ abstract class AutoStage extends LinearOpMode {
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
         robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, false);
 
-        chassis.setAutoMode(true);
+        chassis.setAutoMode(false);
 
 
         /** the thread for telemetry monitoring */
@@ -212,11 +212,11 @@ abstract class AutoStage extends LinearOpMode {
         /* go to the center of the grid ahead */
         chassis.goToPosition(-11500, 14500); // TODO measure the y-axis
 
-//        /* raise the arm */
-//        arm.goToHighestTower();
-//
-//        /* scores goal */
-//        aimAndScore(1);
+        /* raise the arm */
+        arm.goToHighestTower();
+
+        /* scores goal */
+        aimAndScore(1);
     }
 
     /**
@@ -234,7 +234,7 @@ abstract class AutoStage extends LinearOpMode {
             positionCalculator.periodic();
             robotAuxiliarySystem.periodic();
 
-            if (timeUsed.seconds() > 3) {
+            if (timeUsed.seconds() > 5) {
                 chassis.setAutoMode(true);
                 return false;
             }

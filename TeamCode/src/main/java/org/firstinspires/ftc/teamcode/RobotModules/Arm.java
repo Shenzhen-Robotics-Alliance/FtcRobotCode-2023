@@ -591,7 +591,7 @@ public class Arm extends RobotModule {
     public void closeClaw() {
         // System.out.println("closing");
         claw = true;
-        hardwareDriver.claw.setPosition(0.3); // close grabber
+        hardwareDriver.claw.setPosition(0.1); // close grabber
         armIsBusy = true;
     }
 
