@@ -146,7 +146,7 @@ public class Roboseed_DualPilot extends LinearOpMode {
         robotAuxiliarySystemDependentInstances.put("chassisDriver", chassisDriver);
         robotAuxiliarySystemDependentModules.put("arm", arm);
         this.robotAuxiliarySystem = new RobotAuxiliarySystem();
-        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, true);
+        robotAuxiliarySystem.init(robotAuxiliarySystemDependentModules, robotAuxiliarySystemDependentInstances, this, false);
 
 
         /* telemetry.addLine("robotCurrentPosition(Camera)");

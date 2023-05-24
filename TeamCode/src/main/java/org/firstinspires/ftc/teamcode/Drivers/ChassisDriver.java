@@ -11,7 +11,7 @@ public class ChassisDriver {
     private static final double maxRotatingPowerStationary = 0.6;
     private static final double rotationDifferenceStartDecelerateStationary = Math.toRadians(15);
     private static final double motorPowerPerRotationDifferenceStationary = -(maxRotatingPowerStationary / rotationDifferenceStartDecelerateStationary);
-    private static final double velocityDebugTimeRotationStationary = 0.03;
+    private static final double velocityDebugTimeRotationStationary = 0.05;
 
     private static final double maxRotatingPowerInMotion = 0.35;
     private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(45);
