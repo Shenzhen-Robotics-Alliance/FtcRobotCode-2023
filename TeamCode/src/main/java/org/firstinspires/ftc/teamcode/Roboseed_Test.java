@@ -131,14 +131,14 @@ public class Roboseed_Test extends LinearOpMode {
 //        arm.toHighArmPosition();
 //        while (arm.getArmStatusCode() != 0) arm.periodic();
 //        robotAuxiliarySystem.startAim(2);
+        chassisDriver.setTargetedRotation(Math.toRadians(85));
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
+            // telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
             // System.out.println("delay:" + dt.seconds()*1000);
 
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
-            robotAuxiliarySystem.periodic();
-            arm.periodic();
+            chassisDriver.sendCommandsToMotors();
 
 
 //            positionCalculator.forceUpdateEncoderValue();

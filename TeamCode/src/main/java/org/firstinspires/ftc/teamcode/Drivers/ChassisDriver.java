@@ -8,17 +8,17 @@ public class ChassisDriver {
     /* private final double maxPower = 0.6;
     private final double encoderDistanceStartDecelerate = 15000;
     private final double motorPowerPerEncoderValueError = (maxPower / encoderDistanceStartDecelerate); */
-    private static final double maxRotatingPowerStationary = 0.4;
+    private static final double maxRotatingPowerStationary = 0.6;
     private static final double rotationDifferenceStartDecelerateStationary = Math.toRadians(15);
     private static final double motorPowerPerRotationDifferenceStationary = -(maxRotatingPowerStationary / rotationDifferenceStartDecelerateStationary);
-    private static final double velocityDebugTimeRotationStationary = 0.05;
+    private static final double velocityDebugTimeRotationStationary = 0.03;
 
     private static final double maxRotatingPowerInMotion = 0.35;
     private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(45);
     private static final double motorPowerPerRotationDifferenceInMotion = -(maxRotatingPowerInMotion / rotationDifferenceStartDecelerateInMotion);
     private static final double velocityDebugTimeRotationInMotion = 0.1;
 
-    private final double integralCoefficientRotation = 0; // not needed yet
+    private final double integralCoefficientRotationStationary = 0 * motorPowerPerRotationDifferenceStationary;
     private final double rotationalTolerance = Math.toRadians(3.5);
     private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
 
@@ -127,17 +127,19 @@ public class ChassisDriver {
     }
 
     private void updateRotationalMotorSpeed(double dt) {
-        // TODO use different PID coefficients when the robot is moving translationally
-        double velocityDebugTime, motorPowerPerRotationDifference, maxPower;
-        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0] + positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1] > minMotioningEncoderSpeed * minMotioningEncoderSpeed) {
+        double velocityDebugTime, motorPowerPerRotationDifference, maxPower, integralCoefficient;
+        if (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0] + positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1] > 1000 * 1000) {
             velocityDebugTime = velocityDebugTimeRotationInMotion;
             motorPowerPerRotationDifference = motorPowerPerRotationDifferenceInMotion;
             maxPower = maxRotatingPowerInMotion;
+            integralCoefficient = 0;
         } else {
             velocityDebugTime = velocityDebugTimeRotationStationary;
             motorPowerPerRotationDifference = motorPowerPerRotationDifferenceStationary;
             maxPower = maxRotatingPowerStationary;
+            integralCoefficient = integralCoefficientRotationStationary;
         }
+        System.out.println("in motion:" + (positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0] + positionCalculator.getRawVelocity()[1] * positionCalculator.getRawVelocity()[1] > 1000 * 1000));
 
         double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
@@ -146,9 +148,9 @@ public class ChassisDriver {
         double rotationalRawError = getActualDifference(currentRotation, targetedRotation);
         double rotationalError = getActualDifference(futureRotation, targetedRotation);
 
-        rotationalIntegration += rotationalRawError * dt;
+        if (Math.abs(rotationalError) < rotationDifferenceStartDecelerateStationary) rotationalIntegration += rotationalRawError * dt;
 
-        rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficientRotation;
+        rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxPower, Math.abs(rotationalMotion)), rotationalMotion);
 
         System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
