@@ -23,7 +23,7 @@ public class ChassisDriver {
     private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
 
     private double maxMotioningPower = 0.5;
-    private double encoderDifferenceStartDecelerate = 2000;
+    private double encoderDifferenceStartDecelerate = 1000;
     private double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private double velocityDebugTimeTranslation = 0.12;
     private double integrationCoefficientTranslation = 0 * motorPowerPerEncoderDifference; // not needed yet, (originally 0.05 * motor_power_per...)
@@ -152,7 +152,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        // System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
@@ -185,7 +185,7 @@ public class ChassisDriver {
         xAxleMotion = Math.copySign(
                 Math.min(Math.abs(xAxleMotion), maxMotioningPower),
                 xAxleMotion
-        );
+        ) * 1.2;
         yAxleMotion = Math.copySign(
                 Math.min(Math.abs(yAxleMotion), maxMotioningPower),
                 yAxleMotion
@@ -193,7 +193,7 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
-        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + ";error to ground:" + positionErrorToGround[0] + "," + positionErrorToGround[1]);
+        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + "; PID coefficient:" + motorPowerPerEncoderDifference);
     }
 
     @Deprecated
@@ -232,7 +232,7 @@ public class ChassisDriver {
         xAxleMotion = (xAxleMotionToGround * Math.cos(currentRotation)) + (yAxleMotionToGround * Math.sin(currentRotation));
         yAxleMotion = (xAxleMotionToGround * Math.sin(currentRotation)) + (yAxleMotionToGround * Math.cos(currentRotation));
 
-        // System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
+        System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
     }
 
     /**
@@ -311,8 +311,8 @@ public class ChassisDriver {
             encoderDifferenceStartDecelerate = 2400;
             velocityDebugTimeTranslation = 0.2;
         } else {
-            encoderDifferenceStartDecelerate = 2000;
-            velocityDebugTimeTranslation = 0.12;
+            encoderDifferenceStartDecelerate = 1000;
+            velocityDebugTimeTranslation = 0.15;
         }
         motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
         integrationCoefficientTranslation = 0.00 * motorPowerPerEncoderDifference;

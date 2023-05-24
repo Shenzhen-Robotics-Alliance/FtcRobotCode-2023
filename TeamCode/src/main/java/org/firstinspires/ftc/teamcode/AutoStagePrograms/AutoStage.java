@@ -201,7 +201,7 @@ abstract class AutoStage extends LinearOpMode {
     private void proceedAutoStageInstructions() throws InterruptedException {
         /* grab the preloaded sleeve */
         arm.holdPreLoadedSleeve();
-        Thread.sleep(1000);
+        Thread.sleep(500);
 
         /* go to the center of the grid */
         chassis.goToPosition(0, 1000);
@@ -217,6 +217,10 @@ abstract class AutoStage extends LinearOpMode {
 
         /* scores goal */
         aimAndScore(1);
+
+        /* face to the front */
+        chassis.goToRotation(0);
+
     }
 
     /**
