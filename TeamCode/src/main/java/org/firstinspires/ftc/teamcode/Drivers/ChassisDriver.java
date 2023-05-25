@@ -31,6 +31,9 @@ public class ChassisDriver {
     /** the minimum encoder speed, in encoder value per second, of the robot. so the robot can judge whether it is stuck */
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
+    /** the coefficient to scale the x-axle motion up, as the wheel structure made it a little harder to move horizontally than vertically  */
+    private final double xAxleMotionScaleFactor = 1.5;
+
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
 
@@ -167,7 +170,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        // System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
@@ -200,7 +203,7 @@ public class ChassisDriver {
         xAxleMotion = Math.copySign(
                 Math.min(Math.abs(xAxleMotion), maxMotioningPower),
                 xAxleMotion
-        ) * 1.4;
+        ) * xAxleMotionScaleFactor;
         yAxleMotion = Math.copySign(
                 Math.min(Math.abs(yAxleMotion), maxMotioningPower),
                 yAxleMotion
@@ -258,6 +261,8 @@ public class ChassisDriver {
      * @return whether the process succeeded or did it got stuck
      * */
     public boolean goToPosition(double x, double y, double maintenanceRotation) {
+        setAutoMode(true);
+
         setTargetedTranslation_fixedRotation(x, y, maintenanceRotation);
         double xError, yError;
         ElapsedTime dt = new ElapsedTime();
@@ -279,6 +284,7 @@ public class ChassisDriver {
                             > minMotioningEncoderSpeed * minMotioningEncoderSpeed) {
                 stuckTime.reset();
             } else if (stuckTime.seconds() > 0.2) {
+                setAutoMode(false);
                 return false;
             }
 
@@ -286,6 +292,8 @@ public class ChassisDriver {
         } while(xError * xError + yError * yError > translationalEncoderTolerance * translationalEncoderTolerance);
         switchToManualPositionMode();
         setRobotTranslationalMotion(0, 0);
+
+        setAutoMode(false);
         return true;
     }
 
@@ -346,10 +354,13 @@ public class ChassisDriver {
     }
 
     public void setAutoMode(boolean autoMode) {
+        System.out.println("<-- update, chassis auto-stage PID preset, it is now" + autoMode + " -->");
         if (autoMode) {
-            encoderDifferenceStartDecelerate = 2400;
-            velocityDebugTimeTranslation = 0.2;
+            maxMotioningPower = 0.65;
+            encoderDifferenceStartDecelerate = 2200;
+            velocityDebugTimeTranslation = 0.18;
         } else {
+            maxMotioningPower = 0.4;
             encoderDifferenceStartDecelerate = 800;
             velocityDebugTimeTranslation = 0.15;
         }

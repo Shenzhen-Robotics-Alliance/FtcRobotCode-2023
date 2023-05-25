@@ -126,6 +126,8 @@ public class Roboseed_Test extends LinearOpMode {
         waitForStart();
         ElapsedTime dt = new ElapsedTime();
 
+        chassisDriver.goToPosition(0, 4000, 0);
+
         while (opModeIsActive() && !isStopRequested()) {
             // telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
             // System.out.println("delay:" + dt.seconds()*1000);

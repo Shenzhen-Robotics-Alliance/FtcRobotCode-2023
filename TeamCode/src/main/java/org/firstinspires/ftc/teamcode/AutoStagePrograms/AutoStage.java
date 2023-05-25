@@ -257,6 +257,7 @@ abstract class AutoStage extends LinearOpMode {
      * */
     private boolean aimAndScore(int direction) throws InterruptedException {
         chassis.setAutoMode(false);
+
         robotAuxiliarySystem.startAim(direction);
 
         ElapsedTime timeUsed = new ElapsedTime(); timeUsed.reset();
@@ -271,8 +272,6 @@ abstract class AutoStage extends LinearOpMode {
             }
 
         } while (robotAuxiliarySystem.statusCode != 0);
-
-        chassis.setAutoMode(true);
 
         Thread.sleep(500);
         arm.dropSleeve();
