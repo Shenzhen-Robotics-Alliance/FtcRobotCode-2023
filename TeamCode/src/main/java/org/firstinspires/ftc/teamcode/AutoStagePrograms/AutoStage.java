@@ -212,10 +212,8 @@ abstract class AutoStage extends LinearOpMode {
         /* go to the center of the grid ahead */
         chassis.goToPosition(-11500, 14500); // TODO measure the y-axis
 
-        /* raise the arm */
+        /* raise the arm and score goal */
         arm.goToHighestTower();
-
-        /* scores goal */
         aimAndScore(1);
 
         /* face to the front */
@@ -225,13 +223,30 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToPosition(-10500, 14500);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-10500, 29500);
+        chassis.goToPosition(-10500, 29700);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
-        chassis.goToPosition(2000, 29500);
+        chassis.goToPosition(2000, 29700);
 
-        /* grab a sleeve from sleeves stack */
+        /* grab the second sleeve from sleeves stack */
+        grabSleeveFromSleevesStack();
+
+        /* go to the left-front (or right-front according to the robot now) side of the highest tower */
+        chassis.goToPosition(-25000, 29700);
+
+        /* raise the arm and score sleeve */
+        arm.goToHighestTower();
+        aimAndScore(2);
+
+        /* go back to the center of the grid */
+        chassis.goToPosition(-25000, 29700);
+        chassis.goToRotation(-90);
+
+        /* move to beside the sleeves stack */
+        chassis.goToPosition(2000, 29700);
+
+        /* grab the third sleeve from the stack */
         grabSleeveFromSleevesStack();
 
         /* go to the center of the second grid */
@@ -270,12 +285,16 @@ abstract class AutoStage extends LinearOpMode {
     private boolean grabSleeveFromSleevesStack() {
         arm.levelArmToSleevesStack();
         chassis.setRobotTranslationalMotion(0, 0.3);
+        chassis.setTargetedRotation(-90);
         ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
         do {
             if (elapsedTime.seconds() > 4) {
                 chassis.setRobotTranslationalMotion(0, 0);
                 return false;
             }
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            chassis.sendCommandsToMotors();
             robotAuxiliarySystem.periodic();
         } while (!arm.getClaw());
 
