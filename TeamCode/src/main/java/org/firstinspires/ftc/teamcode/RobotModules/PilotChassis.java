@@ -76,9 +76,11 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private final double maxCarryingPower = 0.6;
 
     /** when the pilot stops the machine it will still travel for this much time */
-    private static final double smoothOutTime = 0.1; // 0.15:soft, 0.1: very hard
+    private static final double smoothOutTime = 0.3; // 0.15:soft, 0.1: very hard
     /** the angular velocity of the robot when full rotation power is given */
-    private static final double maxAngularVelocity = Math.PI * 2.5;
+    private static final double maxAngularVelocity = Math.PI * 4;
+    /** the angular velocity of the robot when doing small adjusts */
+    private static final double minAngularVelocity = Math.PI * 0.8;
 
     /** whether to do a secondary non-linear process to the axis of the controller */
     private static final boolean squareAxis = false;
@@ -208,7 +210,13 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             chassisDriver.setRotationalMotion(rotationalAttempt);
             /* set the targeted rotation for the robot to maintain, and take in consider the pilot's rotational commands and the momentum of the robot to predict the actual future rotation */
             // targetedRotation = positionCalculator.getRobotRotation() - rotationalAttempt*smoothOutTime*maxAngularVelocity + positionCalculator.getAngularVelocity() * smoothOutTime;
-            targetedRotation = positionCalculator.getRobotRotation() - rotationalAttempt*smoothOutTime*maxAngularVelocity;
+            targetedRotation = positionCalculator.getRobotRotation() -
+                    rotationalAttempt*smoothOutTime*
+                            Math.min(
+                                    Math.max(Math.abs(positionCalculator.getAngularVelocity()), minAngularVelocity),
+                                    maxAngularVelocity
+                                    );
+            System.out.println(positionCalculator.getRobotRotation() + "," + targetedRotation);
         } else if (!chassisDriver.isRASActivated()) chassisDriver.setTargetedRotation(targetedRotation);
 
         if (pilotOnControl) {

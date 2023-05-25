@@ -16,7 +16,7 @@ public class ChassisDriver {
     private static final double maxRotatingPowerInMotion = 0.4;
     private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(25);
     private static final double motorPowerPerRotationDifferenceInMotion = -(maxRotatingPowerInMotion / rotationDifferenceStartDecelerateInMotion);
-    private static final double velocityDebugTimeRotationInMotion = 0.06;
+    private static final double velocityDebugTimeRotationInMotion = 0.03;
 
     private final double integralCoefficientRotationStationary = 0 * motorPowerPerRotationDifferenceStationary;
     private final double rotationalTolerance = Math.toRadians(3.5);
@@ -32,7 +32,7 @@ public class ChassisDriver {
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
     /** the coefficient to scale the x-axle motion up, as the wheel structure made it a little harder to move horizontally than vertically  */
-    private final double xAxleMotionScaleFactor = 1.35;
+    private final double xAxleMotionScaleFactor = 1.32;
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -283,7 +283,7 @@ public class ChassisDriver {
                             + positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0]
                             > minMotioningEncoderSpeed * minMotioningEncoderSpeed) {
                 stuckTime.reset();
-            } else if (stuckTime.seconds() > 0.2) {
+            } else if (stuckTime.seconds() > 0.1) {
                 setAutoMode(false);
                 return false;
             }
@@ -356,9 +356,9 @@ public class ChassisDriver {
     public void setAutoMode(boolean autoMode) {
         System.out.println("<-- update, chassis auto-stage PID preset, it is now" + autoMode + " -->");
         if (autoMode) {
-            maxMotioningPower = 0.7;
-            encoderDifferenceStartDecelerate = 2000;
-            velocityDebugTimeTranslation = 0.2;
+            maxMotioningPower = 0.6;
+            encoderDifferenceStartDecelerate = 1700;
+            velocityDebugTimeTranslation = 0.18;
         } else {
             maxMotioningPower = 0.4;
             encoderDifferenceStartDecelerate = 800;

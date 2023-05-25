@@ -217,10 +217,10 @@ abstract class AutoStage extends LinearOpMode {
         aimAndScore(1);
 
         /* move back to the center of the grid */
-        chassis.goToPosition(-10500, 14500, 0);
+        chassis.goToPosition(-11500, 14500, 0);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-10500, 29700, 0);
+        chassis.goToPosition(-11500, 29700, 0);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
