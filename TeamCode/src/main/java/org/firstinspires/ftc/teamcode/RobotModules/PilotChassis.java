@@ -65,6 +65,13 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private final ElapsedTime lastMovement = new ElapsedTime();
     private final ElapsedTime dt = new ElapsedTime();
 
+    /** the rotation that the pilot set it to be */
+    private double targetedRotation = 0;
+    /** if the robot is already maintaining rotation */
+    private boolean inRotationMaintenance = false;
+
+    private final ElapsedTime lastRotation = new ElapsedTime();
+
     /** configuration of the robot's driving feelings */
     /** the minimum power needed to move the robot */
     private final double minDrivingPower = 0;
@@ -75,12 +82,8 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     /** the limit fo the motor power when the robot is carrying a goal */
     private final double maxCarryingPower = 0.6;
 
-    /** when the pilot stops the machine it will still travel for this much time */
-    private static final double smoothOutTime = 0.3; // 0.15:soft, 0.1: very hard
-    /** the angular velocity of the robot when full rotation power is given */
-    private static final double maxAngularVelocity = Math.PI * 4;
-    /** the angular velocity of the robot when doing small adjusts */
-    private static final double minAngularVelocity = Math.PI * 0.8;
+    /** the time after the last rotation for the robot to start maintaining it's current rotation */
+    private static final double rotationCorrectionDelay = 0.3;
 
     /** whether to do a secondary non-linear process to the axis of the controller */
     private static final boolean squareAxis = false;
@@ -88,8 +91,6 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     /** calibrate the controller, store the initial state of the controller, in the order of x-axis, y axis and rotational axis */
     private double[] pilotControllerPadZeroPosition = {0, 0, 0};
 
-    /** the rotation that the pilot set it to be */
-    private double targetedRotation;
     /** the minimum speed when the encoder starts to correct the motion */
     private static final double useEncoderCorrectionSpeed = Float.POSITIVE_INFINITY;
 
@@ -205,19 +206,19 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             }
         }
 
-        if (Math.abs(rotationalAttempt) > 0) {
-            chassisDriver.pilotInterruption();
-            chassisDriver.setRotationalMotion(rotationalAttempt);
-            /* set the targeted rotation for the robot to maintain, and take in consider the pilot's rotational commands and the momentum of the robot to predict the actual future rotation */
-            // targetedRotation = positionCalculator.getRobotRotation() - rotationalAttempt*smoothOutTime*maxAngularVelocity + positionCalculator.getAngularVelocity() * smoothOutTime;
-            targetedRotation = positionCalculator.getRobotRotation() -
-                    rotationalAttempt*smoothOutTime*
-                            Math.min(
-                                    Math.max(Math.abs(positionCalculator.getAngularVelocity()), minAngularVelocity),
-                                    maxAngularVelocity
-                                    );
-            System.out.println(positionCalculator.getRobotRotation() + "," + targetedRotation);
-        } else if (!chassisDriver.isRASActivated()) chassisDriver.setTargetedRotation(targetedRotation);
+        if (Math.abs(rotationalAttempt) > 0) { // if the pilot asks to rotate
+            chassisDriver.pilotInterruption(); // interrupt the RAS auto aim process throw chassis
+            chassisDriver.setRotationalMotion(rotationalAttempt); // do what the pilot asks
+
+            lastRotation.reset(); // reset the timer
+            inRotationMaintenance = false; // reset the debugging variable
+        } else if (lastRotation.seconds() > rotationCorrectionDelay) { // if there is already some time elapsed after the last operation
+            if (!inRotationMaintenance) { // if the maintenance rotation hasn't been set
+                targetedRotation = positionCalculator.getRobotRotation(); // set it to become the current rotation
+                inRotationMaintenance = true; // change the debugging variable
+            }
+            if (!chassisDriver.isRASActivated()) chassisDriver.setTargetedRotation(targetedRotation); // if RAS is not working, set the targeted rotation
+        }
 
         if (pilotOnControl) {
             chassisDriver.pilotInterruption();
