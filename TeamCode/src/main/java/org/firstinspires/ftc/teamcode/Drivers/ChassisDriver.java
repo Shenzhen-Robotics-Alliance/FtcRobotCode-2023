@@ -32,7 +32,7 @@ public class ChassisDriver {
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
     /** the coefficient to scale the x-axle motion up, as the wheel structure made it a little harder to move horizontally than vertically  */
-    private final double xAxleMotionScaleFactor = 1.5;
+    private final double xAxleMotionScaleFactor = 1.35;
 
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
@@ -356,9 +356,9 @@ public class ChassisDriver {
     public void setAutoMode(boolean autoMode) {
         System.out.println("<-- update, chassis auto-stage PID preset, it is now" + autoMode + " -->");
         if (autoMode) {
-            maxMotioningPower = 0.65;
-            encoderDifferenceStartDecelerate = 2200;
-            velocityDebugTimeTranslation = 0.18;
+            maxMotioningPower = 0.7;
+            encoderDifferenceStartDecelerate = 2000;
+            velocityDebugTimeTranslation = 0.2;
         } else {
             maxMotioningPower = 0.4;
             encoderDifferenceStartDecelerate = 800;
