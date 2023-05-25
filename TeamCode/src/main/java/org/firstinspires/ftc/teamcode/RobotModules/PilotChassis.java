@@ -83,7 +83,7 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private final double maxCarryingPower = 0.6;
 
     /** the time after the last rotation for the robot to start maintaining it's current rotation */
-    private static final double rotationCorrectionDelay = 0.3;
+    private static final double rotationCorrectionDelay = 0.15;
 
     /** whether to do a secondary non-linear process to the axis of the controller */
     private static final boolean squareAxis = false;
@@ -218,6 +218,8 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
                 inRotationMaintenance = true; // change the debugging variable
             }
             if (!chassisDriver.isRASActivated()) chassisDriver.setTargetedRotation(targetedRotation); // if RAS is not working, set the targeted rotation
+        } else if (!chassisDriver.isRASActivated()){ // when the robot is waiting for the rotational correction delay
+            chassisDriver.setRotationalMotion(0);
         }
 
         if (pilotOnControl) {
