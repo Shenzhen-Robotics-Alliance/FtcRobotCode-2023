@@ -68,19 +68,34 @@ public class ChassisDriver {
         sendCommandsToMotors();
     }
 
-    public void setTargetedTranslation_fixedRotation(double xAxleTranslation, double yAxleTranslation) {
+    public void setTargetedTranslation_fixedRotation(double xAxleTranslation, double yAxleTranslation, double maintenanceRotation) {
         this.xAxleTranslationTarget = xAxleTranslation;
         this.yAxleTranslationTarget = yAxleTranslation;
-        switchToGoToPosition_fixedRotation_mode();
+        switchToGoToPosition_fixedRotation_mode(maintenanceRotation);
         translationalIntegration[0] = 0;
         translationalIntegration[1] = 0;
     }
 
-    /** in radian */
+    public void setTargetedTranslation_fixedRotation(double xAxleTranslation, double yAxleTranslation) {
+        setTargetedTranslation_fixedRotation(xAxleTranslation, yAxleTranslation, positionCalculator.getRobotRotation());
+    }
+
+    /**
+     * set the targeted rotation of the robot to maintain
+     * @param targetedRotation the targeted facing, in radian
+     * */
     public void setTargetedRotation(double targetedRotation) {
         this.targetedRotation = targetedRotation;
         switchToGoToRotationMode();
         rotationalIntegration = 0;
+    }
+
+    /**
+     * set the targeted rotation of the robot to maintain
+     * @param degrees the targeted facing, in degrees
+     * */
+    public void setTargetedRotation(int degrees) {
+        setTargetedRotation(Math.toRadians(degrees));
     }
 
     public void setRotationalMotion(double rotationalMotion) {
@@ -109,9 +124,9 @@ public class ChassisDriver {
     private void switchToGoToRotationMode() { rotationMode = goToRotationMode; }
 
     public void switchToManualPositionMode() { translationalMode = manualMode; }
-    private void switchToGoToPosition_fixedRotation_mode() {
+    private void switchToGoToPosition_fixedRotation_mode(double maintenanceRotation) {
         translationalMode = gotoPositionMode;
-        this.targetedRotation = positionCalculator.getRobotRotation();
+        this.targetedRotation = maintenanceRotation;
         switchToGoToRotationMode();
     }
 
@@ -152,7 +167,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        // System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
@@ -239,10 +254,11 @@ public class ChassisDriver {
      * go to a targeted sector and stop, for auto stage
      * @param x: the x-axle target
      * @param y: the y-axle target
+     * @param maintenanceRotation: the rotation to maintain, in radian
      * @return whether the process succeeded or did it got stuck
      * */
-    public boolean goToPosition(double x, double y) {
-        setTargetedTranslation_fixedRotation(x, y);
+    public boolean goToPosition(double x, double y, double maintenanceRotation) {
+        setTargetedTranslation_fixedRotation(x, y, maintenanceRotation);
         double xError, yError;
         ElapsedTime dt = new ElapsedTime();
         /* the time that the robot has been stuck */
@@ -271,6 +287,27 @@ public class ChassisDriver {
         switchToManualPositionMode();
         setRobotTranslationalMotion(0, 0);
         return true;
+    }
+
+    /**
+     * go to a targeted sector and stop, maintain in current rotation by default
+     * @param x: the x-axle target
+     * @param y: the y-axle target
+     * @return whether the process succeeded or did it got stuck
+     * */
+    public boolean goToPosition(double x, double y) {
+        return goToPosition(x, y, positionCalculator.getRobotRotation());
+    }
+
+    /**
+     * go to a targeted sector and stop, for auto stage
+     * @param x: the x-axle target
+     * @param y: the y-axle target
+     * @param degrees: the rotation to maintain, in degrees
+     * @return whether the process succeeded or did it got stuck
+     * */
+    public boolean goToPosition(double x, double y, int degrees) {
+        return goToPosition(x, y, Math.toRadians(degrees));
     }
 
     /**

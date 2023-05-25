@@ -204,36 +204,33 @@ abstract class AutoStage extends LinearOpMode {
         Thread.sleep(500);
 
         /* go to the center of the grid */
-        chassis.goToPosition(0, 1000);
+        chassis.goToPosition(0, 1000, 0);
 
         /* move to center the grid on the left */
-        chassis.goToPosition(-11500, 1000);
+        chassis.goToPosition(-11500, 1000, 0);
 
         /* go to the center of the grid ahead */
-        chassis.goToPosition(-11500, 14500); // TODO measure the y-axis
+        chassis.goToPosition(-11500, 14500, 0); // TODO measure the y-axis
 
         /* raise the arm and score goal */
         arm.goToHighestTower();
         aimAndScore(1);
 
-        /* face to the front */
-        chassis.goToRotation(0);
-
         /* move back to the center of the grid */
-        chassis.goToPosition(-10500, 14500);
+        chassis.goToPosition(-10500, 14500, 0);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-10500, 29700);
+        chassis.goToPosition(-10500, 29700, 0);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
-        chassis.goToPosition(2000, 29700);
+        chassis.goToPosition(2000, 29700, -90);
 
         /* grab the second sleeve from sleeves stack */
         grabSleeveFromSleevesStack();
 
         /* go to the left-front (or right-front according to the robot now) side of the highest tower */
-        chassis.goToPosition(-25000, 29700);
+        chassis.goToPosition(-25000, 29700, -90);
 
         /* raise the arm and score sleeve */
         arm.goToHighestTower();
@@ -244,7 +241,7 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToRotation(-90);
 
         /* move to beside the sleeves stack */
-        chassis.goToPosition(2000, 29700);
+        chassis.goToPosition(2000, 29700, -90);
 
         /* grab the third sleeve from the stack */
         grabSleeveFromSleevesStack();
