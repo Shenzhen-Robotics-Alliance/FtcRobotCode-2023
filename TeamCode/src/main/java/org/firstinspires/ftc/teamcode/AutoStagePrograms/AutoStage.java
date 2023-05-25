@@ -230,6 +230,9 @@ abstract class AutoStage extends LinearOpMode {
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
         chassis.goToPosition(2000, 29500);
+
+        chassis.goToRotation(0);
+        chassis.goToPosition(2000, 14500);
     }
 
     /**
@@ -265,15 +268,18 @@ abstract class AutoStage extends LinearOpMode {
      * go to sector 1 if the pilot asks to
      */
     private void proceedGoToSector1() {
+        chassis.goToPosition(-10500, 14500);
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
+        chassis.goToPosition(2000, 14500);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
+        chassis.goToPosition(-13000, 14500);
     }
 }
