@@ -220,28 +220,28 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToPosition(-11500, 14500, 0);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-11500, 29700, 0);
+        chassis.goToPosition(-11500, 30000, 0);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
-        chassis.goToPosition(2000, 29700, -90);
+        chassis.goToPosition(2000, 30000, -90);
 
         /* grab the second sleeve from sleeves stack */
         grabSleeveFromSleevesStack();
 
         /* go to the left-front (or right-front according to the robot now) side of the highest tower */
-        chassis.goToPosition(-25000, 29700, -90);
+        chassis.goToPosition(-25000, 30000, -90);
 
         /* raise the arm and score sleeve */
         arm.goToHighestTower();
         aimAndScore(2);
 
         /* go back to the center of the grid */
-        chassis.goToPosition(-25000, 29700);
+        chassis.goToPosition(-25000, 30000);
         chassis.goToRotation(-90);
 
         /* move to beside the sleeves stack */
-        chassis.goToPosition(2000, 29700, -90);
+        chassis.goToPosition(2000, 30000, -90);
 
         /* grab the third sleeve from the stack */
         grabSleeveFromSleevesStack();
