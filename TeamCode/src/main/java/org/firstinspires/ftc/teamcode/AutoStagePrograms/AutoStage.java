@@ -221,6 +221,15 @@ abstract class AutoStage extends LinearOpMode {
         /* face to the front */
         chassis.goToRotation(0);
 
+        /* move back to the center of the grid */
+        chassis.goToPosition(-10500, 14500);
+
+        /* move to the grid ahead */
+        chassis.goToPosition(-10500, 29500);
+
+        /* turn to face the sleeves and move to beside them */
+        chassis.goToRotation(-90);
+        chassis.goToPosition(2000, 29500);
     }
 
     /**
@@ -228,7 +237,7 @@ abstract class AutoStage extends LinearOpMode {
      * @param direction: the direction of the targeted tower 1 for left and 2 for right
      * @return whether the process succeeded
      * */
-    private boolean aimAndScore(int direction) {
+    private boolean aimAndScore(int direction) throws InterruptedException {
         chassis.setAutoMode(false);
         robotAuxiliarySystem.startAim(direction);
 
@@ -246,6 +255,9 @@ abstract class AutoStage extends LinearOpMode {
         } while (robotAuxiliarySystem.statusCode != 0);
 
         chassis.setAutoMode(true);
+
+        Thread.sleep(500);
+        arm.dropSleeve();
         return robotAuxiliarySystem.isLastAimSucceeded();
     }
 

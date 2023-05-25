@@ -23,11 +23,11 @@ public class ChassisDriver {
     private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
 
     private double maxMotioningPower = 0.4;
-    private double encoderDifferenceStartDecelerate = 1000;
+    private double encoderDifferenceStartDecelerate = 800;
     private double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private double velocityDebugTimeTranslation = 0.12;
     private double integrationCoefficientTranslation = 0 * motorPowerPerEncoderDifference; // not needed yet, (originally 0.05 * motor_power_per...)
-    private double translationalEncoderTolerance = 250;
+    private double translationalEncoderTolerance = 350;
     /** the minimum encoder speed, in encoder value per second, of the robot. so the robot can judge whether it is stuck */
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
@@ -124,8 +124,6 @@ public class ChassisDriver {
         hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         hardwareDriver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
-
-        System.out.println(translationalMode);
     }
 
     private void updateRotationalMotorSpeed(double dt) {
@@ -187,7 +185,7 @@ public class ChassisDriver {
         xAxleMotion = Math.copySign(
                 Math.min(Math.abs(xAxleMotion), maxMotioningPower),
                 xAxleMotion
-        ) * 1.2;
+        ) * 1.4;
         yAxleMotion = Math.copySign(
                 Math.min(Math.abs(yAxleMotion), maxMotioningPower),
                 yAxleMotion
@@ -264,9 +262,11 @@ public class ChassisDriver {
                             + positionCalculator.getRawVelocity()[0] * positionCalculator.getRawVelocity()[0]
                             > minMotioningEncoderSpeed * minMotioningEncoderSpeed) {
                 stuckTime.reset();
-            } else if (stuckTime.seconds() > 0.5) {
+            } else if (stuckTime.seconds() > 0.2) {
                 return false;
             }
+
+            System.out.println("total error:" + Math.sqrt(xError * xError + yError * yError));
         } while(xError * xError + yError * yError > translationalEncoderTolerance * translationalEncoderTolerance);
         switchToManualPositionMode();
         setRobotTranslationalMotion(0, 0);
