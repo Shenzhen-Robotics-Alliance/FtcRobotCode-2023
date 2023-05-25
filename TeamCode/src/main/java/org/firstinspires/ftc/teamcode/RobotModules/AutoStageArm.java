@@ -39,7 +39,8 @@ public class AutoStageArm {
         }
     }
 
-    public void grabFromSleevesStack() {
+    public void levelArmToSleevesStack() {
+        armModule.openClaw();
         armModule.elevateArm(sleevesStackPositions[sleevesCount++]);
         while (armModule.getArmStatusCode() > 0) armModule.periodic();
     }
@@ -49,4 +50,6 @@ public class AutoStageArm {
         while (armModule.getArmStatusCode() > 0) armModule.periodic();
         armModule.toLowArmPosition();
     }
+
+    public boolean getClaw() { return armModule.getClaw(); }
 }

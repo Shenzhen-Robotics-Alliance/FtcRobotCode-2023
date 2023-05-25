@@ -76,9 +76,9 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
     private final double maxCarryingPower = 0.6;
 
     /** when the pilot stops the machine it will still travel for this much time */
-    private static final double smoothOutTime = 0.12; // 0.15:soft, 0.1: very hard
+    private static final double smoothOutTime = 0.1; // 0.15:soft, 0.1: very hard
     /** the angular velocity of the robot when full rotation power is given */
-    private static final double maxAngularVelocity = Math.PI * 2;
+    private static final double maxAngularVelocity = Math.PI * 2.5;
 
     /** whether to do a secondary non-linear process to the axis of the controller */
     private static final boolean squareAxis = false;
@@ -207,7 +207,8 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             chassisDriver.pilotInterruption();
             chassisDriver.setRotationalMotion(rotationalAttempt);
             /* set the targeted rotation for the robot to maintain, and take in consider the pilot's rotational commands and the momentum of the robot to predict the actual future rotation */
-            targetedRotation = positionCalculator.getRobotRotation() - rotationalAttempt*smoothOutTime*maxAngularVelocity + positionCalculator.getAngularVelocity() * smoothOutTime;
+            // targetedRotation = positionCalculator.getRobotRotation() - rotationalAttempt*smoothOutTime*maxAngularVelocity + positionCalculator.getAngularVelocity() * smoothOutTime;
+            targetedRotation = positionCalculator.getRobotRotation() - rotationalAttempt*smoothOutTime*maxAngularVelocity;
         } else if (!chassisDriver.isRASActivated()) chassisDriver.setTargetedRotation(targetedRotation);
 
         if (pilotOnControl) {

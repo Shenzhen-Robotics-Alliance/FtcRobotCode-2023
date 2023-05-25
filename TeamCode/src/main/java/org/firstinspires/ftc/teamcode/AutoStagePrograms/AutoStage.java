@@ -231,8 +231,11 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToRotation(-90);
         chassis.goToPosition(2000, 29500);
 
+        /* grab a sleeve from sleeves stack */
+        grabSleeveFromSleevesStack();
+
+        /* go to the center of the second grid */
         chassis.goToRotation(0);
-        chassis.goToPosition(2000, 14500);
     }
 
     /**
@@ -264,22 +267,39 @@ abstract class AutoStage extends LinearOpMode {
         return robotAuxiliarySystem.isLastAimSucceeded();
     }
 
+    private boolean grabSleeveFromSleevesStack() {
+        arm.levelArmToSleevesStack();
+        chassis.setRobotTranslationalMotion(0, 0.3);
+        ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
+        do {
+            if (elapsedTime.seconds() > 4) {
+                chassis.setRobotTranslationalMotion(0, 0);
+                return false;
+            }
+            robotAuxiliarySystem.periodic();
+        } while (!arm.getClaw());
+
+        chassis.setRobotTranslationalMotion(0, 0);
+        arm.liftFromSleevesStack();
+        return true;
+    }
+
     /**
      * go to sector 1 if the pilot asks to
      */
     private void proceedGoToSector1() {
-        chassis.goToPosition(-10500, 14500);
+        chassis.goToPosition(-12000, 29500);
     }
     /**
      * go to sector 2 if the pilot asks to
      */
     private void proceedGoToSector2() {
-        chassis.goToPosition(2000, 14500);
+        chassis.goToPosition(2000, 29500);
     }
     /**
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
-        chassis.goToPosition(-13000, 14500);
+        chassis.goToPosition(-13000, 29500);
     }
 }

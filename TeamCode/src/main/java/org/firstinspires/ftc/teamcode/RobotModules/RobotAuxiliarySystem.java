@@ -29,15 +29,15 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the range to look for the mid tower, in cm */
     private static final double midTowerSearchRange = 55; // the arm is farther away when reaching for middle
     /** the range to look for the low tower, in cm */
-    private static final double lowTowerSearchRange = 40;
+    private static final double lowTowerSearchRange = 50;
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
     private static final double highTowerDroppingSpot = 40;
     /** the best dropping spot for the mid tower, in cm */
-    private static final double midTowerDroppingSpot = 38; // the arm is farther away when reaching for middle
+    private static final double midTowerDroppingSpot = 36.5; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
-    private static final double lowTowerDroppingSpot = 00; // TODO find this value
+    private static final double lowTowerDroppingSpot = 35; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
     private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 42.5};
 
@@ -50,10 +50,10 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 6460 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6400 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
-    private static final double positionCloseClaw = 0.15; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
+    private static final double positionCloseClaw = 0.25; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
 
     private Arm arm;
     private ChassisDriver chassisDriver;

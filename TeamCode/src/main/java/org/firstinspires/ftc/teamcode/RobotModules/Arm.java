@@ -263,7 +263,7 @@ public class Arm extends RobotModule {
      *      if the robot's arm is not holding stuff but have been hanging up for more than 5 seconds, it deactivates automatically so the motors can cool down
      *      when the robot have been staying still without any driver inputs, it saves battery by turing off the motors and aborting the main program
      */
-    private void reactToPilotInputs() {
+    private void  reactToPilotInputs() {
         /* controls the opening and closing of the claw to grab stuff */
         if (gamepad.right_bumper) closeClaw();
         else if (gamepad.left_bumper) this.openClaw();
@@ -588,7 +588,7 @@ public class Arm extends RobotModule {
     public void openClaw() {
         // System.out.println("opening");
         claw = false;
-        hardwareDriver.claw.setPosition(0.7); // open grabber
+        hardwareDriver.claw.setPosition(0.45); // open grabber
         armIsBusy = false;
     }
     /**

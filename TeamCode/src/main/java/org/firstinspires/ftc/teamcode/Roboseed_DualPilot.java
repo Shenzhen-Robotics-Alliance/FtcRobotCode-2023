@@ -185,14 +185,14 @@ public class Roboseed_DualPilot extends LinearOpMode {
         programDelay.reset();
 
         /** calls the periodic function of the modules TODO put the modules in a map and go through in every run loop */
-        // ElapsedTime elapsedTime = new ElapsedTime();
-        // elapsedTime.reset();
+        ElapsedTime elapsedTime = new ElapsedTime();
+        elapsedTime.reset();
         pilotChassis.periodic();
-        // System.out.println("<--chassis module delay: " + elapsedTime.seconds()*1000 + "-->");
-        // elapsedTime.reset();
+        System.out.println("<--chassis module delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
         arm.periodic();
-        // System.out.println("<--arm module delay: " + elapsedTime.seconds()*1000 + "-->");
-        // elapsedTime.reset();
+        System.out.println("<--arm module delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
         // fieldNavigation.periodic();
         // System.out.println("<--visual navigation module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
@@ -200,11 +200,14 @@ public class Roboseed_DualPilot extends LinearOpMode {
         // System.out.println("<--imu reader module delay: " + elapsedTime.seconds()*1000 + "-->");
         // elapsedTime.reset();
         encoderReader.periodic();
-        // System.out.println("<--encoder reader module delay: " + elapsedTime.seconds()*1000 + "-->");
-        // elapsedTime.reset();
+        System.out.println("<--encoder reader module delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
         positionCalculator.periodic();
+        System.out.println("<--position calculator delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
         robotAuxiliarySystem.periodic();
-        // System.out.println("<--position calculator module delay: " + elapsedTime.seconds()*1000 + "-->");
+        System.out.println("<--RAS delay: " + elapsedTime.seconds()*1000 + "-->");
+        elapsedTime.reset();
 
 
 
