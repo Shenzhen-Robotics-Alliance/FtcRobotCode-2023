@@ -217,8 +217,8 @@ public class Roboseed_DualPilot extends LinearOpMode {
             gamepad2.rumble(500);
         }
 
-        if (gamepad1.left_trigger > 0.5) robotAuxiliarySystem.startAim(1);
-        else if (gamepad1.right_trigger > 0.5) robotAuxiliarySystem.startAim(2);
+        if (gamepad1.left_trigger > 0.5 && arm.getClaw() && arm.armPositionCode > 0) robotAuxiliarySystem.startAim(arm.armPositionCode, 1);
+        else if (gamepad1.right_trigger > 0.5 && arm.getClaw() && arm.armPositionCode > 0) robotAuxiliarySystem.startAim(arm.armPositionCode,2);
 
         /* switch back to single pilot mode if the first pilot asks to take over the arms */
         if (gamepad1.left_bumper && gamepad1.right_bumper) {

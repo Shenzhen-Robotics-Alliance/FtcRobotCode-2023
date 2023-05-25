@@ -212,6 +212,7 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
 
         if (pilotOnControl) {
             chassisDriver.pilotInterruption();
+            System.out.println("set motion:" + xAxleMotion + "," + yAxleMotion);
             chassisDriver.setRobotTranslationalMotion(xAxleMotion, yAxleMotion);
         }
         else if (!chassisDriver.isRASActivated()) chassisDriver.setRobotTranslationalMotion(0, 0);
@@ -232,8 +233,6 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             positionCalculator.reset();
             // imu.resetYaw();
         }
-
-        System.out.println(slowMotionModeActivationSwitch);
 
         slowMotionModeActivationSwitch = slowMotionModeRequested | slowMotionModeSuggested; // turn on the slow motion mode if it is suggested by the system or if it is requested by the pilot
 

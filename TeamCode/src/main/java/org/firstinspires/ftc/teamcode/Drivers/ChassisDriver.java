@@ -11,7 +11,7 @@ public class ChassisDriver {
     private static final double maxRotatingPowerStationary = 0.5;
     private static final double rotationDifferenceStartDecelerateStationary = Math.toRadians(15);
     private static final double motorPowerPerRotationDifferenceStationary = -(maxRotatingPowerStationary / rotationDifferenceStartDecelerateStationary);
-    private static final double velocityDebugTimeRotationStationary = 0.03;
+    private static final double velocityDebugTimeRotationStationary = 0.05;
 
     private static final double maxRotatingPowerInMotion = 0.35;
     private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(45);
@@ -22,7 +22,7 @@ public class ChassisDriver {
     private final double rotationalTolerance = Math.toRadians(3.5);
     private final double minRotatingAngularVelocity = Math.toRadians(10); // 5 degrees a second
 
-    private double maxMotioningPower = 0.5;
+    private double maxMotioningPower = 0.4;
     private double encoderDifferenceStartDecelerate = 1000;
     private double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private double velocityDebugTimeTranslation = 0.12;
@@ -93,6 +93,7 @@ public class ChassisDriver {
     public void pilotInterruption() {
         RASActivation = false;
         aimProcessInterrupted = true;
+        switchToManualPositionMode(); switchToManualRotationMode();
     }
 
     public boolean isAimProcessInterrupted() { return aimProcessInterrupted; }
@@ -123,7 +124,8 @@ public class ChassisDriver {
         hardwareDriver.leftRear.setPower(yAxleMotion + rotationalMotion - xAxleMotion);
         hardwareDriver.rightFront.setPower(yAxleMotion - rotationalMotion - xAxleMotion);
         hardwareDriver.rightRear.setPower(yAxleMotion - rotationalMotion + xAxleMotion);
-        // TODO make the robot stick to the rotation it was when pilot not sending commands on rotation
+
+        System.out.println(translationalMode);
     }
 
     private void updateRotationalMotorSpeed(double dt) {
@@ -311,7 +313,7 @@ public class ChassisDriver {
             encoderDifferenceStartDecelerate = 2400;
             velocityDebugTimeTranslation = 0.2;
         } else {
-            encoderDifferenceStartDecelerate = 1000;
+            encoderDifferenceStartDecelerate = 800;
             velocityDebugTimeTranslation = 0.15;
         }
         motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);

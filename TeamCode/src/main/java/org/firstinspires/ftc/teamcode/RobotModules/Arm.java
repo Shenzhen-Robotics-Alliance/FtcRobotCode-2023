@@ -21,13 +21,13 @@ import java.util.HashMap;
 
 public class Arm extends RobotModule {
     /** highest position of the arm */
-    private final int highPos = 740;
+    private int highPos = 740;
     /** midpoint position of the arm */
-    private final int midPos = 480;
+    private int midPos = 480;
     /** lower position of the arm */
-    private final int lowPos = 320;
+    private int lowPos = 320;
     /** loading position of the arm */
-    private final int gndPos = 65;
+    private int gndPos = 65;
     /**
      * power of the motor to lower the arm
      * 20% when it's going down, in considerate of the impulse of gravitation
@@ -55,7 +55,7 @@ public class Arm extends RobotModule {
     *   2: the arm is at the position matching the middle tower,
     *   3: the arm is at the position matching the highest tower,
     */
-    private short armPositionCode;
+    public short armPositionCode;
 
     /**
      * the status code for the arm
@@ -151,11 +151,17 @@ public class Arm extends RobotModule {
         );
         this.gamepad = (Gamepad) dependentInstances.get("initialControllerPad");
 
+
+        /* calibrate the arm according to the starting positions */
+        double startingPos = hardwareDriver.lift_left.getCurrentPosition();
+        highPos += startingPos; midPos += startingPos; lowPos += startingPos;
+
         /* set the robot's arm to be the default status */
         openClaw();
         this.claw = false;
         deactivateArm();
         this.armPositionCode = -1;
+
     }
 
     @Override

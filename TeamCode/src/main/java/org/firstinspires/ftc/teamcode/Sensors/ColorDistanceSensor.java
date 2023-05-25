@@ -23,7 +23,7 @@ public class ColorDistanceSensor {
     /** the minimum amount of extra light(in comparison to the environment light) for the sensor to think that it detected an object */
     private static final int minActivateLuminosity = 10;
     /** the  amount of extra light received(in comparison to the environment light) for the sensor to think that the object is close enough for capturing */
-    private static final int startCaptureLuminosity = 400;
+    private static final int startCaptureLuminosity = 300;
 
     /** the color sensor located in the front of the robot's claw */
     private static ColorSensor colorSensor;

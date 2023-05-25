@@ -27,7 +27,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the range to look for the high tower, in cm */
     private static final double highTowerSearchRange = 65;
     /** the range to look for the mid tower, in cm */
-    private static final double midTowerSearchRange = 110; // the arm is farther away when reaching for middle
+    private static final double midTowerSearchRange = 55; // the arm is farther away when reaching for middle
     /** the range to look for the low tower, in cm */
     private static final double lowTowerSearchRange = 40;
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
@@ -35,14 +35,14 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the best dropping spot for the high tower, in cm */
     private static final double highTowerDroppingSpot = 42;
     /** the best dropping spot for the mid tower, in cm */
-    private static final double midTowerDroppingSpot = 45; // the arm is farther away when reaching for middle
+    private static final double midTowerDroppingSpot = 38; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
     private static final double lowTowerDroppingSpot = 00; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
     private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 42.5};
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
-    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-1);
+    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-2.5);
     /** when approaching as rotating to the right */
     private static final double aimCenterToDropCenterAngleRight = Math.toRadians(6);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
@@ -50,7 +50,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 6580 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6600 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.15; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
@@ -191,7 +191,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     public void periodic() {
         if (!tofDistanceSensorReadingThreadActivated) tofSensorReadingThread.start();
 
-        if (chassisDriver.isAimProcessInterrupted()) targetCode = 0;
+        if (chassisDriver.isAimProcessInterrupted()) statusCode = 0;
 
         if (statusCode == 0) {
             chassisDriver.aimStopped();
@@ -201,6 +201,8 @@ public class RobotAuxiliarySystem extends RobotModule {
         if (targetCode == 0) aimCone();
         else if (highSpeedAim) aimTowerFast();
         else aimTower();
+
+        System.out.println("status code:" + statusCode);
     }
 
     private void aimCone() {
@@ -275,7 +277,6 @@ public class RobotAuxiliarySystem extends RobotModule {
     }
 
     private void aimTower() {
-        System.out.println(statusCode);
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
@@ -342,7 +343,6 @@ public class RobotAuxiliarySystem extends RobotModule {
             }
             case 4: {
                 // TODO if the robot is not moving at all, stop the dead loop; adjust the PIDs, the robot is stuck when being told to move to a nearby position
-
                 chassisDriver.sendCommandsToMotors();
                 double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
@@ -353,7 +353,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
-                while (descendTime.milliseconds() < 500) {
+                while (descendTime.milliseconds() < 700) {
                     arm.periodic();
                 }
                 if (arm.getArmStatusCode() == 0) lastAimSucceeded = true;
