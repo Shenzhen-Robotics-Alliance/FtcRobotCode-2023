@@ -468,7 +468,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
 
-                    double distanceToDroppingSpot = (towerDistance - droppingSpotList[targetCode]) * encoderValuePerCMFastAim;
+                    double distanceToDroppingSpot = (towerDistance - droppingSpotList[targetCode]) * encoderValuePerCM;
                     towerPosition[0] = positionCalculator.getRobotPosition()[0] + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     System.out.println(Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot + "," + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot);
@@ -491,6 +491,8 @@ public class RobotAuxiliarySystem extends RobotModule {
                 ElapsedTime descendTime = new ElapsedTime();
                 while (descendTime.milliseconds() < 1000 && arm.getArmStatusCode() != 0) {
                     arm.periodic();
+                    positionCalculator.forceUpdateEncoderValue();
+                    positionCalculator.periodic();
                 }
                 if (arm.getArmStatusCode() == 0) lastAimSucceeded = true;
                 else lastAimSucceeded = false;
@@ -548,7 +550,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     chassisDriver.switchToManualRotationMode();
                     chassisDriver.setRotationalMotion(0);
 
-                    double distanceToDroppingSpot = (towerDistance - droppingSpotListEdge[targetCode]) * encoderValuePerCM;
+                    double distanceToDroppingSpot = (towerDistance - droppingSpotListEdge[targetCode]) * encoderValuePerCMFastAim;
                     towerPosition[0] = positionCalculator.getRobotPosition()[0] + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     towerPosition[1] = positionCalculator.getRobotPosition()[1] + Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot;
                     System.out.println(Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot + "," + Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * distanceToDroppingSpot);

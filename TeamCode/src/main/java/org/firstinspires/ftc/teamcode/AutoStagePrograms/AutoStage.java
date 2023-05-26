@@ -273,30 +273,18 @@ abstract class AutoStage extends LinearOpMode {
 
         } while (robotAuxiliarySystem.statusCode != 0);
 
-        Thread.sleep(500);
+        timeUsed.reset();
+        while (timeUsed.seconds() < 0.6) {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+        }
         arm.dropSleeve();
         return robotAuxiliarySystem.isLastAimSucceeded();
     }
 
     private boolean grabSleeveFromSleevesStack() {
         arm.levelArmToSleevesStack();
-        chassis.setRobotTranslationalMotion(0, 0.3);
-        chassis.setTargetedRotation(-90);
-        ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
-        do {
-            if (elapsedTime.seconds() > 4) {
-                chassis.setRobotTranslationalMotion(0, 0);
-                return false;
-            }
-            positionCalculator.forceUpdateEncoderValue();
-            positionCalculator.periodic();
-            chassis.sendCommandsToMotors();
-            robotAuxiliarySystem.periodic();
-        } while (!arm.getClaw());
-
-        chassis.setRobotTranslationalMotion(0, 0);
-        arm.liftFromSleevesStack();
-        return true;
+        return robotAuxiliarySystem.proceedAimConeAutoStage(1, -90);
     }
 
     /**
