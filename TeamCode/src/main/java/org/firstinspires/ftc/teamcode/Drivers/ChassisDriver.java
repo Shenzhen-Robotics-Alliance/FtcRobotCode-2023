@@ -211,7 +211,7 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
-        // System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + "; PID coefficient:" + motorPowerPerEncoderDifference);
+        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + "; PID coefficient:" + motorPowerPerEncoderDifference);
     }
 
     @Deprecated

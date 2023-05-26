@@ -55,6 +55,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     private static final double positionCloseClaw = 0.25; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
     private static final double autoStageConeSearchRange = 3000;
+    private static final double encoderValuePerColorDistanceSensorValue = 4000;
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -284,6 +285,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         if (direction == 1) xAxleDifferenceEnd = -autoStageConeSearchRange;
         else if (direction == 2) xAxleDifferenceEnd = autoStageConeSearchRange;
         else return false;
+
         chassisDriver.setTargetedTranslation_fixedRotation(
                 currentPosition[0] + Math.cos(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
                 currentPosition[1] + Math.sin(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
@@ -291,6 +293,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
         boolean robotStillMoving, targetAlreadySensed = false;
         double[][] sleeveEdges = new double[2][2];
+        double minDistance = 1;
         ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
         do {
             positionCalculator.forceUpdateEncoderValue();
@@ -306,6 +309,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                     sleeveEdges[0][1] = positionCalculator.getRobotPosition()[1];
                     targetAlreadySensed = true;
                 }
+                minDistance = Math.min(colorDistanceSensor.getDistanceToTarget(), minDistance);
             } else if (targetAlreadySensed) {
                 System.out.println("second edge sensed, position:" + positionCalculator.getRobotPosition()[0] + "," + positionCalculator.getRobotPosition()[1]);
                 sleeveEdges[1][0] = positionCalculator.getRobotPosition()[0];
@@ -313,21 +317,23 @@ public class RobotAuxiliarySystem extends RobotModule {
                 break;
             }
 
-            System.out.println("target in range:" + colorDistanceSensor.targetInRange() + ", time elapsed:" + elapsedTime.seconds());
-        } while ((robotStillMoving || targetAlreadySensed) && elapsedTime.seconds() < 1.5);
+        } while ((robotStillMoving || targetAlreadySensed) && elapsedTime.seconds() < 2.5);
 
-        System.out.println("target edges:" + sleeveEdges[0][0] + "," + sleeveEdges[0][1] + " to " + sleeveEdges[1][0] + "," + sleeveEdges[1][1]);
+        System.out.println("target edges:" + (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2 + ", " + (sleeveEdges[1][0] + sleeveEdges[1][1]) / 2);
 
-        chassisDriver.goToPosition(
-                (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2, // find the average of the two edges
-                (sleeveEdges[1][0] + sleeveEdges[1][1]) / 2,
-                currentFacing);
+        /* calculate the position of the sleeves */
+        double[] sleevesPosition = new double[2];
+        sleevesPosition[0] = (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2; // take the mean value of the x-axle position of the two edges
+        sleevesPosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // add the amount of encoder values needed to move forward
+        sleevesPosition[1] = (sleeveEdges[0][1] + sleeveEdges[1][1]) / 2;
+        sleevesPosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // same for y-axle
+        chassisDriver.goToPosition(sleevesPosition[0], sleevesPosition[1], currentFacing);
 
         if (!targetAlreadySensed) return false;
 
         arm.closeClaw();
         elapsedTime.reset();
-        while (elapsedTime.milliseconds() < 300) { // delay, but the keep the position calculator working
+        while (elapsedTime.milliseconds() < 200) { // delay, but the keep the position calculator working
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
         }
