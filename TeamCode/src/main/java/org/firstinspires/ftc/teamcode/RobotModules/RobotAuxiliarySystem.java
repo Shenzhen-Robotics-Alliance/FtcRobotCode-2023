@@ -279,7 +279,7 @@ public class RobotAuxiliarySystem extends RobotModule {
      * @param direction: the direction to aim, 1 for left and 2 for right
      * @return whether process succeded or not
      *  */
-    public boolean proceedAimConeAutoStage(int direction, double currentFacing) {
+    public boolean proceedAimConeAutoStage_todo(int direction, double currentFacing) {
         double[] currentPosition = positionCalculator.getRobotPosition();
         double xAxleDifferenceEnd;
         if (direction == 1) xAxleDifferenceEnd = -autoStageConeSearchRange;
@@ -322,14 +322,68 @@ public class RobotAuxiliarySystem extends RobotModule {
         System.out.println("target edges:" + (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2 + ", " + (sleeveEdges[1][0] + sleeveEdges[1][1]) / 2);
 
         /* calculate the position of the sleeves */
-        double[] sleevesPosition = new double[2];
-        sleevesPosition[0] = (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2; // take the mean value of the x-axle position of the two edges
-        sleevesPosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // add the amount of encoder values needed to move forward
-        sleevesPosition[1] = (sleeveEdges[0][1] + sleeveEdges[1][1]) / 2;
-        sleevesPosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // same for y-axle
-        chassisDriver.goToPosition(sleevesPosition[0], sleevesPosition[1], currentFacing);
+        double[] sleevePosition = new double[2];
+        sleevePosition[0] = (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2; // take the mean value of the x-axle position of the two edges
+        // sleevesPosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // add the amount of encoder values needed to move forward
+        sleevePosition[1] = (sleeveEdges[0][1] + sleeveEdges[1][1]) / 2;
+        // sleevesPosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // same for y-axle
+        chassisDriver.goToPosition(sleevePosition[0], sleevePosition[1], currentFacing);
 
         if (!targetAlreadySensed) return false;
+
+        arm.closeClaw();
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds() < 200) { // delay, but the keep the position calculator working
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+        }
+        arm.toMidArmPosition();
+
+        return true;
+    }
+
+    /**
+     * start the process of aim the cone during auto stage
+     * @param direction: the direction to aim, 1 for left and 2 for right
+     * @return whether process succeded or not
+     *  */
+    public boolean proceedAimConeAutoStage(int direction, double currentFacing) {
+        double[] currentPosition = positionCalculator.getRobotPosition();
+        double xAxleDifferenceEnd;
+        if (direction == 1) xAxleDifferenceEnd = -autoStageConeSearchRange;
+        else if (direction == 2) xAxleDifferenceEnd = autoStageConeSearchRange;
+        else return false;
+
+        chassisDriver.setTargetedTranslation_fixedRotation(
+                currentPosition[0] + Math.cos(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
+                currentPosition[1] + Math.sin(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
+                currentFacing);
+
+        boolean robotStillMoving, SleeveFound = false;
+        double[] sleevePosition = new double[2];
+        ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
+        do {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            chassisDriver.sendCommandsToMotors();
+            arm.periodic();
+            robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15; // if the robot is sensed to be motioning or still accelerating
+
+            if (colorDistanceSensor.targetInRange()) {
+                sleevePosition = positionCalculator.getRobotPosition();
+                SleeveFound = true;
+                break;
+            }
+        } while ((robotStillMoving || SleeveFound) && elapsedTime.seconds() < 1.5);
+
+        System.out.println("sleeve found:" + sleevePosition[0] + "," + sleevePosition[1]);
+
+        if (!SleeveFound) return false;
+
+        sleevePosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // add the amount of encoder values needed to move forward
+        sleevePosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // same for y-axle
+
+        chassisDriver.goToPosition(sleevePosition[0], sleevePosition[1], currentFacing);
 
         arm.closeClaw();
         elapsedTime.reset();
