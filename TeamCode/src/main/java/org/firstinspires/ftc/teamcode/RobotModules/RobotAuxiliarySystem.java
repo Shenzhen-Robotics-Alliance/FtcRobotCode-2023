@@ -55,7 +55,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
     private static final double positionCloseClaw = 0.25; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
     private static final double autoStageConeSearchRange = 3000;
-    private static final double encoderValuePerColorDistanceSensorValue = 4000;
+    private static final double encoderValuePerColorDistanceSensorValue = 2000;
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -380,15 +380,12 @@ public class RobotAuxiliarySystem extends RobotModule {
         } while ((robotStillMoving || SleeveFound) && elapsedTime.seconds() < 1.5);
 
         System.out.println("sleeve found:" + sleevePosition[0] + "," + sleevePosition[1]);
-        System.out.println("checkpoint 1 position:" + positionCalculator.getRobotPosition()[1]);
 
         if (!SleeveFound) return false;
 
         sleevePosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue * sleeveDistance; // add the amount of encoder values needed to move forward
         sleevePosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue * sleeveDistance; // same for y-axle
 
-
-        System.out.println("checkpoint 2 position:" + positionCalculator.getRobotPosition()[1]);
         System.out.println("corrected position:" + sleevePosition[0] + "," + sleevePosition[1]);
         chassisDriver.goToPosition(sleevePosition[0], sleevePosition[1], currentFacing);
 
