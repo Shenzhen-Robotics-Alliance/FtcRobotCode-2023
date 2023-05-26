@@ -19,9 +19,11 @@ import org.firstinspires.ftc.teamcode.RobotModule;
 
 import java.util.HashMap;
 
+import dalvik.system.DelegateLastClassLoader;
+
 public class Arm extends RobotModule {
     /** highest position of the arm */
-    private int highPos = 740;
+    private int highPos = 745;
     /** midpoint position of the arm */
     private int midPos = 480;
     /** lower position of the arm */
@@ -90,6 +92,9 @@ public class Arm extends RobotModule {
 
     /** to make sure the robot waits until the grabbing is finished */
     private final ElapsedTime lastGrabbingDelay = new ElapsedTime();
+
+    /** time when the claw opens, so that RAS does not step in too fast */
+    private final ElapsedTime lastOpenTime = new ElapsedTime();
 
     /** the chassis module of robot */
     private PilotChassis pilotChassis;
@@ -599,6 +604,8 @@ public class Arm extends RobotModule {
         claw = true;
         hardwareDriver.claw.setPosition(0.1); // close grabber
         armIsBusy = true;
+
+        lastOpenTime.reset();
     }
 
     public boolean getClaw() {
@@ -626,4 +633,7 @@ public class Arm extends RobotModule {
     public short getArmStatusCode() {
         return armStatusCode;
     }
+
+    /** get the time elapsed after the claw being closed, to debug RAS */
+    public double getLastOpenTime() { return lastOpenTime.seconds(); }
 }

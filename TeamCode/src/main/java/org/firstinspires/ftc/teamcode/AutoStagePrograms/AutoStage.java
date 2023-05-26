@@ -220,28 +220,28 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToPosition(-11500, 14500, 0);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-11500, 30000, 0);
+        chassis.goToPosition(-11500, 29700, 0);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
-        chassis.goToPosition(14000, 30000, -90);
+        chassis.goToPosition(12250, 29700, -90);
 
         /* grab the second sleeve from sleeves stack */
         grabSleeveFromSleevesStack();
 
 //        /* go to the left-front (or right-front according to the robot now) side of the highest tower */
-//        chassis.goToPosition(-25000, 30000, -90);
+//        chassis.goToPosition(-25000, 29700, -90);
 //
 //        /* raise the arm and score sleeve */
 //        arm.goToHighestTower();
 //        aimAndScore(2);
 //
 //        /* go back to the center of the grid */
-//        chassis.goToPosition(-25000, 30000);
+//        chassis.goToPosition(-25000, 29700);
 //        chassis.goToRotation(-90);
 //
 //        /* move to beside the sleeves stack */
-//        chassis.goToPosition(2000, 30000, -90);
+//        chassis.goToPosition(2000, 29700, -90);
 //
 //        /* grab the third sleeve from the stack */
 //        grabSleeveFromSleevesStack();
@@ -274,7 +274,7 @@ abstract class AutoStage extends LinearOpMode {
         } while (robotAuxiliarySystem.statusCode != 0);
 
         timeUsed.reset();
-        while (timeUsed.seconds() < 0.6) {
+        while (timeUsed.seconds() < 1) {
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
         }
@@ -282,9 +282,9 @@ abstract class AutoStage extends LinearOpMode {
         return robotAuxiliarySystem.isLastAimSucceeded();
     }
 
-    private boolean grabSleeveFromSleevesStack() {
+    private boolean grabSleeveFromSleevesStack() throws InterruptedException {
         arm.levelArmToSleevesStack();
-        return robotAuxiliarySystem.proceedAimConeAutoStage(1, -90);
+        return robotAuxiliarySystem.proceedAimConeAutoStage(2, -90);
     }
 
     /**

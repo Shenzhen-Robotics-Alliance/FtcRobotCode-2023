@@ -27,7 +27,7 @@ public class ChassisDriver {
     private double motorPowerPerEncoderDifference = (maxMotioningPower / encoderDifferenceStartDecelerate);
     private double velocityDebugTimeTranslation = 0.12;
     private double integrationCoefficientTranslation = 0 * motorPowerPerEncoderDifference; // not needed yet, (originally 0.05 * motor_power_per...)
-    private double translationalEncoderTolerance = 350;
+    private double translationalEncoderTolerance = 360;
     /** the minimum encoder speed, in encoder value per second, of the robot. so the robot can judge whether it is stuck */
     private final double minMotioningEncoderSpeed = 100; // todo: measure this value
 
