@@ -54,6 +54,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.25; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
+    private static final double autoStageConeSearchRange = 1200;
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -198,14 +199,14 @@ public class RobotAuxiliarySystem extends RobotModule {
             autoClaw();
         }
 
-        if (targetCode == 0) aimCone();
+        if (targetCode == 0) aimConeManual();
         else if (highSpeedAim) aimTowerFast();
         else aimTower();
 
         System.out.println("status code:" + statusCode);
     }
 
-    private void aimCone() {
+    private void aimConeManual() {
         switch (statusCode) {
             case 1: {
                 chassisDriver.setRotationalMotion(-aimSpeed);
@@ -270,6 +271,63 @@ public class RobotAuxiliarySystem extends RobotModule {
                 break;
             }
         }
+    }
+
+    /**
+     * start the process of aim the cone during auto stage
+     * @param direction: the direction to aim, 1 for left and 2 for right
+     * @return whether process succeded or not
+     *  */
+    public boolean proceedAimConeAutoStage(int direction, double currentFacing) {
+        double[] currentPosition = positionCalculator.getRobotPosition();
+        double xAxleDifferenceEnd;
+        if (direction == 1) xAxleDifferenceEnd = autoStageConeSearchRange;
+        else if (direction == 2) xAxleDifferenceEnd = -autoStageConeSearchRange;
+        else return false;
+        chassisDriver.setTargetedTranslation_fixedRotation(
+                currentPosition[0] + Math.cos(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
+                currentPosition[1] + Math.sin(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
+                currentFacing);
+
+        boolean robotStillMoving, targetAlreadySensed = false;
+        double[][] sleeveEdges = new double[2][2];
+        ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
+        do {
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            chassisDriver.sendCommandsToMotors();
+            arm.periodic();
+            robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15; // if the robot is sensed to be motioning or still accelerating
+
+            if (colorDistanceSensor.targetInRange() && !targetAlreadySensed) sleeveEdges[0] = positionCalculator.getRobotPosition();
+            else if (targetAlreadySensed) {
+                sleeveEdges[1] = positionCalculator.getRobotPosition();
+                break;
+            }
+        } while (robotStillMoving && elapsedTime.seconds() < 1.5);
+
+        chassisDriver.goToPosition(
+                (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2, // find the average of the two edges
+                (sleeveEdges[1][0] + sleeveEdges[1][1]) / 2,
+                currentFacing);
+
+        arm.closeClaw();
+        elapsedTime.reset();
+        while (elapsedTime.milliseconds() < 300) { // delay, but the keep the position calculator working
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+        }
+        arm.toMidArmPosition();
+
+        return true; // TODO return whether the process succeed
+    }
+
+    public boolean proceedAimConeAutoStage(int direction) {
+        return proceedAimConeAutoStage(direction, positionCalculator.getRobotRotation());
+    }
+
+    public boolean proceedAimConeAutoStage(int direction, int degrees) {
+        return proceedAimConeAutoStage(direction, Math.toRadians(degrees));
     }
 
     public void autoClaw() {

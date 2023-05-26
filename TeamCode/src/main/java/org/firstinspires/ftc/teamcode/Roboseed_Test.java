@@ -126,30 +126,28 @@ public class Roboseed_Test extends LinearOpMode {
         waitForStart();
         ElapsedTime dt = new ElapsedTime();
 
-        chassisDriver.goToPosition(10000, 0, 0);
+        arm.openClaw();
+        Thread.sleep(300);
+        // robotAuxiliarySystem.startAim(0, 1);
 
         while (opModeIsActive() && !isStopRequested()) {
             // telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
             // System.out.println("delay:" + dt.seconds()*1000);
 
-            positionCalculator.forceUpdateEncoderValue();
-            positionCalculator.periodic();
-            chassisDriver.sendCommandsToMotors();
-
-
+//            positionCalculator.forceUpdateEncoderValue();
+//            positionCalculator.periodic();
+//            chassisDriver.sendCommandsToMotors();
+//
+//
 //            positionCalculator.forceUpdateEncoderValue();
 //            positionCalculator.periodic();
 //            robotAuxiliarySystem.periodic();
 //            arm.periodic();
-//            arm.closeClaw();
-
-//            positionCalculator.forceUpdateEncoderValue();
-//            positionCalculator.periodic();
-//            chassisDriver.sendCommandsToMotors();
 
             // telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
             telemetry.addData("position:", String.format("%.2f",positionCalculator.getRobotPosition()[0]) + "," + String.format("%.2f",positionCalculator.getRobotPosition()[1]));
             telemetry.addData("rotation:", Math.toDegrees(positionCalculator.getRobotRotation()));
+            telemetry.addData("color sensor in range:", color.targetInRange());
             telemetry.update();
         }
     }
