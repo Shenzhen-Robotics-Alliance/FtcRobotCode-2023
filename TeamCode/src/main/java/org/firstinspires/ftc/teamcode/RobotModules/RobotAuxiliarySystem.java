@@ -54,7 +54,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.25; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
-    private static final double autoStageConeSearchRange = 1200;
+    private static final double autoStageConeSearchRange = 3000;
 
     private Arm arm;
     private ChassisDriver chassisDriver;
@@ -281,8 +281,8 @@ public class RobotAuxiliarySystem extends RobotModule {
     public boolean proceedAimConeAutoStage(int direction, double currentFacing) {
         double[] currentPosition = positionCalculator.getRobotPosition();
         double xAxleDifferenceEnd;
-        if (direction == 1) xAxleDifferenceEnd = autoStageConeSearchRange;
-        else if (direction == 2) xAxleDifferenceEnd = -autoStageConeSearchRange;
+        if (direction == 1) xAxleDifferenceEnd = -autoStageConeSearchRange;
+        else if (direction == 2) xAxleDifferenceEnd = autoStageConeSearchRange;
         else return false;
         chassisDriver.setTargetedTranslation_fixedRotation(
                 currentPosition[0] + Math.cos(positionCalculator.getRobotRotation()) * xAxleDifferenceEnd,
@@ -297,19 +297,23 @@ public class RobotAuxiliarySystem extends RobotModule {
             positionCalculator.periodic();
             chassisDriver.sendCommandsToMotors();
             arm.periodic();
-            robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15; // if the robot is sensed to be motioning or still accelerating
+            robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15 || targetAlreadySensed; // if the robot is sensed to be motioning or still accelerating
 
             if (colorDistanceSensor.targetInRange() && !targetAlreadySensed) sleeveEdges[0] = positionCalculator.getRobotPosition();
             else if (targetAlreadySensed) {
                 sleeveEdges[1] = positionCalculator.getRobotPosition();
                 break;
             }
+
+            System.out.println("color sensor read:" + colorDistanceSensor.targetInRange());
         } while (robotStillMoving && elapsedTime.seconds() < 1.5);
 
         chassisDriver.goToPosition(
                 (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2, // find the average of the two edges
                 (sleeveEdges[1][0] + sleeveEdges[1][1]) / 2,
                 currentFacing);
+
+        if (!targetAlreadySensed) return false;
 
         arm.closeClaw();
         elapsedTime.reset();

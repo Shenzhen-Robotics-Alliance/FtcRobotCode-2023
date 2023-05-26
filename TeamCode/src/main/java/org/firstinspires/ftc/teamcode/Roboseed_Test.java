@@ -128,7 +128,7 @@ public class Roboseed_Test extends LinearOpMode {
 
         arm.openClaw();
         Thread.sleep(300);
-        // robotAuxiliarySystem.startAim(0, 1);
+        robotAuxiliarySystem.proceedAimConeAutoStage(1);
 
         while (opModeIsActive() && !isStopRequested()) {
             // telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
