@@ -361,6 +361,7 @@ public class RobotAuxiliarySystem extends RobotModule {
 
         boolean robotStillMoving, SleeveFound = false;
         double[] sleevePosition = new double[2];
+        double sleeveDistance = 0;
         ElapsedTime elapsedTime = new ElapsedTime(); elapsedTime.reset();
         do {
             positionCalculator.forceUpdateEncoderValue();
@@ -370,19 +371,25 @@ public class RobotAuxiliarySystem extends RobotModule {
             robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15; // if the robot is sensed to be motioning or still accelerating
 
             if (colorDistanceSensor.targetInRange()) {
-                sleevePosition = positionCalculator.getRobotPosition();
+                sleevePosition[0] = positionCalculator.getRobotPosition()[0];
+                sleevePosition[1] = positionCalculator.getRobotPosition()[1];
                 SleeveFound = true;
+                sleeveDistance = colorDistanceSensor.getDistanceToTarget();
                 break;
             }
         } while ((robotStillMoving || SleeveFound) && elapsedTime.seconds() < 1.5);
 
         System.out.println("sleeve found:" + sleevePosition[0] + "," + sleevePosition[1]);
+        System.out.println("checkpoint 1 position:" + positionCalculator.getRobotPosition()[1]);
 
         if (!SleeveFound) return false;
 
-        sleevePosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // add the amount of encoder values needed to move forward
-        sleevePosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue; // same for y-axle
+        sleevePosition[0] += Math.cos(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue * sleeveDistance; // add the amount of encoder values needed to move forward
+        sleevePosition[1] += Math.sin(positionCalculator.getRobotRotation() + Math.toRadians(90)) * encoderValuePerColorDistanceSensorValue * sleeveDistance; // same for y-axle
 
+
+        System.out.println("checkpoint 2 position:" + positionCalculator.getRobotPosition()[1]);
+        System.out.println("corrected position:" + sleevePosition[0] + "," + sleevePosition[1]);
         chassisDriver.goToPosition(sleevePosition[0], sleevePosition[1], currentFacing);
 
         arm.closeClaw();

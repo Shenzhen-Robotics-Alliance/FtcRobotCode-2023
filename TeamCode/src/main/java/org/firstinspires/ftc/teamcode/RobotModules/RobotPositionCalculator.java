@@ -124,6 +124,8 @@ public class RobotPositionCalculator extends RobotModule {
         // System.out.println("actual velocity: " + getActualVelocity(rawVelocity, robotRotation)[0] + ", " + getActualVelocity(rawVelocity, robotRotation)[1]);
 
         this.dt.reset();
+
+        System.out.println("robot position:" + this.robotPosition[0] + "," + this.robotPosition[1]);
     }
 
     /** force the encoder reader to update the readings */

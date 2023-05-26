@@ -211,7 +211,7 @@ public class ChassisDriver {
 
         updateRotationalMotorSpeed(dt);
 
-        System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + "; PID coefficient:" + motorPowerPerEncoderDifference);
+        // System.out.println("motor power:" + xAxleMotion + "," + yAxleMotion +"; error:" + positionError[0] + "," + positionError[1] + "; PID coefficient:" + motorPowerPerEncoderDifference);
     }
 
     @Deprecated
@@ -250,7 +250,7 @@ public class ChassisDriver {
         xAxleMotion = (xAxleMotionToGround * Math.cos(currentRotation)) + (yAxleMotionToGround * Math.sin(currentRotation));
         yAxleMotion = (xAxleMotionToGround * Math.sin(currentRotation)) + (yAxleMotionToGround * Math.cos(currentRotation));
 
-        System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
+        // System.out.println("raw error:" + positionRawError[1] + "; error:" + positionError[1] + "; motion(to ground)" + yAxleMotionToGround + "; motion:" + yAxleMotion);
     }
 
     /**
