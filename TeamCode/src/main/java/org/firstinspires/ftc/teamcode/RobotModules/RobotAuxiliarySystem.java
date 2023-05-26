@@ -297,16 +297,26 @@ public class RobotAuxiliarySystem extends RobotModule {
             positionCalculator.periodic();
             chassisDriver.sendCommandsToMotors();
             arm.periodic();
-            robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15 || targetAlreadySensed; // if the robot is sensed to be motioning or still accelerating
+            robotStillMoving = Math.abs(positionCalculator.getRawVelocity()[0]) > 500 || elapsedTime.seconds() < 0.15; // if the robot is sensed to be motioning or still accelerating
 
-            if (colorDistanceSensor.targetInRange() && !targetAlreadySensed) sleeveEdges[0] = positionCalculator.getRobotPosition();
-            else if (targetAlreadySensed) {
-                sleeveEdges[1] = positionCalculator.getRobotPosition();
+            if (colorDistanceSensor.targetInRange()) {
+                if (!targetAlreadySensed) {
+                    System.out.println("first edge sensed, position:" + positionCalculator.getRobotPosition()[0] + "," + positionCalculator.getRobotPosition()[1]);
+                    sleeveEdges[0][0] = positionCalculator.getRobotPosition()[0];
+                    sleeveEdges[0][1] = positionCalculator.getRobotPosition()[1];
+                    targetAlreadySensed = true;
+                }
+            } else if (targetAlreadySensed) {
+                System.out.println("second edge sensed, position:" + positionCalculator.getRobotPosition()[0] + "," + positionCalculator.getRobotPosition()[1]);
+                sleeveEdges[1][0] = positionCalculator.getRobotPosition()[0];
+                sleeveEdges[1][1] = positionCalculator.getRobotPosition()[1];
                 break;
             }
 
-            System.out.println("color sensor read:" + colorDistanceSensor.targetInRange());
-        } while (robotStillMoving && elapsedTime.seconds() < 1.5);
+            System.out.println("target in range:" + colorDistanceSensor.targetInRange() + ", time elapsed:" + elapsedTime.seconds());
+        } while ((robotStillMoving || targetAlreadySensed) && elapsedTime.seconds() < 1.5);
+
+        System.out.println("target edges:" + sleeveEdges[0][0] + "," + sleeveEdges[0][1] + " to " + sleeveEdges[1][0] + "," + sleeveEdges[1][1]);
 
         chassisDriver.goToPosition(
                 (sleeveEdges[0][0] + sleeveEdges[1][0]) / 2, // find the average of the two edges
@@ -323,7 +333,7 @@ public class RobotAuxiliarySystem extends RobotModule {
         }
         arm.toMidArmPosition();
 
-        return true; // TODO return whether the process succeed
+        return true;
     }
 
     public boolean proceedAimConeAutoStage(int direction) {
