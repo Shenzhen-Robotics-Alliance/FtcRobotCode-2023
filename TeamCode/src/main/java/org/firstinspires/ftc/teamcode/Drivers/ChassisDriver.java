@@ -34,6 +34,8 @@ public class ChassisDriver {
     /** the coefficient to scale the x-axle motion up, as the wheel structure made it a little harder to move horizontally than vertically  */
     private final double xAxleMotionScaleFactor = 1.32;
 
+    private boolean xAxleFlipped = false;
+
     private HardwareDriver hardwareDriver;
     private RobotPositionCalculator positionCalculator;
 
@@ -261,6 +263,9 @@ public class ChassisDriver {
      * @return whether the process succeeded or did it got stuck
      * */
     public boolean goToPosition(double x, double y, double maintenanceRotation) {
+        if (xAxleFlipped) x *= -1;
+        maintenanceRotation = getActualRadian(maintenanceRotation);
+
         setAutoMode(true);
 
         setTargetedTranslation_fixedRotation(x, y, maintenanceRotation);
@@ -324,6 +329,8 @@ public class ChassisDriver {
      * @return whether the process succeeded
      * */
     public boolean goToRotation(double radian) {
+        radian = getActualRadian(radian);
+
         setTargetedRotation(radian);
         double rotationError;
         ElapsedTime dt = new ElapsedTime();
@@ -368,6 +375,9 @@ public class ChassisDriver {
         integrationCoefficientTranslation = 0.00 * motorPowerPerEncoderDifference;
     }
 
+    /** set the robot into mirrored mode */
+    public void setXAxleFlipped(boolean xAxleFlipped) { this.xAxleFlipped = xAxleFlipped; }
+
     public static double getActualDifference(double currentRotation, double targetedRotation) {
         while (targetedRotation > Math.PI*2) targetedRotation -= Math.PI*2;
         while (targetedRotation < 0) targetedRotation += Math.PI*2;
@@ -386,5 +396,13 @@ public class ChassisDriver {
     public static double midPoint(double rotation1, double rotation2) {
         rotation1 += getActualDifference(rotation1, rotation2) / 2;
         return rotation1 % (Math.PI*2);
+    }
+
+    /** correct the value of a radian */
+    private double getActualRadian(double radian) {
+        if (xAxleFlipped) radian *= -1;
+        while (radian > Math.PI * 2) radian -= Math.PI * 2;
+        while (radian < 0) radian += Math.PI * 2;
+        return radian;
     }
 }
