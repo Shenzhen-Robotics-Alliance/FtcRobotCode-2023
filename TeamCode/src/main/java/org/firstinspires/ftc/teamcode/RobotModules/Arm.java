@@ -595,6 +595,8 @@ public class Arm extends RobotModule {
         claw = false;
         hardwareDriver.claw.setPosition(0.45); // open grabber
         armIsBusy = false;
+
+        lastOpenTime.reset();
     }
     /**
      * close the claw of the arm by setting the position of the servo driving it
@@ -604,8 +606,6 @@ public class Arm extends RobotModule {
         claw = true;
         hardwareDriver.claw.setPosition(0.1); // close grabber
         armIsBusy = true;
-
-        lastOpenTime.reset();
     }
 
     public boolean getClaw() {
