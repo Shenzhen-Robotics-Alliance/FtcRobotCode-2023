@@ -422,10 +422,10 @@ public class RobotAuxiliarySystem extends RobotModule {
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
                     System.out.println("target in range and is found:" + targetFound + "; rotation" + Math.toDegrees(positionCalculator.getRobotRotation()));
                     /* if this is not the first time to see the target */
+                    if (!targetFound) towerDistance = 10000;
+                    if (tofDistanceSensorReading > 20) towerDistance = Math.min(tofDistanceSensorReading, towerDistance); // calculate the minimum distance
                     if (targetFound) break; // wait for the target to disappear
                     /* record the information's for further calculation */
-                    towerDistance = Math.min(tofDistanceSensorReading, towerDistance); // calculate the minimum distance
-                    if (targetFound) break;
                     towerRotation = positionCalculator.getRobotRotation();
                     targetFound = true;
                 } else if (targetFound) { // when the target is lost again
@@ -444,7 +444,8 @@ public class RobotAuxiliarySystem extends RobotModule {
                 double targetedDirection = startingRotation - (aimRange /2);
                 if (tofDistanceSensorReading < searchRangeList[targetCode]) {
                     System.out.println("target in range and is found:" + targetFound + "; rotation" + Math.toDegrees(positionCalculator.getRobotRotation()));
-                    towerDistance = Math.min(tofDistanceSensorReading, towerDistance); // calculate the minimum distance
+                    if (!targetFound) towerDistance = 10000;
+                    if (tofDistanceSensorReading > 20) towerDistance = Math.min(tofDistanceSensorReading, towerDistance); // calculate the minimum distance
                     if (targetFound) break;
                     towerRotation = positionCalculator.getRobotRotation();
                     targetFound = true;
