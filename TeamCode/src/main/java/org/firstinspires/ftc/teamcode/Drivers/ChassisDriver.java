@@ -66,7 +66,7 @@ public class ChassisDriver {
         this.positionCalculator = positionCalculator;
     }
 
-    public void setRobotTranslationalMotion(double xAxleMotion, double yAxleMotion) {
+    public void setTranslationalMotion(double xAxleMotion, double yAxleMotion) {
         this.xAxleMotion = xAxleMotion;
         this.yAxleMotion = yAxleMotion;
         translationalMode = manualMode;
@@ -159,7 +159,6 @@ public class ChassisDriver {
             maxPower = maxRotatingPowerInMotion;
             integralCoefficient = 0;
         }
-        System.out.println("rotation correction in progress");
 
         double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
@@ -173,7 +172,7 @@ public class ChassisDriver {
         rotationalMotion = rotationalError * motorPowerPerRotationDifference + rotationalIntegration * integralCoefficient;
         rotationalMotion = Math.copySign(Math.min(maxPower, Math.abs(rotationalMotion)), rotationalMotion);
 
-        // System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
+        System.out.println("rotation:" + Math.toDegrees(this.positionCalculator.getRobotRotation()) + ";raw error:" + Math.toDegrees(rotationalRawError) + "; error:" + Math.toDegrees(rotationalError) + "; power" + rotationalMotion);
     }
 
     private void updateTranslationalMotionUsingEncoder_fixedRotation(double dt) {
@@ -294,10 +293,10 @@ public class ChassisDriver {
                 return false;
             }
 
-            System.out.println("total error:" + Math.sqrt(xError * xError + yError * yError));
+            // System.out.println("total error:" + Math.sqrt(xError * xError + yError * yError));
         } while(xError * xError + yError * yError > translationalEncoderTolerance * translationalEncoderTolerance);
         switchToManualPositionMode();
-        setRobotTranslationalMotion(0, 0);
+        setTranslationalMotion(0, 0);
 
         setAutoMode(false);
         return true;

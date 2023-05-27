@@ -225,9 +225,9 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
         if (pilotOnControl) {
             chassisDriver.pilotInterruption();
             System.out.println("set motion:" + xAxleMotion + "," + yAxleMotion);
-            chassisDriver.setRobotTranslationalMotion(xAxleMotion, yAxleMotion);
+            chassisDriver.setTranslationalMotion(xAxleMotion, yAxleMotion);
         }
-        else if (!chassisDriver.isRASActivated()) chassisDriver.setRobotTranslationalMotion(0, 0);
+        else if (!chassisDriver.isRASActivated()) chassisDriver.setTranslationalMotion(0, 0);
 
         chassisDriver.sendCommandsToMotors();
 

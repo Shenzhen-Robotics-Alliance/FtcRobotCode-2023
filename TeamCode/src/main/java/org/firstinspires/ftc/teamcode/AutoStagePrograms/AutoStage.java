@@ -14,16 +14,12 @@ import org.firstinspires.ftc.teamcode.Drivers.HardwareDriver;
 import org.firstinspires.ftc.teamcode.RobotModule;
 import org.firstinspires.ftc.teamcode.RobotModules.Arm;
 import org.firstinspires.ftc.teamcode.RobotModules.AutoStageArm;
-import org.firstinspires.ftc.teamcode.RobotModules.AutoStageRobotChassis;
-import org.firstinspires.ftc.teamcode.RobotModules.ComputerVisionFieldNavigation_v2;
 import org.firstinspires.ftc.teamcode.RobotModules.Mini1024EncoderReader;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotAuxiliarySystem;
 import org.firstinspires.ftc.teamcode.RobotModules.RobotPositionCalculator;
 import org.firstinspires.ftc.teamcode.Sensors.ColorDistanceSensor;
 
 import java.util.HashMap;
-
-import dalvik.system.DelegateLastClassLoader;
 
 /**
  * Copyright © 2023 SCCSC-Robotics-Club
@@ -136,25 +132,25 @@ abstract class AutoStage extends LinearOpMode {
 
         proceedAutoStageInstructions();
 
-        proceedGoParkingSpot();
+        // proceedGoParkingSpot();
 
-//        /** determine where to park */
-//        switch (parkingSectorNum) {
-//            case 1: {
-//                proceedGoToSector1();
-//                break;
-//            }
-//            case 2: {
-//                proceedGoToSector2();
-//                break;
-//            }
-//            case 3: {
-//                proceedGoToSector3();
-//                break;
-//            }
-//        }
+        /** determine where to park */
+        switch (parkingSectorNum) {
+            case 1: {
+                proceedGoToSector1();
+                break;
+            }
+            case 2: {
+                proceedGoToSector2();
+                break;
+            }
+            case 3: {
+                proceedGoToSector3();
+                break;
+            }
+        }
 
-        chassis.setRobotTranslationalMotion(0, 0); chassis.setRotationalMotion(0);
+        chassis.setTranslationalMotion(0, 0); chassis.setRotationalMotion(0);
         while (opModeIsActive() && !isStopRequested()) {
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();
@@ -231,11 +227,11 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToPosition(-11500, 14500, 0);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-11500, 30000, 0);
+        chassis.goToPosition(-11500, 29800, 0);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
-        chassis.goToPosition(13000, 30000, -90);
+        chassis.goToPosition(12800, 29800, -90);
 
         /* grab the second sleeve from sleeves stack */
 //        if (!grabSleeveFromSleevesStack()) {
@@ -244,32 +240,31 @@ abstract class AutoStage extends LinearOpMode {
 //            return;
 //        }
         arm.levelArmToSleevesStack();
-        chassis.goToPosition(13800, 30000, -90);
+        // chassis.goToPosition(14700, 29850, -90);
+        if (reflected) robotAuxiliarySystem.proceedGoToSleevesStack(90);
+        else robotAuxiliarySystem.proceedGoToSleevesStack((-90));
         arm.liftFromSleevesStack();
 
         /* go to the left-front (or right-front according to the robot now) side of the highest tower */
-        chassis.goToPosition(-25000, 30000, -90);
+        chassis.goToPosition(-25000, 29800, -90);
 
         /* raise the arm and score sleeve */
         arm.goToHighestTower();
         if (reflected) aimAndScore(1);
         else aimAndScore(2);
 
-        /* go back to the center of the field */
-        chassis.goToPosition(-11500, 30000, 0);
-//
-//        /* go back to the center of the grid */
-//        chassis.goToPosition(-25000, 29700);
-//        chassis.goToRotation(-90);
-//
-//        /* move to beside the sleeves stack */
-//        chassis.goToPosition(2000, 29700, -90);
-//
-//        /* grab the third sleeve from the stack */
-//        grabSleeveFromSleevesStack();
-//
-//        /* go to the center of the second grid */
-//        chassis.goToRotation(0);
+        /* go back to the center of the grid */
+        chassis.goToPosition(-25000, 29800, -90);
+
+        /* move to beside the sleeves stack */
+        chassis.goToPosition(12800, 29800, -90);
+
+        /* grab the third sleeve from the stack */
+        arm.levelArmToSleevesStack();
+        // chassis.goToPosition(14700, 29850, -90);
+        if (reflected) robotAuxiliarySystem.proceedGoToSleevesStack(90);
+        else robotAuxiliarySystem.proceedGoToSleevesStack((-90));
+        arm.liftFromSleevesStack();
     }
 
     /**

@@ -33,7 +33,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 35;
+    private static final double highTowerDroppingSpot = 37;
     /** the best dropping spot for the mid tower, in cm */
     private static final double midTowerDroppingSpot = 32; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
@@ -42,7 +42,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 42.5};
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
-    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-3);
+    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-2);
     /** when approaching as rotating to the right */
     private static final double aimCenterToDropCenterAngleRight = Math.toRadians(7.5);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
@@ -50,11 +50,11 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 6280 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6260 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.35; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
-    private static final double autoStageConeSearchRange = 3000;
+    private static final double autoStageConeSearchRange = 2600;
     private static final double encoderValuePerColorDistanceSensorValue = 2000;
 
     private Arm arm;
@@ -263,9 +263,9 @@ public class RobotAuxiliarySystem extends RobotModule {
             }
 
             case 4: {
-                chassisDriver.setRobotTranslationalMotion(0, 0.35);
+                chassisDriver.setTranslationalMotion(0, 0.35);
                 if (colorDistanceSensor.getDistanceToTarget() <= 0.15) {
-                    chassisDriver.setRobotTranslationalMotion(0, 0);
+                    chassisDriver.setTranslationalMotion(0, 0);
                     arm.closeClaw();
                     statusCode = 0;
                 }
@@ -408,6 +408,33 @@ public class RobotAuxiliarySystem extends RobotModule {
         return proceedAimConeAutoStage(direction, Math.toRadians(degrees));
     }
 
+    /** go to the sleeves stack, which is at most 2000 encoder values away */
+    public boolean proceedGoToSleevesStack(double currentFacing) {
+        ElapsedTime timeUsed = new ElapsedTime(); timeUsed.reset();
+        double[] endingPosition = new double[2];
+        endingPosition[0] = positionCalculator.getRobotPosition()[0] + Math.cos(currentFacing + Math.PI / 2) * autoStageConeSearchRange;
+        endingPosition[1] = positionCalculator.getRobotPosition()[1] + Math.sin(currentFacing + Math.PI / 2) * autoStageConeSearchRange;
+        chassisDriver.setTargetedTranslation_fixedRotation(endingPosition[0], endingPosition[1], currentFacing);
+        while (colorDistanceSensor.getDistanceToTarget() > positionCloseClaw) {
+            if (timeUsed.seconds() > 1) return false;
+
+            positionCalculator.forceUpdateEncoderValue();
+            positionCalculator.periodic();
+            chassisDriver.sendCommandsToMotors();
+
+            double xError = positionCalculator.getRobotPosition()[0] - endingPosition[0];
+            double yError = positionCalculator.getRobotPosition()[1] - endingPosition[1];
+
+            if (xError * xError + yError * yError < 350 * 350) return false;
+        }
+        chassisDriver.setRotationalMotion(0); chassisDriver.setTranslationalMotion(0, 0);
+        return true;
+    }
+
+    public boolean proceedGoToSleevesStack(int degrees) {
+        return proceedGoToSleevesStack(Math.toRadians(degrees));
+    }
+
     public void autoClaw() {
         if (colorDistanceSensor.targetInRange() && colorDistanceSensor.getDistanceToTarget() <= positionCloseClaw) arm.closeClaw();
     }
@@ -489,7 +516,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
                 /* if the robot reached the tower */
                 chassisDriver.setRotationalMotion(0);
-                chassisDriver.setRobotTranslationalMotion(0, 0);
+                chassisDriver.setTranslationalMotion(0, 0);
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
@@ -571,7 +598,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
                 if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
                 /* if the robot reached the tower */
-                chassisDriver.setRobotTranslationalMotion(0, 0);
+                chassisDriver.setTranslationalMotion(0, 0);
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
