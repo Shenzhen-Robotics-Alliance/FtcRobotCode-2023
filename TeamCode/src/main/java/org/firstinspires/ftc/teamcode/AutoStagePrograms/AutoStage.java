@@ -132,21 +132,23 @@ abstract class AutoStage extends LinearOpMode {
 
         proceedAutoStageInstructions();
 
-        /** determine where to park */
-        switch (parkingSectorNum) {
-            case 1: {
-                proceedGoToSector1();
-                break;
-            }
-            case 2: {
-                proceedGoToSector2();
-                break;
-            }
-            case 3: {
-                proceedGoToSector3();
-                break;
-            }
-        }
+        proceedGoParkingSpot();
+
+//        /** determine where to park */
+//        switch (parkingSectorNum) {
+//            case 1: {
+//                proceedGoToSector1();
+//                break;
+//            }
+//            case 2: {
+//                proceedGoToSector2();
+//                break;
+//            }
+//            case 3: {
+//                proceedGoToSector3();
+//                break;
+//            }
+//        }
 
         chassis.setRobotTranslationalMotion(0, 0); chassis.setRotationalMotion(0);
         while (opModeIsActive() && !isStopRequested()) {
@@ -216,18 +218,24 @@ abstract class AutoStage extends LinearOpMode {
         arm.goToHighestTower();
         aimAndScore(1);
 
-        /* move back to the center of the grid */
+        /* go back to the center of the grid */
         chassis.goToPosition(-11500, 14500, 0);
+        /* go back to the parking spot */
+        proceedGoParkingSpot();
 
-        /* move to the grid ahead */
-        chassis.goToPosition(-11500, 29700, 0);
-
-        /* turn to face the sleeves and move to beside them */
-        chassis.goToRotation(-90);
-        chassis.goToPosition(12250, 29700, -90);
-
-        /* grab the second sleeve from sleeves stack */
-        grabSleeveFromSleevesStack();
+//
+//        /* move back to the center of the grid */
+//        chassis.goToPosition(-11500, 14500, 0);
+//
+//        /* move to the grid ahead */
+//        chassis.goToPosition(-11500, 29700, 0);
+//
+//        /* turn to face the sleeves and move to beside them */
+//        chassis.goToRotation(-90);
+//        chassis.goToPosition(12250, 29700, -90);
+//
+//        /* grab the second sleeve from sleeves stack */
+//        grabSleeveFromSleevesStack();
 
 //        /* go to the left-front (or right-front according to the robot now) side of the highest tower */
 //        chassis.goToPosition(-25000, 29700, -90);
@@ -303,6 +311,11 @@ abstract class AutoStage extends LinearOpMode {
      * go to sector 3 if the pilot asks to
      */
     private void proceedGoToSector3() {
-        chassis.goToPosition(-13000, 29500);
+        chassis.goToPosition(13000, 29500);
+    }
+
+    private void proceedGoParkingSpot() {
+        chassis.goToPosition(-11500, 1000, 0);
+        chassis.goToPosition(16500, 1000, 0);
     }
 }

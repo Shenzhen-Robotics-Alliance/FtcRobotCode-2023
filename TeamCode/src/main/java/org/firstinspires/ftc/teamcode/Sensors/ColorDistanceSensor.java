@@ -19,11 +19,18 @@ public class ColorDistanceSensor {
     /** whether the sensor is looking for a blue or red sleeve, 1 for red and 0 for blue */
     private static int redOrBlueSleeves;
     /** the strength of the current environment light */
-    private static final int environmentLuminosity = 25;
+    private static final int environmentLuminosityRed = 45;
     /** the minimum amount of extra light(in comparison to the environment light) for the sensor to think that it detected an object */
-    private static final int minActivateLuminosity = 10;
+    private static final int minActivateLuminosityRed = 40;
     /** the  amount of extra light received(in comparison to the environment light) for the sensor to think that the object is close enough for capturing */
-    private static final int startCaptureLuminosity = 300;
+    private static final int startCaptureLuminosityRed = 180;
+
+    /** the strength of the current environment light */
+    private static final int environmentLuminosityBlue = 60;
+    /** the minimum amount of extra light(in comparison to the environment light) for the sensor to think that it detected an object */
+    private static final int minActivateLuminosityBlue = 40;
+    /** the  amount of extra light received(in comparison to the environment light) for the sensor to think that the object is close enough for capturing */
+    private static final int startCaptureLuminosityBlue = 80;
 
     /** the color sensor located in the front of the robot's claw */
     private static ColorSensor colorSensor;
@@ -66,13 +73,25 @@ public class ColorDistanceSensor {
     }
 
     private void updateSensorReading() {
+        double minActivateLuminosity, environmentLuminosity;
         /* get the raw sensor reading */
         int sensorReading;
-        if (redOrBlueSleeves == 1) sensorReading = colorSensor.red();
-        else sensorReading = colorSensor.blue();
+        if (redOrBlueSleeves == 1) {
+            minActivateLuminosity = minActivateLuminosityRed;
+            environmentLuminosity = environmentLuminosityRed;
+            sensorReading = colorSensor.red();
+        }
+        else {
+            minActivateLuminosity = minActivateLuminosityBlue;
+            environmentLuminosity = environmentLuminosityBlue;
+            sensorReading = colorSensor.blue();
+        }
 
-        targetInRange = sensorReading > minActivateLuminosity+environmentLuminosity;
-        if (!targetInRange) return;
+        targetInRange = sensorReading > minActivateLuminosity + environmentLuminosity;
+        if (!targetInRange) {
+            distanceToTarget = Float.POSITIVE_INFINITY;
+            return;
+        }
 
         distanceToTarget = linearMap(sensorReading);
     }
@@ -82,8 +101,16 @@ public class ColorDistanceSensor {
      * @return the distance value, 0 is the best position to grab, and 1 is the maximum distance
      * */
     private static double linearMap(int sensorReading) {
+        double startCaptureLuminosity, minActivateLuminosity;
+        if (redOrBlueSleeves == 1) {
+            startCaptureLuminosity = startCaptureLuminosityRed;
+            minActivateLuminosity = minActivateLuminosityRed;
+        } else {
+            startCaptureLuminosity = startCaptureLuminosityBlue;
+            minActivateLuminosity = minActivateLuminosityBlue;
+        }
         double distanceUnitPerLuminosity = 1 / (double) (startCaptureLuminosity - minActivateLuminosity);
         return 1 -
-                distanceUnitPerLuminosity * (sensorReading-minActivateLuminosity);
+                distanceUnitPerLuminosity * (sensorReading- minActivateLuminosity);
     }
 }

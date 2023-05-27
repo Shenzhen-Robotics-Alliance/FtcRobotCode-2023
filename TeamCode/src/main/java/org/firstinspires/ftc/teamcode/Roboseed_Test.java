@@ -109,7 +109,7 @@ public class Roboseed_Test extends LinearOpMode {
 
 
         /** the RAS */
-        ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 1);
+        ColorDistanceSensor color = new ColorDistanceSensor(hardwareMap, 2);
         DistanceSensor distance = hardwareMap.get(DistanceSensor.class, "distance");
         ChassisDriver chassisDriver = new ChassisDriver(hardwareDriver, positionCalculator);
         ColorSensor sensor = hardwareMap.get(ColorSensor.class, "color");
@@ -126,9 +126,9 @@ public class Roboseed_Test extends LinearOpMode {
         waitForStart();
         ElapsedTime dt = new ElapsedTime();
 
-        arm.openClaw();
+        // arm.openClaw();
         Thread.sleep(300);
-        robotAuxiliarySystem.proceedAimConeAutoStage(1);
+        // robotAuxiliarySystem.proceedAimConeAutoStage(1);
 
         while (opModeIsActive() && !isStopRequested()) {
             // telemetry.addData("sensor reading:", robotAuxiliarySystem.tofDistanceSensorReading);
@@ -147,7 +147,8 @@ public class Roboseed_Test extends LinearOpMode {
             // telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
             telemetry.addData("position:", String.format("%.2f",positionCalculator.getRobotPosition()[0]) + "," + String.format("%.2f",positionCalculator.getRobotPosition()[1]));
             telemetry.addData("rotation:", Math.toDegrees(positionCalculator.getRobotRotation()));
-            telemetry.addData("color sensor in range:", hardwareMap.get(ColorSensor.class, "color").red());
+            telemetry.addData("color sensor reading:", color.getDistanceToTarget());
+            telemetry.addData("color sensor reading(raw)", hardwareMap.get(ColorSensor.class, "color").blue());
             telemetry.update();
         }
     }
