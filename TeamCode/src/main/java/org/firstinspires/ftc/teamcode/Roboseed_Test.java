@@ -147,7 +147,7 @@ public class Roboseed_Test extends LinearOpMode {
             // telemetry.addData("distance sensor result: ", distance.getDistance(DistanceUnit.CM));
             telemetry.addData("position:", String.format("%.2f",positionCalculator.getRobotPosition()[0]) + "," + String.format("%.2f",positionCalculator.getRobotPosition()[1]));
             telemetry.addData("rotation:", Math.toDegrees(positionCalculator.getRobotRotation()));
-            telemetry.addData("color sensor in range:", color.targetInRange());
+            telemetry.addData("color sensor in range:", hardwareMap.get(ColorSensor.class, "color").red());
             telemetry.update();
         }
     }
