@@ -43,6 +43,8 @@ import dalvik.system.DelegateLastClassLoader;
  * @Version v0.2.0
  */
 abstract class AutoStage extends LinearOpMode {
+    private static final boolean reflected = true; // true for left side
+
     private ElapsedTime elapsedTime = new ElapsedTime();
 
     private HardwareDriver hardwareDriver = new HardwareDriver();
@@ -123,6 +125,8 @@ abstract class AutoStage extends LinearOpMode {
 
         /* determines where to park */
         this.parkingSectorNum = determineParkingSector();
+
+        chassis.setXAxleFlipped(reflected); // send this information to chassis
 
         waitForStart();
 
@@ -216,7 +220,8 @@ abstract class AutoStage extends LinearOpMode {
 
         /* raise the arm and score goal */
         arm.goToHighestTower();
-        aimAndScore(1);
+        if (reflected) aimAndScore(2);
+        else aimAndScore(1);
 
         /* go back to the center of the grid */
         chassis.goToPosition(-11500, 14500, 0);
@@ -244,7 +249,8 @@ abstract class AutoStage extends LinearOpMode {
 
         /* raise the arm and score sleeve */
         arm.goToHighestTower();
-        aimAndScore(2);
+        if (reflected) aimAndScore(1);
+        else aimAndScore(2);
 
         /* go back to the center of the field */
         chassis.goToPosition(-11500, 30000, 0);
