@@ -33,7 +33,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 41.5;
+    private static final double highTowerDroppingSpot = 39;
     /** the best dropping spot for the mid tower, in cm */
     private static final double midTowerDroppingSpot = 36.5; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
@@ -50,7 +50,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 7550 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 7360 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.35; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
