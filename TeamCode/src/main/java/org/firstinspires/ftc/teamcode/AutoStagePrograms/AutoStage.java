@@ -43,7 +43,7 @@ import dalvik.system.DelegateLastClassLoader;
  * @Version v0.2.0
  */
 abstract class AutoStage extends LinearOpMode {
-    private static final boolean reflected = true; // true for left side
+    private static final boolean reflected = false; // true for left side
 
     private ElapsedTime elapsedTime = new ElapsedTime();
 

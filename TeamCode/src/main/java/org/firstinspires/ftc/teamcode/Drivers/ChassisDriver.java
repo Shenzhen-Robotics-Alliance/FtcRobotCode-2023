@@ -14,9 +14,9 @@ public class ChassisDriver {
     private static final double velocityDebugTimeRotationStationary = 0.05;
 
     private static final double maxRotatingPowerInMotion = 0.4;
-    private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(25);
+    private static final double rotationDifferenceStartDecelerateInMotion = Math.toRadians(15);
     private static final double motorPowerPerRotationDifferenceInMotion = -(maxRotatingPowerInMotion / rotationDifferenceStartDecelerateInMotion);
-    private static final double velocityDebugTimeRotationInMotion = 0.03;
+    private static final double velocityDebugTimeRotationInMotion = 0.06;
 
     private final double integralCoefficientRotationStationary = 0 * motorPowerPerRotationDifferenceStationary;
     private final double rotationalTolerance = Math.toRadians(3.5);
@@ -113,7 +113,7 @@ public class ChassisDriver {
     public void pilotInterruption() {
         RASActivation = false;
         aimProcessInterrupted = true;
-        switchToManualPositionMode(); switchToManualRotationMode();
+        switchToManualPositionMode();
     }
 
     public boolean isAimProcessInterrupted() { return aimProcessInterrupted; }
@@ -153,12 +153,13 @@ public class ChassisDriver {
             motorPowerPerRotationDifference = motorPowerPerRotationDifferenceStationary;
             maxPower = maxRotatingPowerStationary;
             integralCoefficient = integralCoefficientRotationStationary;
-        } else {
+        } else { // rotation correction during manual
             velocityDebugTime = velocityDebugTimeRotationInMotion;
             motorPowerPerRotationDifference = motorPowerPerRotationDifferenceInMotion;
             maxPower = maxRotatingPowerInMotion;
             integralCoefficient = 0;
         }
+        System.out.println("rotation correction in progress");
 
         double currentRotation = this.positionCalculator.getRobotRotation();
         /* according to the angular velocity, predict the future rotation of the robot after velocity debug time */
