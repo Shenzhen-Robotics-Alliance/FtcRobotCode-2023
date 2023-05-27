@@ -44,7 +44,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
     private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-2);
     /** when approaching as rotating to the right */
-    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(7.5);
+    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(8);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
     private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(0);
     /** when approaching as rotating to the right at high speed*/
@@ -53,8 +53,8 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double encoderValuePerCM = 6260 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
-    private static final double positionCloseClaw = 0.35; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
-    private static final double autoStageConeSearchRange = 2600;
+    private static final double positionCloseClaw = 0.3; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
+    private static final double autoStageConeSearchRange = 2800;
     private static final double encoderValuePerColorDistanceSensorValue = 2000;
 
     private Arm arm;
@@ -416,7 +416,8 @@ public class RobotAuxiliarySystem extends RobotModule {
         endingPosition[1] = positionCalculator.getRobotPosition()[1] + Math.sin(currentFacing + Math.PI / 2) * autoStageConeSearchRange;
         chassisDriver.setTargetedTranslation_fixedRotation(endingPosition[0], endingPosition[1], currentFacing);
         while (colorDistanceSensor.getDistanceToTarget() > positionCloseClaw) {
-            if (timeUsed.seconds() > 1) return false;
+            if (timeUsed.seconds() > 1.5) return false;
+            System.out.println("time used:" + timeUsed.seconds());
 
             positionCalculator.forceUpdateEncoderValue();
             positionCalculator.periodic();

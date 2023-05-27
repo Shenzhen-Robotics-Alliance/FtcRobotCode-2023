@@ -595,7 +595,6 @@ public class Arm extends RobotModule {
         claw = false;
         hardwareDriver.claw.setPosition(0.45); // open grabber
         armIsBusy = false;
-
         lastOpenTime.reset();
     }
     /**

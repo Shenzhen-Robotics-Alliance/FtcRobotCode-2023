@@ -45,10 +45,11 @@ public class AutoStageArm {
         while (armModule.getArmStatusCode() > 0) armModule.periodic();
     }
 
-    public void liftFromSleevesStack() {
+    public void liftFromSleevesStack() throws InterruptedException {
         armModule.closeClaw();
-        while (armModule.getArmStatusCode() > 0) armModule.periodic();
+        Thread.sleep(300);
         armModule.toLowArmPosition();
+        while (armModule.getArmStatusCode() > 0) armModule.periodic();
     }
 
     public boolean getClaw() { return armModule.getClaw(); }
