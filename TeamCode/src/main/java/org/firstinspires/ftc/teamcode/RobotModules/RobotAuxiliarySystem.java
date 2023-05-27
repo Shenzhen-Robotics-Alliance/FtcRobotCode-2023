@@ -33,9 +33,9 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 35.5;
+    private static final double highTowerDroppingSpot = 35;
     /** the best dropping spot for the mid tower, in cm */
-    private static final double midTowerDroppingSpot = 33; // the arm is farther away when reaching for middle
+    private static final double midTowerDroppingSpot = 32; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
     private static final double lowTowerDroppingSpot = 35; // TODO find this value
     private static final double[] droppingSpotList = {0, lowTowerDroppingSpot, midTowerDroppingSpot, highTowerDroppingSpot};
@@ -44,13 +44,13 @@ public class RobotAuxiliarySystem extends RobotModule {
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
     private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-3);
     /** when approaching as rotating to the right */
-    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(11);
+    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(7.5);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
     private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(0);
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 6300 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6280 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.35; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
@@ -493,7 +493,7 @@ public class RobotAuxiliarySystem extends RobotModule {
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
-                while (descendTime.milliseconds() < 1000 && arm.getArmStatusCode() != 0) {
+                while ((descendTime.milliseconds() < 1000 && arm.getArmStatusCode() != 0) || (20 < towerDistance && towerDistance < 36)) {
                     arm.periodic();
                     positionCalculator.forceUpdateEncoderValue();
                     positionCalculator.periodic();
