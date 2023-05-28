@@ -39,7 +39,7 @@ import java.util.HashMap;
  * @Version v0.2.0
  */
 abstract class AutoStage extends LinearOpMode {
-    private static final boolean reflected = true; // true for left side
+    private static final boolean reflected = false; // true for left side
 
     private ElapsedTime elapsedTime = new ElapsedTime();
 
@@ -209,10 +209,10 @@ abstract class AutoStage extends LinearOpMode {
         chassis.goToPosition(0, 1000, 0);
 
         /* move to center the grid on the left */
-        chassis.goToPosition(-11000, 1000, 0);
+        chassis.goToPosition(-11500, 1000, 0);
 
         /* go to the center of the grid ahead */
-        chassis.goToPosition(-11000, 14500, 0); // TODO measure the y-axis
+        chassis.goToPosition(-11500, 14500, 0); // TODO measure the y-axis
 
         /* raise the arm and score goal */
         arm.goToHighestTower();
@@ -220,14 +220,14 @@ abstract class AutoStage extends LinearOpMode {
         else aimAndScore(1);
 
         /* go back to the center of the grid */
-        chassis.goToPosition(-11000, 14500, 0);
+        chassis.goToPosition(-11500, 14500, 0);
 
 
         /* move back to the center of the grid */
-        chassis.goToPosition(-11000, 14500, 0);
+        chassis.goToPosition(-11500, 14500, 0);
 
         /* move to the grid ahead */
-        chassis.goToPosition(-11000, 29000, 0);
+        chassis.goToPosition(-11500, 29000, 0);
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
@@ -246,15 +246,15 @@ abstract class AutoStage extends LinearOpMode {
         arm.liftFromSleevesStack();
 
         /* go to the left-front (or right-front according to the robot now) side of the highest tower */
-        chassis.goToPosition(-25000, 29000, -90);
+        chassis.goToPosition(-13000, 29000, -90);
 
         /* raise the arm and score sleeve */
         arm.goToHighestTower();
-        if (reflected) aimAndScore(1);
-        else aimAndScore(2);
+        if (reflected) aimAndScore(2);
+        else aimAndScore(1);
 
         /* go back to the center of the grid */
-        chassis.goToPosition(-25000, 27000, -90);
+        chassis.goToPosition(-13000, 27000, -90);
 
         /* move to beside the sleeves stack */
         chassis.goToPosition(12800, 27000, -90);

@@ -174,8 +174,8 @@ public class PilotChassis extends RobotModule { // controls the moving of the ro
             rotationalAttempt = Math.copySign(rotationalAttempt * rotationalAttempt, rotationalAttempt);
         }
 
-        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.9;
-        rotationalAttempt *= 0.8;
+        if (slowMotionModeActivationSwitch) rotationalAttempt *= 0.93;
+        rotationalAttempt *= 0.75;
         // targetedRotation -= rotationalAttempt * dt.seconds() * maxAngularVelocity;
 
         boolean movement = xAxleMotion != 0 | yAxleMotion != 0;

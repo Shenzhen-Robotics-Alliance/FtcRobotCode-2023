@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.RobotModules;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 /**
  * the program that connects to the arm module to control the arm during auto stage
  *
@@ -49,7 +51,8 @@ public class AutoStageArm {
         armModule.closeClaw();
         Thread.sleep(300);
         armModule.toLowArmPosition();
-        while (armModule.getArmStatusCode() > 0) armModule.periodic();
+        ElapsedTime timeUsed = new ElapsedTime(); timeUsed.reset();
+        while (armModule.getArmStatusCode() > 0 && timeUsed.seconds() < 0.5) armModule.periodic();
     }
 
     public boolean getClaw() { return armModule.getClaw(); }

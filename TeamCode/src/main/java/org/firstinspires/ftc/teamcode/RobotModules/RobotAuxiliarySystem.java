@@ -33,7 +33,7 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] searchRangeList = {0, lowTowerSearchRange, midTowerSearchRange, highTowerSearchRange};
 
     /** the best dropping spot for the high tower, in cm */
-    private static final double highTowerDroppingSpot = 38;
+    private static final double highTowerDroppingSpot = 37;
     /** the best dropping spot for the mid tower, in cm */
     private static final double midTowerDroppingSpot = 32; // the arm is farther away when reaching for middle
     /** the best dropping spot for the low tower, in cm */
@@ -42,15 +42,15 @@ public class RobotAuxiliarySystem extends RobotModule {
     private static final double[] droppingSpotListEdge = {0, lowTowerDroppingSpot, midTowerDroppingSpot, 42.5};
 
     /** the angle between the sensor's aim center and the center of the arm, when approaching it from the left side */
-    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-5);
+    private static final double aimCenterToDropCenterAngleLeft = Math.toRadians(-4);
     /** when approaching as rotating to the right */
-    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(8);
+    private static final double aimCenterToDropCenterAngleRight = Math.toRadians(9);
     /** when doing high-speed aim, which is to say, measure the rotation of one edge of the tower */
     private static final double aimEdgeToDropCenterAngleLeft = Math.toRadians(0);
     /** when approaching as rotating to the right at high speed*/
     private static final double aimEdgeToDropCenterAngleRight = Math.toRadians(0);
 
-    private static final double encoderValuePerCM = 6320 / 30; // measured that 6000 encoder values where increased for a 30cm of move
+    private static final double encoderValuePerCM = 6340 / 30; // measured that 6000 encoder values where increased for a 30cm of move
     private static final double encoderValuePerCMFastAim = 6540 / 30;
 
     private static final double positionCloseClaw = 0.3; // the distance, in color sensor distance unit, to the cone, for the robot to close its claw
@@ -514,14 +514,14 @@ public class RobotAuxiliarySystem extends RobotModule {
                 chassisDriver.sendCommandsToMotors();
                 double xAxisDifference = positionCalculator.getRobotPosition()[0] - towerPosition[0];
                 double yAxisDifference = positionCalculator.getRobotPosition()[1] - towerPosition[1];
-                if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance) break; // keep waiting
+                if (xAxisDifference * xAxisDifference + yAxisDifference * yAxisDifference > encoderErrorTolerance * encoderErrorTolerance && (20 < towerDistance || towerDistance > 34)) break; // keep waiting, unless the distance sensor says to drop or reached target
                 /* if the robot reached the tower */
                 chassisDriver.setRotationalMotion(0);
                 chassisDriver.setTranslationalMotion(0, 0);
                 chassisDriver.sendCommandsToMotors();
                 arm.lowerArm();
                 ElapsedTime descendTime = new ElapsedTime();
-                while ((descendTime.milliseconds() < 1000 && arm.getArmStatusCode() != 0) || (20 < towerDistance && towerDistance < 36)) {
+                while ((descendTime.milliseconds() < 1000 && arm.getArmStatusCode() != 0)) {
                     arm.periodic();
                     positionCalculator.forceUpdateEncoderValue();
                     positionCalculator.periodic();
