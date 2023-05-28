@@ -231,7 +231,7 @@ abstract class AutoStage extends LinearOpMode {
 
         /* turn to face the sleeves and move to beside them */
         chassis.goToRotation(-90);
-        chassis.goToPosition(13000, 29000, -90);
+        chassis.goToPosition(13800, 29000, -90);
 
         /* grab the second sleeve from sleeves stack */
 //        if (!grabSleeveFromSleevesStack()) {
@@ -254,10 +254,10 @@ abstract class AutoStage extends LinearOpMode {
         else aimAndScore(2);
 
         /* go back to the center of the grid */
-        chassis.goToPosition(-25000, 28000, -90);
+        chassis.goToPosition(-25000, 27000, -90);
 
         /* move to beside the sleeves stack */
-        chassis.goToPosition(12800, 28000, -90);
+        chassis.goToPosition(12800, 27000, -90);
 
         /* grab the third sleeve from the stack */
         arm.levelArmToSleevesStack();
